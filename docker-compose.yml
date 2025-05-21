@@ -12,6 +12,19 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
+  app:
+    build:
+      context: ./cake-quake-back
+      dockerfile: Dockerfile
+    container_name: cq-app
+    env_file:
+      - .env             # DB_PORT, DB_USER, DB_PASS, DB_NAME 만 담겨 있다면 OK
+    environment:
+      DB_HOST: postgres  # ★ 이 한 줄이 컨테이너 안에서 postgres 호스트로 연결하게 해 줍니다
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
 
 volumes:
   pgdata:
