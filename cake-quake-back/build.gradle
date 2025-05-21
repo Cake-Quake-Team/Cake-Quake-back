@@ -24,17 +24,44 @@ repositories {
 }
 
 dependencies {
+	// JPA 사용을 위한 Spring Data
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// Spring Security (인증·인가)
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	// 요청 파라미터·DTO 검증 어노테이션(@Valid 등)
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	// REST/API 개발을 위한 Spring MVC
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// Lombok: Getter/Setter, 생성자 자동 생성
 	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'org.postgresql:postgresql'
-	runtimeOnly 'com.h2database:h2'      // ← 인메모리 테스트용 DB
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// 개발 편의를 위한 DevTools (핫리로드)
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// 프로덕션용 PostgreSQL JDBC 드라이버
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// 테스트 프레임워크 (JUnit5, Spring Test 등)
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// Spring Security 테스트 헬퍼
 	testImplementation 'org.springframework.security:spring-security-test'
+	// JUnit 플랫폼 런처 (테스트 실행)
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// 테스트 코드에서도 Lombok 어노테이션 사용
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+
+	// QueryDSL JPA (타입 세이프한 쿼리 작성)
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	// QueryDSL APT(Annotation Processing Tool) 설정
+	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+	// Jakarta 어노테이션 API
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	// Jakarta Persistence API
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 }
 
 tasks.named('test') {
