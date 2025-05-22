@@ -6,13 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Builder
 @Entity
@@ -49,12 +43,4 @@ public class Member {
 
     @Column(nullable = false, unique = true)
     private String phoneNumber;
-
-    @CreatedDate
-    @Column(name = "regdate", nullable = false, updatable = false)
-    private LocalDateTime regDate;
-
-    @LastModifiedDate
-    @Column(name = "moddate" ,nullable = false)
-    private LocalDateTime modDate;
 }
