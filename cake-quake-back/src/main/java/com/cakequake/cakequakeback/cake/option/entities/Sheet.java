@@ -30,11 +30,17 @@ public class Sheet {
     @Column(name = "value", nullable = false)
     private String value;       // 예 : 하트, 1호, 2단 등
 
+    @Builder.Default
     @Column(name = "price", nullable = false)
-    private int price;
+    private int price = 0;
 
+    @Builder.Default
     @Column(name = "letteringLimit", nullable = false)
-    private int letteringLimit;
+    private int letteringLimit = 0;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isUsed = true;
 
     //@ManyToOne(fetch = FetchType.LAZY)
     //@JoinColumn(name = "shopId", nullable = false)

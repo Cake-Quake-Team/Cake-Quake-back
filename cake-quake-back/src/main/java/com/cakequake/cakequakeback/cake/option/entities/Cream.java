@@ -30,8 +30,13 @@ public class Cream {
     @Column(name = "flavor", nullable = false)
     private String flavor;           // 생크림, 초코크림, 딸기크림
 
+    @Builder.Default
     @Column(name = "price", nullable = false)
-    private int price;
+    private int price = 0;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isUsed = true;
 
     //@ManyToOne(fetch = FetchType.LAZY)
     //@JoinColumn(name = "shopId", nullable = false)

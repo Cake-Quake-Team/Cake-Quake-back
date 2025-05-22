@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.item.entities;
 
+import com.cakequake.cakequakeback.cake.item.CakeCategory;
 import com.cakequake.cakequakeback.cake.option.entities.Cream;
 import com.cakequake.cakequakeback.cake.option.entities.Extra;
 import com.cakequake.cakequakeback.cake.option.entities.Sheet;
@@ -25,21 +26,35 @@ public class CakeItem {
     )
     private Long cakeId;
 
+    @Column(nullable = false)
     private String cname;                   // 하트 초코 케이크, 딸기 생크림 케이크
 
     private String description;
 
+    @Column(nullable = false)
     private String thumbnailImageUrl;
 
-    private Boolean isOnsale;               // 판매여부
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isOnsale = false;       // 삭제여부
 
-    private Boolean isDeleted;              // 삭제여부
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isDeleted = false;      // 삭제여부
 
+    @Column(nullable = false)
     private int price;
 
-    private int viewCount;                  // 조회수
+    @Builder.Default
+    @Column(nullable = false)
+    private int viewCount = 0;               // 조회수
 
-    private int orderCount;                 // 주문수
+    @Builder.Default
+    @Column(nullable = false)
+    private int orderCount = 0;              // 주문수
+
+    @Enumerated(EnumType.STRING)
+    private CakeCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sheetId", nullable = false)
