@@ -25,6 +25,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        id:
+          new_generator_mappings: true
   sql:
     init:
       mode: never
