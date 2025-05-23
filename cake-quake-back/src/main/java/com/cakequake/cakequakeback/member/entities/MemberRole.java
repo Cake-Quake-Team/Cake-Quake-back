@@ -1,7 +1,7 @@
-//package com.cakequake.cakequakeback.member.entities;
-//
-//public class MemberRole {
-//    BUYER,
-//    SELLER,
-//    ADMIN
-//}
+package com.cakequake.cakequakeback.member.entities;
+
+public enum MemberRole {
+    BUYER,
+    SELLER,
+    ADMIN
+}

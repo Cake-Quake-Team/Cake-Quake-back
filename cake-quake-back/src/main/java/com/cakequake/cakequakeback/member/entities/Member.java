@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
 @Builder
 @Entity
 @Table( name = "users")
@@ -34,13 +33,35 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-//    @ElementCollection(fetch = FetchType.LAZY)
-//    @Builder.Default
-//    private Set<MemberRole> roleSet = new HashSet<>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MemberRole role;
+
+    @Column(unique = true)
+    private String socialId;    // 소셜에서 제공한 고유 ID
+
+    @Enumerated(EnumType.STRING)
+    private SocialType socialType;  // GOOGLE, KAKAO 등
 
     @Column(nullable = false)
     private Boolean alarm = true;
 
     @Column(nullable = false, unique = true)
     private String phoneNumber;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private MemberDetail memberDetail;
+
+    public void setRole(MemberRole role) {
+        this.role = role;
+    }
+
+//    @CreatedDate
+//    @Column(name = "regdate", nullable = false, updatable = false)
+//    private LocalDateTime regDate;
+//
+//    @LastModifiedDate
+//    @Column(name = "moddate" ,nullable = false)
+//    private LocalDateTime modDate;
+
 }
