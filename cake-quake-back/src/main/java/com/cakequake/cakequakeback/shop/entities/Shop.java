@@ -86,10 +86,6 @@ public class Shop {
 
 
 
-    public enum ShopStatus {
-        ACTIVE, INACTIVE
-    }
-
 
 
 
