@@ -84,15 +84,6 @@ public class Shop {
     @Column(precision = 9,scale = 6)
     private BigDecimal lng;
 
-    //매장 스케줄과 연관관계
-    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ShopSchedule> schedules =new ArrayList<>();
-
-    //매장 이미지와 연관관계
-    @OneToMany(mappedBy = "shop",cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ShopImage> shopImages =new ArrayList<>();
-
-
 
     public enum ShopStatus {
         ACTIVE, INACTIVE
