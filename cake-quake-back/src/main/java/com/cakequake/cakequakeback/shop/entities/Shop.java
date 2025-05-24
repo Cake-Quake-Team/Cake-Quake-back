@@ -45,9 +45,6 @@ public class Shop {
     private String shopName; // 매장 이름
 
     @Column(nullable = false)
-    private String category;
-
-    @Column(nullable = false)
     private String address;
 
     @Column(nullable = false)
