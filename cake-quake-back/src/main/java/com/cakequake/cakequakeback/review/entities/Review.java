@@ -1,6 +1,8 @@
 package com.cakequake.cakequakeback.review.entities;
 
+import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.shop.entities.Shop;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -25,8 +27,7 @@ public class Review {
             initialValue = 1,
             allocationSize = 5
     )
-    @Column(name = "reviewId")
-    private Long Id;
+    private Long reviewId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)
@@ -37,16 +38,16 @@ public class Review {
 //    @JoinColumn(name = "orderId",nullable = false)
 //    private Order order;
 
-//    //매장테이블과 연결
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "shopId", nullable = false)
-//    private Shop shop;
+    //매장테이블과 연결
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shopId", nullable = false)
+    private Shop shop;
 
 
-//    케이크(상품)테이블과 연결
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "cakeId", nullable = false)
-//    private Cake cake;
+    //케이크(상품)테이블과 연결
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cakeId", nullable = false)
+    private CakeItem cakeItem;
 
     //0~5까지의 값을 한정
     @Min(0)
