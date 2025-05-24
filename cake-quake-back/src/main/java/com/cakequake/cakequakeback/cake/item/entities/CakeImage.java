@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.item.entities;
 
+import com.cakequake.cakequakeback.member.entities.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,9 +25,18 @@ public class CakeImage {
     @Column(nullable = false)
     private String imageUrl;
 
-    private Boolean isThumbnail;
+    @Column(nullable = false)
+    private Boolean isThumbnail = false;        // 대표 이미지 여부
 
-     @ManyToOne(fetch = FetchType.LAZY)
-     @JoinColumn(name = "cakeId", nullable = false)
-     private CakeItem cakeItem;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cakeId", nullable = false)
+    private CakeItem cakeItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "createdBy", nullable = false)
+    private Member createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modifiedBy", nullable = false)
+    private Member modifiedBy;
 }
