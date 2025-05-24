@@ -1,12 +1,8 @@
 package com.cakequake.cakequakeback.cake.item.entities;
 
 import com.cakequake.cakequakeback.cake.item.CakeCategory;
-import com.cakequake.cakequakeback.cake.option.entities.Cream;
-import com.cakequake.cakequakeback.cake.option.entities.Extra;
-import com.cakequake.cakequakeback.cake.option.entities.Sheet;
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.Set;
 
 @Entity
 @Table(name = "cake_item")
@@ -56,21 +52,6 @@ public class CakeItem {
     @Enumerated(EnumType.STRING)
     private CakeCategory category;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sheetId", nullable = false)
-    private Sheet sheet;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "creamId", nullable = false)
-    private Cream cream;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "cake_item_extra",                           // 중간 테이블 명
-            joinColumns = @JoinColumn(name = "cakeId"),
-            inverseJoinColumns = @JoinColumn(name = "extraId")
-    )
-    private Set<Extra> extras;
 
     // @ManyToOne(fetch = FetchType.LAZY)
     // @JoinColumn(name = "shop_id", nullable = false)
