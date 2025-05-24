@@ -1,6 +1,7 @@
 package com.cakequake.cakequakeback.member.entities;
 
 
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Member {
+public class Member extends BaseEntity {
     @Id
     @GeneratedValue ( strategy = GenerationType.SEQUENCE, generator = "user_seq_gen")
     @SequenceGenerator(
@@ -55,13 +56,5 @@ public class Member {
     public void setRole(MemberRole role) {
         this.role = role;
     }
-
-//    @CreatedDate
-//    @Column(name = "regdate", nullable = false, updatable = false)
-//    private LocalDateTime regDate;
-//
-//    @LastModifiedDate
-//    @Column(name = "moddate" ,nullable = false)
-//    private LocalDateTime modDate;
 
 }
