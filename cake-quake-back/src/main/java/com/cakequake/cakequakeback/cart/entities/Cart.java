@@ -1,6 +1,7 @@
 package com.cakequake.cakequakeback.cart.entities;
 
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.shop.entities.Shop;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -42,9 +43,14 @@ public class Cart {
     @Column(name="cakeId", nullable=false)
     private Long cakeId;
 
-    /*매장ID*/
-    @Column(name="shopId", nullable=false)
-    private Long shopId;
+    /* 매장 */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "shopId",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_cart_shop")
+    )
+    private Shop shop;
 
     /*장바구니에 담은 수량ID*/
     @Min(1)

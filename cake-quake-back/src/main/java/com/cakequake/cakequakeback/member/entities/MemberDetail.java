@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.member.entities;
 
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class MemberDetail {
+public class MemberDetail extends BaseEntity {
 
     @Id
     private Long uid; // PK이자 FK
