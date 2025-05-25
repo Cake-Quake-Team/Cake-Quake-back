@@ -58,32 +58,32 @@ public class Member extends BaseEntity {
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private MemberDetail memberDetail;
 
-    // setter
-    public void setUname(String uname) {
+    // 수정용
+    public void changeUname(String uname) {
         this.uname = uname;
     }
 
-    public void setPassword(String password) {
+    public void changePassword(String password) {
         this.password = password;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
+    public void changePhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
-    public void setSocialId(String socialId) {
+    public void changeSocialId(String socialId) {
         this.socialId = socialId;
     }
 
-    public void setSocialType(SocialType socialType) {
+    public void changeSocialType(SocialType socialType) {
         this.socialType = socialType;
     }
 
-    public void setAlarm(Boolean alarm) {
+    public void changeAlarm(Boolean alarm) {
         this.alarm = alarm;
     }
 
-    public void setMemberDetail(MemberDetail memberDetail) {
+    public void changeMemberDetail(MemberDetail memberDetail) {
         this.memberDetail = memberDetail;
     }
 
