@@ -25,7 +25,7 @@ public class Member extends BaseEntity {
     )
     private Long uid;
 
-    @Column(name = "uname" , nullable = false)
+    @Column(name = "uname" , nullable = false, length = 20)
     private String uname;
 
     @Column(name = "userId" , nullable = false, unique = true)
@@ -44,17 +44,47 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private SocialType socialType;  // GOOGLE, KAKAO 등
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean alarm = true;
 
-    @Column(nullable = false, unique = true)
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean publicInfo = true;
+
+    @Column(nullable = false, unique = true, length = 20)
     private String phoneNumber;
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private MemberDetail memberDetail;
 
-    public void setRole(MemberRole role) {
-        this.role = role;
+    // setter
+    public void setUname(String uname) {
+        this.uname = uname;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setSocialId(String socialId) {
+        this.socialId = socialId;
+    }
+
+    public void setSocialType(SocialType socialType) {
+        this.socialType = socialType;
+    }
+
+    public void setAlarm(Boolean alarm) {
+        this.alarm = alarm;
+    }
+
+    public void setMemberDetail(MemberDetail memberDetail) {
+        this.memberDetail = memberDetail;
     }
 
 }
