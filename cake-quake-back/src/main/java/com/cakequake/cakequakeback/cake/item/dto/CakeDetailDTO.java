@@ -27,4 +27,7 @@ public class CakeDetailDTO {
     private Boolean isOnsale;
     private Boolean isDeleted;
 
+    public CakeDetailDTO(Long shopId) {
+        this.shopId = shopId;
+    }
 }

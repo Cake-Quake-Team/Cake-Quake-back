@@ -1,0 +1,34 @@
+package com.cakequake.cakequakeback.cake.item.repo;
+
+import com.cakequake.cakequakeback.cake.item.CakeCategory;
+import com.cakequake.cakequakeback.cake.item.dto.CakeDetailDTO;
+import com.cakequake.cakequakeback.cake.item.dto.CakeListDTO;
+import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
+
+public interface CakeItemRepository extends JpaRepository<CakeItem, Long> {
+
+    // 전체 상품 조회
+    @Query("SELECT new com.cakequake.cakequakeback.cake.item.dto.CakeListDTO(c.cakeId, c.cname, c.price, c.thumbnailImageUrl)" +
+            "FROM CakeItem c " +
+            "WHERE c.isDeleted = false AND c.category = :category")
+    Page<CakeListDTO> findAllCakeList(CakeCategory category, Pageable pageable);
+
+    // 특정 매장의 상품 목록 조회
+    @Query("SELECT new com.cakequake.cakequakeback.cake.item.dto.CakeListDTO(c.cakeId, c.cname, c.price, c.thumbnailImageUrl)" +
+            "FROM CakeItem c " +
+            "WHERE c.shop.shopId = :shopId AND c.isDeleted = false AND c.category = :category")
+    Page<CakeListDTO> findShopCakeList(@Param("shopId") Long shopId, CakeCategory category, Pageable pageable);
+
+    // 상품 상세 조회
+    @Query("SELECT new com.cakequake.cakequakeback.cake.item.dto.CakeDetailDTO(c.shop.shopId, c.cakeId, c.cname, c.description, c.price, c.category, c.thumbnailImageUrl, NULL, c.viewCount, c.orderCount, c.isOnsale)" +
+            "FROM CakeItem c " +
+            "WHERE c.cakeId = :cakeId AND c.isDeleted = false")
+    Optional<CakeDetailDTO> findCakeDetail(@Param("cakeId") Long cakeId);
+}
