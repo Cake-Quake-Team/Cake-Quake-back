@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.review.entities;
 
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CeoReview {
+public class CeoReview extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ceo_review_seq_gen")
     @SequenceGenerator(
@@ -27,8 +28,10 @@ public class CeoReview {
     @JoinColumn(name = "reviewId" , nullable = false,unique = true)
     private Review review;
 
-    @Column(name = "content", nullable = false, length = 200)
-    private String content;
+    @Column(name = "reply", nullable = false, length = 200)
+    private String reply;
 
-
+    public void setReply(String reply) {
+        this.reply = reply;
+    }
 }

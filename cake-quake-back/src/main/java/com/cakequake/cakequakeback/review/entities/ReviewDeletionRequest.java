@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.review.entities;
 
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReviewDeletionRequest {
+public class ReviewDeletionRequest extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "deletion_request_seq_gen")
     @SequenceGenerator(
@@ -27,9 +28,7 @@ public class ReviewDeletionRequest {
     )
     private Long requestId;
 
-    @CreatedDate
-    @Column(name = "requested_at", nullable = false, updatable = false)
-    private LocalDateTime requestedAt;
+
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="reviewId", nullable = false,unique = true)
@@ -41,9 +40,20 @@ public class ReviewDeletionRequest {
 
     private String reason;
 
+    /** 관리자 승인 **/
+    public void approve() {
+        if (status != DeletionRequestStatus.PENDING) {
+            throw new IllegalStateException("현재 상태에서 승인할 수 없습니다.");
+        }
+        this.status = DeletionRequestStatus.APPROVED;
+    }
 
-    @LastModifiedDate
-    @Column(name = " handeleAt")
-    private LocalDateTime handeleAt;  //처리 시각
+    /** 관리자 거절 **/
+    public void reject() {
+        if (status != DeletionRequestStatus.PENDING) {
+            throw new IllegalStateException("현재 상태에서 거절할 수 없습니다.");
+        }
+        this.status = DeletionRequestStatus.REJECTED;
+    }
 
 }
