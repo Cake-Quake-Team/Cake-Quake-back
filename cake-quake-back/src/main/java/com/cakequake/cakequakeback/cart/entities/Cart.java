@@ -1,22 +1,19 @@
 package com.cakequake.cakequakeback.cart.entities;
 
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.shop.entities.Shop;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "cart")
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Cart {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Cart extends BaseEntity {
 
     /*장바구니 ID(PK)*/
     @Id
@@ -39,27 +36,13 @@ public class Cart {
     )
     private Member member;
 
-    /*상품ID*/
-    @Column(name="cakeId", nullable=false)
-    private Long cakeId;
+    /*장바구니에 담겨있는 상품ID*/
+    //Cart엔티티가 여러 개의 CakeItem(담긴 상품)을 가질 수 있으므로, 리스트 필드에 @OneToMany를 선언함
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "cart")
+    private List<CartItem> cartItem;
 
-    /* 매장 */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "shopId",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_cart_shop")
-    )
-    private Shop shop;
-
-    /*장바구니에 담은 수량ID*/
-    @Min(1)
-    @Max(99)
-    @Column(nullable=false)
-    private Integer productCnt;
-
-    /*장바구니 합계*/
-    @Column(nullable = false)
-    private Long cnt;
+    /*장바구니 상품들 합친 총 가격*/
+    @Column(name = "cartTotalPrice",nullable = false)
+    private Integer cartTotalPrice;
 
 }
