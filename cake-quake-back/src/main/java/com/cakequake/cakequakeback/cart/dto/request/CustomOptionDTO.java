@@ -5,10 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * 장바구니 추가/수정 요청
- * 어떤 옵션 타입에 어떤 옵션을 선택했는지 나타내는 DTO
- */
+//장바구니 추가/수정 요청,어떤 옵션 타입에 어떤 옵션을 선택했는지 나타내는 DTO
 @Getter
 @NoArgsConstructor
 public class CustomOptionDTO {
