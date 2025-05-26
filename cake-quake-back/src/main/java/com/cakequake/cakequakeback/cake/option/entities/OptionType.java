@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.option.entities;
 
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import jakarta.persistence.*;
@@ -14,7 +15,7 @@ import lombok.*;
 @Builder
 @ToString
 @Getter
-public class OptionType {
+public class OptionType extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cake_option_type_seq")
     @SequenceGenerator(
