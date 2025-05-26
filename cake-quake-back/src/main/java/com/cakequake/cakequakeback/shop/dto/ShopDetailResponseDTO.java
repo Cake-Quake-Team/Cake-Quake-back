@@ -1,6 +1,6 @@
+//가게 상세 정보 조회 -Response
 package com.cakequake.cakequakeback.shop.dto;
 
-import com.cakequake.cakequakeback.shop.entities.Shop;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 
-public class ShopDetailDTO {
+public class ShopDetailResponseDTO {
     private Long shopId;
     private Long userId;
     private String businessNumber;
@@ -29,11 +29,14 @@ public class ShopDetailDTO {
     private ShopStatus status;
     private BigDecimal lat;
     private BigDecimal lng;
+    private ShopNoticePreviewDTO noticePreview; //매장 상세 조회에서 공지사항 미리보기
 
-    public ShopDetailDTO(Long shopId, Long userId, String businessNumber, String shopName, String address,
-                         String phone, String content, BigDecimal rating, Integer reviewCount, String operationHours,
-                         String closeDays, String websiteUrl, String instagramUrl, ShopStatus status, BigDecimal lat,
-                         BigDecimal lng) {
+
+
+    public ShopDetailResponseDTO(Long shopId, Long userId, String businessNumber, String shopName, String address,
+                                 String phone, String content, BigDecimal rating, Integer reviewCount, String operationHours,
+                                 String closeDays, String websiteUrl, String instagramUrl, ShopStatus status, BigDecimal lat,
+                                 BigDecimal lng,ShopNoticePreviewDTO noticePreview) {
         this.shopId = shopId;
         this.userId = userId;
         this.businessNumber = businessNumber;
@@ -50,5 +53,8 @@ public class ShopDetailDTO {
         this.status = status;
         this.lat = lat;
         this.lng = lng;
+
+        this.noticePreview = noticePreview;
     }
+
 }
