@@ -36,7 +36,7 @@ public class Shop extends BaseEntity {
 
     //userId 컬럼이 member 테이블의 userId 참조
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
+    @JoinColumn(name = "uid", nullable = false)
     private Member member;
 
     @Column(nullable = false)
