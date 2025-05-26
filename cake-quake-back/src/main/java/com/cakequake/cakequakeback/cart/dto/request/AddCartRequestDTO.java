@@ -13,6 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AddCartRequestDTO {
 
+    //요청 보낸 회원ID
+    @NotNull(message = "userId는 필수입니다.")
+    private Long userId;
+
     //상품 담을 매장ID
     @NotNull(message = "shopId는 필수입니다.")
     private Long shopId;
@@ -30,8 +34,9 @@ public class AddCartRequestDTO {
 //    private List<CustomOptionDTO> options;
 
     @Builder
-    public AddCartRequestDTO( Long shopId, Long cakeId,
+    public AddCartRequestDTO(Long userId, Long shopId, Long cakeId,
                           Integer productCnt, List<CustomOptionDTO> options) {
+        this.userId = userId;
         this.shopId = shopId;
         this.cakeId = cakeId;
         this.productCnt = productCnt;
