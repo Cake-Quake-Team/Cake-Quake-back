@@ -2,6 +2,8 @@ package com.cakequake.cakequakeback.review.service.admin;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.common.exception.BusinessException;
+import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.review.entities.Review;
 import com.cakequake.cakequakeback.review.entities.ReviewDeletionRequest;
 import com.cakequake.cakequakeback.review.repo.request.ReviewDeletionRequestRepo;
@@ -32,10 +34,11 @@ public class AdminReviewServiceImpl implements AdminReviewService {
                 .build();
     }
 
+    //요청 승인
     @Override
     public void approveDeletion(Long requestId) {
         ReviewDeletionRequest req = reviewDeletionRequestRepo.findById(requestId)
-                .orElseThrow(() -> new BusinessException(1004, "삭제 요청을 찾을 수 없습니다"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.DELETION_REQUEST_NOT_FOUND));
         //상태 변경  PENDING -> APPROVE
         req.approve();
 
@@ -46,7 +49,7 @@ public class AdminReviewServiceImpl implements AdminReviewService {
     @Override
     public void rejectDeletion(Long requestId) {
         ReviewDeletionRequest req = reviewDeletionRequestRepo.findById(requestId)
-                .orElseThrow(() -> new BusinessException(1004, "삭제 요청을 찾을 수 없습니다"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.DELETION_REQUEST_NOT_FOUND));
         //상태 변경  PENDING -> REJECT
         req.reject();
 
