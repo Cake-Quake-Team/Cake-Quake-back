@@ -2,6 +2,8 @@ package com.cakequake.cakequakeback.review.service.seller;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.common.exception.BusinessException;
+import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.review.dto.ReplyRequestDTO;
 import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
 import com.cakequake.cakequakeback.review.entities.*;
@@ -49,9 +51,9 @@ public class SellerReviewServiceImpl implements SellerReviewService {
     @Transactional(readOnly = true)
     public ReviewResponseDTO getReview(Long reviewId, Long shopId) {
         Review review = sellerReviewRepo.findById(reviewId)
-                .orElseThrow(() -> new BusinessException(1004, "해당 리뷰를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_REVIEW_ID));
         if(!review.getCakeItem().getShop().getShopId().equals(shopId)){
-            throw new BusinessException(907,"해당 매장에 대한 권한한이 없습니다");
+            throw new BusinessException(ErrorCode.NO_SHOP_ACCESS);
         }
         return sellerReviewRepo.selectDTO(reviewId);
     }
@@ -60,10 +62,10 @@ public class SellerReviewServiceImpl implements SellerReviewService {
     @Override
     public void replyToReview(Long reviewId, ReplyRequestDTO dto, Long shopId) {
         Review review = sellerReviewRepo.findById(reviewId)
-                .orElseThrow(() -> new BusinessException(1004, "해당 리뷰를 찾을 수 없습니다."));
-//        if(!review.getCakeItem().getShop().getId().equals(shopId)){
-//            throw new BusinessException(907,"해당 매장에 대한 권한한이 없습니다");
-//        }
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_REVIEW_ID));
+        if(!review.getCakeItem().getShop().getShopId().equals(shopId)){
+            throw new BusinessException(ErrorCode.NO_SHOP_ACCESS);
+        }
 
         CeoReview cr = review.getCeoReview();
         if(cr == null) {
@@ -79,18 +81,14 @@ public class SellerReviewServiceImpl implements SellerReviewService {
     public void requestDeletion(Long shopId, Long reviewId, String reason) {
 
         Review review = sellerReviewRepo.findById(reviewId)
-                .orElseThrow(() -> new BusinessException(1004, "해당 리뷰를 찾을 수 없습니다"));
-        // 1) 매장 권한 체크
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_REVIEW_ID));
+        // 매장 권한 체크
         if (!review.getCakeItem().getShop().getShopId().equals(shopId)) {
-            throw new BusinessException(907, "해당 매장에 대한 권한이 없습니다.");
+            throw new BusinessException(ErrorCode.NO_SHOP_ACCESS);
         }
-        // 2) 상태가 ACTIVE 인지 확인
-        if (review.getStatus() != ReviewStatus.ACTIVE) {
-            throw new BusinessException(708, "이미 삭제 요청되었거나 삭제된 리뷰입니다.");
-        }
-        // 3) 중복 요청 방지
+        // 중복 요청 방지
         if (reviewDeletionRequestRepo.findByReview_ReviewId(reviewId).isPresent()) {
-            throw new BusinessException(641, "이미 삭제 요청된 리뷰입니다.");
+            throw new BusinessException(ErrorCode.ALREADY_DELETION_REQUEST);
         }
 
         review.requestDelete();
