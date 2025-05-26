@@ -22,7 +22,7 @@ public class ShopNotice extends BaseEntity {
            initialValue=1,
            allocationSize = 50
    )
-    private Long shopnoticeId;
+    private Long shopNoticeId;
 
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name="shopId",nullable = false)

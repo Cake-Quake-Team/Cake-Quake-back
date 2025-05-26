@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
-@Builder
 
 public class ShopDetailResponseDTO {
     private Long shopId;
@@ -29,12 +28,12 @@ public class ShopDetailResponseDTO {
     private ShopStatus status;
     private BigDecimal lat;
     private BigDecimal lng;
-    private ShopNoticePreviewDTO noticePreview; //매장 상세 조회에서 공지사항 미리보기
+    private ShopNoticePreviewDTO noticePreview;
 
     public ShopDetailResponseDTO(Long shopId, Long uid, String businessNumber, String shopName, String address,
                                  String phone, String content, BigDecimal rating, Integer reviewCount,
                                  String operationHours, String closeDays, String websiteUrl, String instagramUrl,
-                                 ShopStatus status, BigDecimal lat, BigDecimal lng, ShopNoticePreviewDTO noticePreview) {
+                                 ShopStatus status, BigDecimal lat, BigDecimal lng) {
         this.shopId = shopId;
         this.uid = uid;
         this.businessNumber = businessNumber;
@@ -51,6 +50,5 @@ public class ShopDetailResponseDTO {
         this.status = status;
         this.lat = lat;
         this.lng = lng;
-        this.noticePreview = noticePreview;
     }
 }

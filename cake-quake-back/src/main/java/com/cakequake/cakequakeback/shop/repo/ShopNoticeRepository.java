@@ -2,9 +2,19 @@ package com.cakequake.cakequakeback.shop.repo;
 
 import com.cakequake.cakequakeback.shop.entities.ShopNotice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
 public interface ShopNoticeRepository extends JpaRepository<ShopNotice, Long> {
-    Optional<ShopNotice> findTopByShopIdOrderByCreatedDateDesc(Long shopId);
+
+    @Query("""
+        SELECT sn
+        FROM ShopNotice sn
+        WHERE sn.shop.shopId = :shopId
+        ORDER BY sn.regDate DESC
+        LIMIT 1
+    """)
+    Optional<ShopNotice> findLatestByShopId(@Param("shopId") Long shopId);
 }
