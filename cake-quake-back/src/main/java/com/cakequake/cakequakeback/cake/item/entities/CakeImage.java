@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.item.entities;
 
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @Getter
-public class CakeImage {
+public class CakeImage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cake_image_seq")
     @SequenceGenerator(

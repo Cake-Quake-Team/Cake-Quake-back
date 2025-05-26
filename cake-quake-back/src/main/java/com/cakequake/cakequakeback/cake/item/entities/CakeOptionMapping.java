@@ -1,11 +1,12 @@
 package com.cakequake.cakequakeback.cake.item.entities;
 
 import com.cakequake.cakequakeback.cake.option.entities.OptionType;
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "cake_mapping")
-public class CakeOptionMapping {
+public class CakeOptionMapping extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cake_mapping_seq")
     @SequenceGenerator(

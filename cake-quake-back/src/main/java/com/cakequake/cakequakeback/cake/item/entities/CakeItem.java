@@ -1,6 +1,7 @@
 package com.cakequake.cakequakeback.cake.item.entities;
 
 import com.cakequake.cakequakeback.cake.item.CakeCategory;
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @Getter
-public class CakeItem {
+public class CakeItem extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cake_item_seq")
     @SequenceGenerator(
