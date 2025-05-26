@@ -16,4 +16,7 @@ public interface SellerReviewService {
     //판매자 답글 작성
     void replyToReview(Long reviewId, ReplyRequestDTO dto, Long shopId);
 
+    //판매자 리뷰 삭제 요청
+    void requestDeletion(Long shopId, Long reviewId, String reason);
+
 }

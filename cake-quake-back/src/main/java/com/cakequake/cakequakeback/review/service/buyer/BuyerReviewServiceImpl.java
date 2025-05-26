@@ -23,9 +23,10 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
     private BuyerReviewRepo buyerReviewRepo;
     //private OrderRepo orderRepo;
 
-    public BuyerReviewServiceImpl(BuyerReviewRepo buyerReviewRepo {
-        this.buyerReviewRepo = buyerReviewRepo;;
-    };
+    public BuyerReviewServiceImpl(BuyerReviewRepo buyerReviewRepo) {
+        this.buyerReviewRepo = buyerReviewRepo;
+    }
+
 
     //구매자 리뷰 추가
     @Override
@@ -111,7 +112,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
         review.setContent(dto.getContent());
         review.setReviewPictureUrl(dto.getReviewPictureUrl());
 
-        //reviewRepo.save(review);
+        buyerReviewRepo.save(review);
 
         return buyerReviewRepo.selectDTO(reviewId);
     }
@@ -128,7 +129,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 //            throw new BussinessException(906, "본인 리뷰만 조회할 수 있습니다");
 //        }
 
-        //삭제
-        buyerReviewRepo.delete(review);
+        //삭제 -> 상태만 DELETE로 변경
+        review.deleteByBuyer();
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class SellerReviewController {
     private final SellerReviewService sellerReviewService;
 
+
     //매장 리뷰 전체 조회
     @GetMapping
     public InfiniteScrollResponseDTO<ReviewResponseDTO> getShopReviews(
@@ -43,6 +44,16 @@ public class SellerReviewController {
             @Valid ReplyRequestDTO replyRequestDTO
     ){
         sellerReviewService.replyToReview(shopId,replyRequestDTO,reviewId);
+    }
+
+    @PostMapping("/{reviewId}/delete")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void requestDelete(
+            @PathVariable Long shopId,
+            @PathVariable Long reviewId,
+            @RequestParam String reason
+    ){
+        sellerReviewService.requestDeletion(shopId,reviewId,reason);
     }
 
 }

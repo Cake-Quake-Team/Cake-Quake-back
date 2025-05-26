@@ -15,7 +15,7 @@ public interface CakeReviewRepo extends JpaRepository<ReviewResponseDTO, Long> {
             "r.rating, r.content, r.reviewPictureUrl, r.regDate, cr.reply) " +
             "FROM Review r " +
             "LEFT JOIN r.ceoReview cr " +
-            "WHERE r.user.uid = :uid")
+            "WHERE r.user.uid = :uid AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
     Page<ReviewResponseDTO> listOfCakeReviews(
             @Param("cakeItemId") Long cakeItemId,
             Pageable pageable

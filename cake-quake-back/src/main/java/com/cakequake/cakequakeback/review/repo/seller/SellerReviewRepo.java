@@ -19,7 +19,7 @@ public interface SellerReviewRepo extends CommonReviewRepo {
             "r.rating, r.content, r.reviewPictureUrl, r.regDate, cr.reply) " +
             "FROM Review r " +
             "LEFT JOIN r.ceoReview cr " +
-            "WHERE r.cakeItem.shop.shopId = :shopId")
+            "WHERE r.cakeItem.shop.shopId = :shopId AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
     Page<ReviewResponseDTO> listOfShopReviews(@Param("shopId") Long shopId, Pageable pageable);
 
 

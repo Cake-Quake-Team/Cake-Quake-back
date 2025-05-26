@@ -26,7 +26,7 @@ public interface BuyerReviewRepo extends CommonReviewRepo {
             "r.rating, r.content, r.reviewPictureUrl, r.regDate, cr.reply) " +
             "FROM Review r " +
             "LEFT JOIN r.ceoReview cr " +
-            "WHERE r.user.uid = :uid")
+            "WHERE r.user.uid = :uid AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
     Page<ReviewResponseDTO> listOfUserReviews(@Param("uid") Long userId, Pageable pageable);
 
 }

@@ -46,7 +46,6 @@ public class ReviewDeletionRequest extends BaseEntity {
             throw new IllegalStateException("현재 상태에서 승인할 수 없습니다.");
         }
         this.status = DeletionRequestStatus.APPROVED;
-        this.getModDate() = LocalDateTime.now();
     }
 
     /** 관리자 거절 **/
@@ -55,7 +54,6 @@ public class ReviewDeletionRequest extends BaseEntity {
             throw new IllegalStateException("현재 상태에서 거절할 수 없습니다.");
         }
         this.status = DeletionRequestStatus.REJECTED;
-        this.handledAt = LocalDateTime.now();
     }
 
 }

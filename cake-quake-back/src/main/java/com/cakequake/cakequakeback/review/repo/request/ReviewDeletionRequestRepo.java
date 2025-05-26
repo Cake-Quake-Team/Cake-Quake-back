@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface ReviewDeletionRequestRepo extends JpaRepository<ReviewResponseDTO, Long> {
+public interface ReviewDeletionRequestRepo extends JpaRepository<ReviewDeletionRequest, Long> {
 
 
     /** 특정 리뷰에 대한 삭제 요청 조회 */
@@ -17,7 +17,7 @@ public interface ReviewDeletionRequestRepo extends JpaRepository<ReviewResponseD
     Optional<ReviewDeletionRequest> findByReview_ReviewId(Long reviewId);
 
     /** 관리자용: 전체 요청 페이징 조회 */
-    @Query("SELECT rdr FROM ReviewDeletionRequest rdr ORDER BY rdr.requestedAt DESC")
+    @Query("SELECT rdr FROM ReviewDeletionRequest rdr ORDER BY rdr.regDate DESC")
     Page<ReviewDeletionRequest> findAllRequest(Pageable pageable);
 
 }

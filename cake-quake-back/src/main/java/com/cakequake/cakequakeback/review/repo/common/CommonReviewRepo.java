@@ -15,7 +15,7 @@ public interface CommonReviewRepo extends JpaRepository<Review, Long> {
             "r.rating, r.content, r.reviewPictureUrl, r.regDate, cr.reply) " +
             "FROM Review r " +
             "LEFT JOIN r.ceoReview cr " +
-            "WHERE r.reviewId = :reviewId")
+            "WHERE r.reviewId = :reviewId AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
     ReviewResponseDTO selectDTO(@Param("reviewId") Long reviewId);
 
 }
