@@ -65,5 +65,33 @@ public class CakeItem extends BaseEntity {
     @JoinColumn(name = "modifiedBy", nullable = false)
     private Member modifiedBy;
 
+    public void changeCname(String cname) {
+        this.cname = cname;
+    }
+
+    public void changePrice(int price) {
+        this.price = price;
+    }
+
+    public void changeDescription(String description) {
+        this.description = description;
+    }
+
+    public void changeCategory(CakeCategory category) {
+        this.category = category;
+    }
+
+    public void changeThumbnailImageUrl(String url) {
+        this.thumbnailImageUrl = url;
+    }
+
+    public void changeIsOnsale(Boolean isOnsale) {
+        this.isOnsale = isOnsale;
+    }
+
+    public void changeIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
 
 }
