@@ -12,6 +12,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -22,44 +24,34 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public ShopDetailResponseDTO getShopDetail(Long shopId) {
-        Shop shop = shopRepository.findById(shopId)
+        // 1. 기본 매장 정보 DTO 조회
+        ShopDetailResponseDTO dto = shopRepository.selectDTO(shopId)
                 .orElseThrow(() -> new EntityNotFoundException("매장을 찾을 수 없습니다."));
 
-        ShopNoticePreviewDTO noticePreview = shopNoticeRepository
-                .findTopByShopIdOrderByCreatedDateDesc(shopId)
-                .map(notice -> {
-                    String fullContent = notice.getContent();
-                    String preview = fullContent.length() <= 30 ? fullContent : fullContent.substring(0, 30) + "...";
+        // 2. 가장 최근 공지사항 조회
+        Optional<ShopNotice> optionalNotice = shopNoticeRepository.findLatestByShopId(shopId);
 
-                    return new ShopNoticePreviewDTO(
-                            notice.getShopnoticeId(),
-                            notice.getShop().getShopId(),
-                            notice.getTitle(),
-                            preview, // Service에서 잘라서 전달
-                            notice.getRegDate(),
-                            notice.getModDate()
-                    );
-                })
-                .orElse(null);
+        // 3. 공지사항이 있을 경우 미리보기 생성 및 DTO에 세팅
+        optionalNotice.ifPresent(notice -> {
+            String fullContent = notice.getContent();
+            String previewContent = fullContent.length() <= 30 ? fullContent : fullContent.substring(0, 30) + "...";
 
-        return new ShopDetailResponseDTO(
-                shop.getShopId(),
-                shop.getMember().getUid(),
-                shop.getBusinessNumber(),
-                shop.getShopName(),
-                shop.getAddress(),
-                shop.getPhone(),
-                shop.getContent(),
-                shop.getRating(),
-                shop.getReviewCount(),
-                shop.getOperationHours(),
-                shop.getCloseDays(),
-                shop.getWebsiteUrl(),
-                shop.getInstagramUrl(),
-                shop.getStatus(),
-                shop.getLat(),
-                shop.getLng(),
-                noticePreview
-        );
+            ShopNoticePreviewDTO previewDTO = new ShopNoticePreviewDTO(
+                    notice.getShopNoticeId(),
+                    shopId,
+                    notice.getTitle(),
+                    previewContent,
+                    notice.getRegDate(),
+                    notice.getModDate()
+            );
+
+            dto.setNoticePreview(previewDTO);
+        });
+
+        return dto;
     }
 }
+
+
+
+

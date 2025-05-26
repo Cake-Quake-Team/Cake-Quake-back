@@ -52,7 +52,7 @@ public class Shop extends BaseEntity {
     private String phone;
 
     @Column
-    private String Content;
+    private String content;
 
     @Column(precision = 2,scale=1)
     private BigDecimal rating;
