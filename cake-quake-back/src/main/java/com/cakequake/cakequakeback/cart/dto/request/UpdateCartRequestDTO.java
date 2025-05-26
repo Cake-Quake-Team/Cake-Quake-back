@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** 기존 장바구니 아이템을 수정(수량/옵션 변경)할 때 사용하는 요청 DTO */
+//기존 장바구니 아이템을 수정(수량/옵션 변경)할 때 사용하는 요청 DTO
 
 @Getter
 @NoArgsConstructor

@@ -29,6 +29,7 @@ public class CakeOrderItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "cartId",
+            nullable = false,
             foreignKey = @ForeignKey(name = "fk_cake_order_item_cart")
     )
     private Cart cartId;
@@ -47,7 +48,7 @@ public class CakeOrderItem {
     private Long cakeId;
 
     /** 커스텀 오더 시트 ID (선택 사용) */
-    @Column(name = "cakeCustomOrderSheetId")
+    @Column(name = "cakeCustomOrderSheetId", nullable = false)
     private Long cakeCustomOrderSheetId;
 
     /** 추천 아이디 (recID) */
@@ -81,10 +82,5 @@ public class CakeOrderItem {
     @Column(name = "isCustom", nullable = true, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean isCustom = Boolean.FALSE;
 
-//    @Column(name = "regDate", nullable = false)
-//    private LocalDateTime regDate;
-
-//    @Column(name = "modDate", nullable = false)
-//    private LocalDateTime modDate;
 
 }

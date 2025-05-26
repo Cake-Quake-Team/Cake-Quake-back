@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cart.entities;
 
+import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import jakarta.persistence.*;
@@ -39,9 +40,10 @@ public class Cart {
     )
     private Member member;
 
-    /*상품ID*/
-    @Column(name="cakeId", nullable=false)
-    private Long cakeId;
+    /* 상품 연관관계 추가 */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "cake_item_id", nullable=false, foreignKey = @ForeignKey(name="fk_cart_cake_item"))
+    private CakeItem cakeItem;
 
     /* 매장 */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -55,8 +57,13 @@ public class Cart {
     /*장바구니에 담은 수량ID*/
     @Min(1)
     @Max(99)
-    @Column(nullable=false)
+    @Column(name = "product_cnt",nullable=false)
     private Integer productCnt;
+
+    // 수량 업데이트
+    public void updateQuantity(Integer productCnt) {
+        this.productCnt = productCnt;
+    }
 
     /*장바구니 합계*/
     @Column(nullable = false)
