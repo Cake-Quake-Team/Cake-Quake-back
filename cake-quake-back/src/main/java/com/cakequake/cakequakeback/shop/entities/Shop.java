@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.shop.entities;
 
+import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.schedule.entities.ShopSchedule;
 import jakarta.persistence.*;
@@ -22,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class Shop {
+public class Shop extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "shop_seq_gen")
     @SequenceGenerator(
