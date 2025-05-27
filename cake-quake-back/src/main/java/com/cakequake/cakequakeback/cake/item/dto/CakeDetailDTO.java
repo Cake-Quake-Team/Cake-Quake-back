@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -14,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 // 케이크  상품 상세 조회 응답 DTO
 public class CakeDetailDTO {
+    private Long shopId;
     private Long cakeId;
     private String cname;
     private String description;
@@ -25,4 +27,5 @@ public class CakeDetailDTO {
     private int orderCount;
     private Boolean isOnsale;
     private Boolean isDeleted;
+    private LocalDateTime createdAt;
 }
