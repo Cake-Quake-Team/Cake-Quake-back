@@ -23,7 +23,7 @@ public class CakeItemRepoTests {
     void insertDummyCakeItemsWithShopId() {
 
         Shop savedShop = Shop.builder()
-                        .shopId(1L)
+                        .shopId(1L)     // 실제 DB에 존재하는 매장 ID
                         .build();
 
         Member dummyMemberRef = Member.builder()
