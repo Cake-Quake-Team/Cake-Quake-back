@@ -20,6 +20,7 @@ public class ReviewResponseDTO {
     private String content;
 
     private String reviewPictureUrl;
-    private LocalDateTime createdAt;
+    private LocalDateTime regDate;
+    private LocalDateTime modDate;
     private String reply;
 }

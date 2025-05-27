@@ -23,7 +23,7 @@ public interface BuyerReviewRepo extends CommonReviewRepo {
             "r.reviewId ," +
             "r.order.orderId," +
             "r.cakeItem.cakeId, r.cakeItem.cname,"+
-            "r.rating, r.content, r.reviewPictureUrl, r.regDate, cr.reply) " +
+            "r.rating, r.content, r.reviewPictureUrl, r.regDate,r.modDate, cr.reply) " +
             "FROM Review r " +
             "LEFT JOIN r.ceoReview cr " +
             "WHERE r.user.uid = :uid AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")

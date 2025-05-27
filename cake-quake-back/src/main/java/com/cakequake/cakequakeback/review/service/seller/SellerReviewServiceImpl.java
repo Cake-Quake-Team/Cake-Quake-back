@@ -27,10 +27,6 @@ public class SellerReviewServiceImpl implements SellerReviewService {
     private ReviewDeletionRequestRepo reviewDeletionRequestRepo;
 
 
-    public SellerReviewServiceImpl( SellerReviewRepo sellerReviewRepo) {
-        this.sellerReviewRepo = sellerReviewRepo;
-    }
-
     //매장 전체 리뷰 조회
     @Override
     @Transactional(readOnly = true)
