@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.shop.service;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO;
+import com.cakequake.cakequakeback.shop.dto.ShopNoticeDetailDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopNoticePreviewDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.entities.Shop;
@@ -75,11 +76,34 @@ public class ShopServiceImpl implements ShopService {
                 .build();
     }
 
+    //공지사항 목록 조회
+    @Override
+    public InfiniteScrollResponseDTO<ShopNoticeDetailDTO> getNoticeList(Long shopId, PageRequestDTO pageRequestDTO) {
+        Pageable pageable = pageRequestDTO.getPageable("createdDate"); // 최신순 정렬
 
+        Page<ShopNoticeDetailDTO> page = shopNoticeRepository.findNoticesByShopId(shopId, pageable);
 
+        return InfiniteScrollResponseDTO.<ShopNoticeDetailDTO>builder()
+                .content(page.getContent())
+                .hasNext(page.hasNext())
+                .totalCount((int) page.getTotalElements())
+                .build();
+    }
 
+    //공지사항 상세 조회
+    @Override
+    public ShopNoticeDetailDTO getNoticeDetail(Long noticeId) {
+        return shopNoticeRepository.findNoticeDetailById(noticeId)
+                .orElseThrow(() -> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
+    }
 
 }
+
+
+
+
+
+
 
 
 
