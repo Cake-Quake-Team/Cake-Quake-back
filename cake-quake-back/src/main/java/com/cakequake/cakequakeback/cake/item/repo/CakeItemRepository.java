@@ -27,6 +27,6 @@ public interface CakeItemRepository extends JpaRepository<CakeItem, Long> {
     Page<CakeListDTO> findShopCakeList(@Param("shopId") Long shopId, CakeCategory category, Pageable pageable);
 
     // 상품 상세 조회
-    @Query("SELECT c FROM CakeItem c WHERE c.shop.shopId = :shopId AND c.cakeId = :cakeId AND c.isDeleted = false")
+    @Query("SELECT c FROM CakeItem c WHERE c.cakeId = :cakeId AND c.isDeleted = false")
     Optional<CakeItem> findCakeDetail(@Param("cakeId") Long cakeId);
 }

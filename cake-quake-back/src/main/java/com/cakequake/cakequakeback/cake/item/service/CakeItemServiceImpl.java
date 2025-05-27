@@ -129,15 +129,17 @@ public class CakeItemServiceImpl implements CakeItemService {
     // 상품 수정
     public void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO) {
 
+        log.info("================={}", updateCakeDTO);
+
         CakeItem cakeItem = cakeItemRepository.findById(cakeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_PRODUCT_ID));
 
-        cakeItem.changeCname(updateCakeDTO.getCname());
-        cakeItem.changePrice(updateCakeDTO.getPrice());
-        cakeItem.changeDescription(updateCakeDTO.getDescription());
-        cakeItem.changeCategory(updateCakeDTO.getCategory());
-        cakeItem.changeThumbnailImageUrl(updateCakeDTO.getThumbnailImageUrl());
-        cakeItem.changeIsOnsale(updateCakeDTO.getIsOnsale());
+        Optional.ofNullable(updateCakeDTO.getCname()).ifPresent(cakeItem::changeCname);
+        Optional.ofNullable(updateCakeDTO.getPrice()).ifPresent(cakeItem::changePrice);
+        Optional.ofNullable(updateCakeDTO.getDescription()).ifPresent(cakeItem::changeDescription);
+        Optional.ofNullable(updateCakeDTO.getCategory()).ifPresent(cakeItem::changeCategory);
+        Optional.ofNullable(updateCakeDTO.getThumbnailImageUrl()).ifPresent(cakeItem::changeThumbnailImageUrl);
+        Optional.ofNullable(updateCakeDTO.getIsOnsale()).ifPresent(cakeItem::changeIsOnsale);
 
         cakeItemRepository.save(cakeItem);
     }

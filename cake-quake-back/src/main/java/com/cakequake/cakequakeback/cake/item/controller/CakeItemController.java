@@ -27,9 +27,9 @@ public class CakeItemController {
 
     @GetMapping("/cakes")
     public InfiniteScrollResponseDTO<CakeListDTO> getAllCakeList(
-            @RequestParam(defaultValue = "LETTERING") CakeCategory category,     // 레터링 케이크
+            @RequestParam(defaultValue = "LETTERING") CakeCategory keyword,     // 레터링 케이크
             PageRequestDTO pageRequestDTO) {
-        return cakeItemService.getAllCakeList(pageRequestDTO, category);
+        return cakeItemService.getAllCakeList(pageRequestDTO, keyword);
     }
 
     @GetMapping("/cakes/{cakeId}")
