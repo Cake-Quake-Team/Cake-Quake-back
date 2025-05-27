@@ -31,4 +31,6 @@ public class AddCakeDTO {
     private String thumbnailImageUrl;   // 대표 이미지
 
     private List<String> imageUrls;    // 이미지 URL 목록
+
+    private Long uid;
 }

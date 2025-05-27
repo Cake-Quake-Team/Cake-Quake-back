@@ -127,7 +127,7 @@ public class CakeItemServiceImpl implements CakeItemService {
 
     @Override
     // 상품 수정
-    public void updateCake(Long cakeId, UpdateCakeDTO updateCakeDTO) {
+    public void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO) {
 
         CakeItem cakeItem = cakeItemRepository.findById(cakeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_PRODUCT_ID));
@@ -144,7 +144,7 @@ public class CakeItemServiceImpl implements CakeItemService {
 
     @Override
     // 상품 삭제
-    public void deleteCake(Long cakeId) {
+    public void deleteCake(Long shopId, Long cakeId) {
 
         CakeItem cakeItem = cakeItemRepository.findById(cakeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_PRODUCT_ID));
