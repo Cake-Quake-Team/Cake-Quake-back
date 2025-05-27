@@ -105,23 +105,22 @@ public class CakeItemServiceImpl implements CakeItemService {
     // 상품 상세 조회
     public CakeDetailDTO getCakeDetail(Long cakeId) {
 
-        CakeDetailDTO cakeDetailDTO = cakeItemRepository.findCakeDetail(cakeId)
+        CakeItem cakeItem = cakeItemRepository.findCakeDetail(cakeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_PRODUCT_ID));
 
         List<String> images = cakeImageRepository.findCakeImages(cakeId);
 
         return CakeDetailDTO.builder()
-                .cakeId(cakeDetailDTO.getCakeId())
-                .shopId(cakeDetailDTO.getShopId())
-                .cname(cakeDetailDTO.getCname())
-                .description(cakeDetailDTO.getDescription())
-                .price(cakeDetailDTO.getPrice())
-                .category(cakeDetailDTO.getCategory())
-                .thumbnailImageUrl(cakeDetailDTO.getThumbnailImageUrl())
-                .viewCount(cakeDetailDTO.getViewCount())
-                .orderCount(cakeDetailDTO.getOrderCount())
-                .isOnsale(cakeDetailDTO.getIsOnsale())
-                .isDeleted(cakeDetailDTO.getIsDeleted())
+                .cakeId(cakeItem.getCakeId())
+                .cname(cakeItem.getCname())
+                .description(cakeItem.getDescription())
+                .price(cakeItem.getPrice())
+                .category(cakeItem.getCategory())
+                .thumbnailImageUrl(cakeItem.getThumbnailImageUrl())
+                .viewCount(cakeItem.getViewCount())
+                .orderCount(cakeItem.getOrderCount())
+                .isOnsale(cakeItem.getIsOnsale())
+                .isDeleted(cakeItem.getIsDeleted())
                 .imageUrls(images)
                 .build();
     }

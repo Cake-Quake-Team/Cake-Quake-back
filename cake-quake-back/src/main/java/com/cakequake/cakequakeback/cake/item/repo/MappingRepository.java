@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface MappingRepository extends JpaRepository<CakeOptionMapping, Long> {
     // 특정 케이크의 옵션 매핑 목록 조회
-    List<CakeOptionMapping> findByCakeId(Long cakeId);
+    List<CakeOptionMapping> findByCakeItemCakeId(Long cakeId);
 }
