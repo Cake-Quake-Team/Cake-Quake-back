@@ -25,7 +25,7 @@ public class CakeReviewServiceImpl implements CakeReviewService{
         this.cakeReviewRepo = cakeReviewRepo;
     }
 
-
+    //케이크(단품) 리뷰 전체 조회
     @Override
     public InfiniteScrollResponseDTO<ReviewResponseDTO> getCakeItemReviews(Long cakeItemId, PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("regDate");

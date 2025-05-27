@@ -24,6 +24,7 @@ public class AdminReviewServiceImpl implements AdminReviewService {
 
     //삭제 요청 리뷰 전체 조회
     @Override
+    @Transactional(readOnly = true)
     public InfiniteScrollResponseDTO<ReviewDeletionRequest> listRequest(PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("regDate");
         Page<ReviewDeletionRequest> page = reviewDeletionRequestRepo.findAllRequest(pageable);

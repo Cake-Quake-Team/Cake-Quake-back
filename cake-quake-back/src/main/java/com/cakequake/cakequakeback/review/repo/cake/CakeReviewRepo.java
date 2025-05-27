@@ -1,13 +1,15 @@
 package com.cakequake.cakequakeback.review.repo.cake;
 
 import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
+import com.cakequake.cakequakeback.review.entities.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface CakeReviewRepo extends JpaRepository<ReviewResponseDTO, Long> {
+//케이트 단일 조회
+public interface CakeReviewRepo extends JpaRepository<Review, Long> {
     @Query("SELECT new com.cakequake.cakequakeback.review.dto.ReviewResponseDTO(" +
             "r.reviewId ," +
             "r.order.orderId," +
@@ -15,9 +17,9 @@ public interface CakeReviewRepo extends JpaRepository<ReviewResponseDTO, Long> {
             "r.rating, r.content, r.reviewPictureUrl, r.regDate, cr.reply) " +
             "FROM Review r " +
             "LEFT JOIN r.ceoReview cr " +
-            "WHERE r.user.uid = :uid AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
+            "WHERE r.cakeItem.cakeId = :cakeId AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
     Page<ReviewResponseDTO> listOfCakeReviews(
-            @Param("cakeItemId") Long cakeItemId,
+            @Param("cakeId") Long cakeItemId,
             Pageable pageable
     );
 
