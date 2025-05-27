@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-public interface BuyerOrderRepository extends JpaRepository<BuyerOrder, Long> {
+public interface BuyerOrderRepository extends JpaRepository<CakeOrder, Long> {
     // 구매자 기준 페이징 주문 목록 조회
     Page<CakeOrder> findByMember(Member member, Pageable pageable);
 
