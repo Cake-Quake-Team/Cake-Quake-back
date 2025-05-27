@@ -1,15 +1,17 @@
 //가게 상세 정보 조회 -Response
 package com.cakequake.cakequakeback.shop.dto;
 
+import com.cakequake.cakequakeback.cake.item.dto.CakeListDTO;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-@Data
+@Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 
 public class ShopDetailResponseDTO {
     private Long shopId;
@@ -29,11 +31,14 @@ public class ShopDetailResponseDTO {
     private BigDecimal lat;
     private BigDecimal lng;
     private ShopNoticePreviewDTO noticePreview;
+    private List<CakeListDTO> cakes;
 
-    public ShopDetailResponseDTO(Long shopId, Long uid, String businessNumber, String shopName, String address,
-                                 String phone, String content, BigDecimal rating, Integer reviewCount,
-                                 String operationHours, String closeDays, String websiteUrl, String instagramUrl,
-                                 ShopStatus status, BigDecimal lat, BigDecimal lng) {
+    // selectDTO에서 사용되는 생성자는 별도로 분리 (Lombok과 무관)
+    public ShopDetailResponseDTO(Long shopId, Long uid, String businessNumber, String shopName,
+                                 String address, String phone, String content, BigDecimal rating,
+                                 Integer reviewCount, String operationHours, String closeDays,
+                                 String websiteUrl, String instagramUrl, ShopStatus status,
+                                 BigDecimal lat, BigDecimal lng) {
         this.shopId = shopId;
         this.uid = uid;
         this.businessNumber = businessNumber;
