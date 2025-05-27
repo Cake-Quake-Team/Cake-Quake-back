@@ -66,6 +66,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
     //구매자 전체 리뷰 조회
     @Override
+    @Transactional(readOnly = true)
     public InfiniteScrollResponseDTO<ReviewResponseDTO> getMyReviews(PageRequestDTO pageRequestDTO, Long userId) {
 
         //pageRequestDTO로 부터 Pageable생성 (regDate 내림차순)
@@ -83,6 +84,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
     //구매자 리뷰 단건 조회
     @Override
+    @Transactional(readOnly = true)
     public ReviewResponseDTO getReview(Long reviewId, Long uid) {
         //리뷰 존재 여부 체크
         Review review = buyerReviewRepo.findById(reviewId)
