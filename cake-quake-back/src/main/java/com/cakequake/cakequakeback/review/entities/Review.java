@@ -3,7 +3,7 @@ package com.cakequake.cakequakeback.review.entities;
 import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.order.entities.CakeOrder;
+//import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
@@ -35,10 +35,10 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "uid", nullable = false)
     private Member user;
 
-    //주문테이블과 연결
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "orderId",nullable = false)
-    private CakeOrder order;
+//    //주문테이블과 연결
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "orderId",nullable = false)
+//    private CakeOrder order;
 
     //매장테이블과 연결
     @ManyToOne(fetch = FetchType.LAZY)

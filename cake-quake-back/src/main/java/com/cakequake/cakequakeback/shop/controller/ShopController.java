@@ -31,6 +31,7 @@ public class ShopController {
     public ShopDetailResponseDTO getShopDetail(@PathVariable Long shopId) {
         return shopService.getShopDetail(shopId);
     }
+
     //매장 목록 조회
     @GetMapping
     @Transactional(readOnly = true)
@@ -38,16 +39,7 @@ public class ShopController {
             PageRequestDTO pageRequestDTO,  @RequestParam(defaultValue = "ACTIVE") ShopStatus status){
             return shopService.getShopsByStatus(pageRequestDTO, status);
     }
-    //매장별 케이크 목록 조회
-    @GetMapping("/{shopId}/cakes")
-    public ResponseEntity<InfiniteScrollResponseDTO<CakeListDTO>> getShopCakes(
-            @PathVariable Long shopId,
-            PageRequestDTO pageRequestDTO,
-            @RequestParam(required = false) CakeCategory category) {
 
-        InfiniteScrollResponseDTO<CakeListDTO> response = cakeItemService.getShopCakeList(shopId, pageRequestDTO, category);
-        return ResponseEntity.ok(response);
-    }
     // 공지사항 목록 조회 (무한스크롤용)
     @GetMapping("/{shopId}/notices")
     public ResponseEntity<InfiniteScrollResponseDTO<ShopNoticeDetailDTO>> getNotices(

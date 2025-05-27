@@ -1,5 +1,8 @@
 package com.cakequake.cakequakeback.shop.service;
 
+import com.cakequake.cakequakeback.cake.item.CakeCategory;
+import com.cakequake.cakequakeback.cake.item.dto.CakeListDTO;
+import com.cakequake.cakequakeback.cake.item.service.CakeItemService;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO;
@@ -31,37 +34,45 @@ import java.util.stream.Collectors;
 public class ShopServiceImpl implements ShopService {
     private final ShopRepository shopRepository;
     private final ShopNoticeRepository shopNoticeRepository;
+    private final CakeItemService cakeItemService;
 
+    //매장 상세 조회 = 공지사항 미리보기 + 매장별 상품 보기
     @Override
     public ShopDetailResponseDTO getShopDetail(Long shopId) {
-        // 1. 기본 매장 정보 DTO 조회
-        ShopDetailResponseDTO dto = shopRepository.selectDTO(shopId)
+        // 1. 매장 기본 정보
+        ShopDetailResponseDTO dtoBase = shopRepository.selectDTO(shopId)
                 .orElseThrow(() -> new EntityNotFoundException("매장을 찾을 수 없습니다."));
 
-        // 2. 가장 최근 공지사항 조회
+        // 2. 공지사항 미리보기 생성
         Optional<ShopNotice> optionalNotice = shopNoticeRepository
                 .findLatestByShopId(shopId, PageRequest.of(0, 1))
                 .stream().findFirst();
 
-        // 3. 공지사항이 있을 경우 미리보기 생성 및 DTO에 세팅
-        optionalNotice.ifPresent(notice -> {
-            String fullContent = notice.getContent();
-            String previewContent = fullContent.length() <= 30 ? fullContent : fullContent.substring(0, 30) + "...";
-
-            ShopNoticePreviewDTO previewDTO = new ShopNoticePreviewDTO(
+        ShopNoticePreviewDTO previewDTO = optionalNotice.map(notice -> {
+            String content = notice.getContent();
+            String preview = content.length() <= 30 ? content : content.substring(0, 30) + "...";
+            return new ShopNoticePreviewDTO(
                     notice.getShopNoticeId(),
                     shopId,
                     notice.getTitle(),
-                    previewContent,
+                    preview,
                     notice.getRegDate(),
                     notice.getModDate()
             );
+        }).orElse(null);
 
-            dto.setNoticePreview(previewDTO);
-        });
+        // 3. 케이크 목록 조회
+        PageRequestDTO pageRequestDTO = new PageRequestDTO();
+        InfiniteScrollResponseDTO<CakeListDTO> cakes =
+                cakeItemService.getShopCakeList(shopId, pageRequestDTO, null);
 
-        return dto;
+        // 빌더 재활용
+        return dtoBase.toBuilder()
+                .noticePreview(previewDTO)
+                .cakes(cakes)
+                .build();
     }
+
     //매장 목록 조회
     @Override
     public InfiniteScrollResponseDTO<ShopPreviewDTO> getShopsByStatus(PageRequestDTO pageRequestDTO, ShopStatus status) {
