@@ -25,9 +25,9 @@ public interface CakeItemService {
     CakeDetailDTO getCakeDetail(Long cakeId);
 
     // 케이크 수정
-    void updateCake(Long cakeId, UpdateCakeDTO updateCakeDTO);
+    void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO);
 
     // 케이크 삭제
-    void deleteCake(Long cakeId);
+    void deleteCake(Long shopId, Long cakeId);
 
 }
