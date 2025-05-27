@@ -40,7 +40,7 @@ public class CakeOrder extends BaseEntity {
     private String orderNumber;
 
     //주문한 케이크 받아오기
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "orderItemId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CakeOrderItem> cakeOrderItems;
 
     @Column(name = "orderNote", length = 255)

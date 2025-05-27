@@ -41,7 +41,7 @@ public class CakeOrderItem extends BaseEntity {
     private CakeOrder cakeOrder;
 
     // 케이크 상품별 옵션들
-    @OneToMany(mappedBy = "cakeorderItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "optionItemId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OptionItem> optionItems;
 
 
