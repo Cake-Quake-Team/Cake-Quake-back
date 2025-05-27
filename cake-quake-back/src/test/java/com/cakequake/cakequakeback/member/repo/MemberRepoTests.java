@@ -1,8 +1,7 @@
-package com.cakequake.cakequakeback.member;
+package com.cakequake.cakequakeback.member.repo;
 
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.entities.MemberRole;
-import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -60,7 +59,6 @@ public class MemberRepoTests {
                 .password(passwordEncoder.encode("1234"))
                 .role(MemberRole.BUYER)
                 .phoneNumber("010-1234-5678")
-
                 .build();
 
         memberRepository.save(member);
