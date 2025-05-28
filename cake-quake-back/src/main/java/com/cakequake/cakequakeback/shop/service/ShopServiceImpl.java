@@ -89,7 +89,7 @@ public class ShopServiceImpl implements ShopService {
     //공지사항 목록 조회
     @Override
     public InfiniteScrollResponseDTO<ShopNoticeDetailDTO> getNoticeList(Long shopId, PageRequestDTO pageRequestDTO) {
-        Pageable pageable = pageRequestDTO.getPageable("createdDate"); // 최신순 정렬
+        Pageable pageable = pageRequestDTO.getPageable("regDate"); // 최신순 정렬
 
         Page<ShopNoticeDetailDTO> page = shopNoticeRepository.findNoticesByShopId(shopId, pageable);
 
