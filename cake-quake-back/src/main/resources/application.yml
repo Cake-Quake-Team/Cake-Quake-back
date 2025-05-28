@@ -40,6 +40,10 @@ spring:
       com.cakequake: INFO
       org.springframework.security: TRACE
 
+  output:
+    ansi:
+      enabled: ALWAYS
+
   com:
     cakequake:
       upload: upload
