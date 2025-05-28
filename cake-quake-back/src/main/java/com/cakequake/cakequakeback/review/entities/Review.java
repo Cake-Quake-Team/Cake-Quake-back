@@ -22,13 +22,7 @@ import org.hibernate.type.descriptor.java.ShortPrimitiveArrayJavaType;
 @Builder
 public class Review extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "review_seq_gen")
-    @SequenceGenerator(
-            name = "review_seq_gen",
-            sequenceName = "seq_gen",
-            initialValue = 1,
-            allocationSize = 5
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reviewId;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -4,6 +4,8 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.order.entities.CakeOrder;
+import com.cakequake.cakequakeback.order.repo.BuyerOrderRepository;
 import com.cakequake.cakequakeback.review.dto.ReviewRequestDTO;
 import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
 import com.cakequake.cakequakeback.review.entities.Review;
@@ -21,12 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Log4j2
 public class BuyerReviewServiceImpl implements BuyerReviewService {
 
-    private BuyerReviewRepo buyerReviewRepo;
-    //private OrderRepo orderRepo;
+    private final BuyerReviewRepo buyerReviewRepo;
+    private BuyerOrderRepository orderRepo;
 
-    public BuyerReviewServiceImpl(BuyerReviewRepo buyerReviewRepo) {
-        this.buyerReviewRepo = buyerReviewRepo;
-    }
 
 
     //구매자 리뷰 추가
@@ -35,8 +34,8 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
         log.info("--------------review created-------------");
 
-        //해당 주문서가 존재하지 않거나 권한이 없는 경우
-//        CakeOrder order = orderRepo.findByIdAndUserId(orderId,userId)
+//        //해당 주문서가 존재하지 않거나 권한이 없는 경우
+//        CakeOrder order = orderRepo.findByOrderIdAndMember(orderId,userId)
 //        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID));
 
         //이미 리뷰 작성 여부 체크

@@ -5,8 +5,8 @@ spring:
       max-file-size: 5MB
       max-request-size: 50MB
 
-#  config:
-#    import: optional:file:external-db.yml
+  config:
+    import: optional:file:external-db.yml
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT}/${DB_NAME}

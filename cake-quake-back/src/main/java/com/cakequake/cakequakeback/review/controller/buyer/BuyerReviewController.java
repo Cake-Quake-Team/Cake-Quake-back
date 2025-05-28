@@ -7,20 +7,19 @@ import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
 import com.cakequake.cakequakeback.review.repo.buyer.BuyerReviewRepo;
 import com.cakequake.cakequakeback.review.service.buyer.BuyerReviewService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class BuyerReviewController {
     private final BuyerReviewService buyerReviewService;
-    private BuyerReviewRepo buyerReviewRepo;
+    private final BuyerReviewRepo buyerReviewRepo;
 
-    public BuyerReviewController(BuyerReviewRepo buyerReviewRepo, BuyerReviewService buyerReviewService) {
-        this.buyerReviewRepo = buyerReviewRepo;
-        this.buyerReviewService = buyerReviewService;
-    }
 
     /**
      * 리뷰 작성
@@ -39,7 +38,7 @@ public class BuyerReviewController {
 
     /**
      * 내 리뷰 전체 조회 (무한 스크롤)
-     * GET /api/buyers/reviews?page=1&size=10
+     * GET /api/buyers/reviews?page=1&size=10 --postman ok
      */
     @GetMapping("buyers/reviews")
     public InfiniteScrollResponseDTO<ReviewResponseDTO> getBuyerReviews(
@@ -51,10 +50,13 @@ public class BuyerReviewController {
 
     /**
      * 내 리뷰 단건 조회
-     * GET /api/buyers/reviews/{reviewId}
+     * GET /api/buyers/reviews/{reviewId} -- postman ok
      */
-    @GetMapping("buyers/reviews/{reviewId}")
-    public ReviewResponseDTO getMyReview(@PathVariable Long reviewId, @AuthenticationPrincipal Long userId){
+    @GetMapping("/buyers/reviews/{reviewId}")
+    public ReviewResponseDTO getMyReview(
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal Long userId
+             ){
         return buyerReviewService.getReview(reviewId, userId);
     }
 

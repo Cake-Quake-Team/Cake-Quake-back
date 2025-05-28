@@ -15,13 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CeoReview extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ceo_review_seq_gen")
-    @SequenceGenerator(
-            name = "ceo_review_seq_gen",
-            sequenceName = "ceo_review_seq",
-            initialValue = 1,
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long ceoReviewId;
 
     @OneToOne(fetch=FetchType.LAZY)
