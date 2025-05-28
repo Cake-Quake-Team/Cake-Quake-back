@@ -1,5 +1,9 @@
 package com.cakequake.cakequakeback.order.entities;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
+
+@Getter
 public enum OrderStatus {
     RESERVATION_PENDING("예약확인중"),
     RESERVATION_CONFIRMED("예약확정"),
@@ -20,6 +24,7 @@ public enum OrderStatus {
     }
 
     /** 한글 라벨을 직렬화에 사용하도록 public getter 추가 */
+    @JsonValue
     public String getKr() {
         return kr;
     }
