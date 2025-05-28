@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.option.entities;
 
+import com.cakequake.cakequakeback.cake.option.dto.UpdateOptionTypeDTO;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.shop.entities.Shop;
@@ -17,13 +18,7 @@ import lombok.*;
 @Getter
 public class OptionType extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cake_option_type_seq")
-    @SequenceGenerator(
-            name = "cake_option_type_seq",
-            sequenceName = "cake_option_type_seq",
-            initialValue = 1,
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long optionTypeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -53,4 +48,11 @@ public class OptionType extends BaseEntity {
     @JoinColumn(name = "modifiedBy", nullable = false)
     private Member modifiedBy;
 
+    public void updateFromDTO(UpdateOptionTypeDTO dto) {
+        if (dto.getOptionType() != null) this.optionType = dto.getOptionType();
+        if (dto.getIsRequired() != null) this.isRequired = dto.getIsRequired();
+        if (dto.getIsUsed() != null) this.isUsed = dto.getIsUsed();
+        if (dto.getMinSelection() != null) this.minSelection = dto.getMinSelection();
+        if (dto.getMaxSelection() != null) this.maxSelection = dto.getMaxSelection();
+    }
 }
