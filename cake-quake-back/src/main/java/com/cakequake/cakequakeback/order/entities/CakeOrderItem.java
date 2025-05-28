@@ -17,21 +17,16 @@ public class CakeOrderItem extends BaseEntity {
 
     // 주문 아이템 ID (PK)
     @Id
-    @GeneratedValue
-    @SequenceGenerator(
-            name = "order_item_seq_gen",
-            sequenceName = "order_item_seq",
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "orderItemId")
     private Long orderItemId;
 
-    //장바구니 (fk 받음)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id", foreignKey = @ForeignKey(name = "fk_order_cart"))
-    private Cart cart; // 직접 주문인 경우는 null로 처리
+    //주문 타입(직접 주문, 장바구니를 통해서 주문)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "orderType", nullable = false, length = 10)
+    private OrderType orderType;
 
-    /** 주문 헤더(주문ID) 참조 */
+    // 주문 헤더(주문ID) 참조
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "orderId",
@@ -40,13 +35,11 @@ public class CakeOrderItem extends BaseEntity {
     )
     private CakeOrder cakeOrder;
 
+
+
     // 케이크 상품별 옵션들
     @OneToMany(mappedBy = "optionItemId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OptionItem> optionItems;
-
-
-
-
 
 
 }

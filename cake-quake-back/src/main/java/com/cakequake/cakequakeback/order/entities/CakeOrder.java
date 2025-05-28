@@ -10,9 +10,8 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * 주문 헤더 정보 (cake_order 테이블)
- */
+/** 주문 헤더 정보 (cake_order 테이블) */
+
 @Entity
 @Table(name = "cake_order")
 @Getter
@@ -21,12 +20,7 @@ public class CakeOrder extends BaseEntity {
 
     // 주문 ID (PK)
     @Id
-    @GeneratedValue
-    @SequenceGenerator(
-            name = "cake_order_seq_gen",
-            sequenceName = "cake_order_seq",
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "orderId")
     private Long orderId;
 
@@ -39,10 +33,11 @@ public class CakeOrder extends BaseEntity {
     @Column(name = "orderNumber", nullable = false, unique = true)
     private String orderNumber;
 
-    //주문한 케이크 받아오기
+    //주문한 케이크 상품
     @OneToMany(mappedBy = "orderItemId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CakeOrderItem> cakeOrderItems;
 
+    //주문할 때 구매자가 적은 글
     @Column(name = "orderNote", length = 255)
     private String orderNote;
 
@@ -50,7 +45,15 @@ public class CakeOrder extends BaseEntity {
     @Column(name = "orderTotalPrice", nullable = false)
     private Integer orderTotalPrice;
 
-    /** 주문 상태 주문확인중, 주문확정, 주문취소, 노쇼, 픽업완료 */
+    //픽업 날짜
+    @Column(name = "pickupDate", nullable = false)
+    private LocalDateTime pickupDate;
+
+    //픽업 날짜
+    @Column(name = "pickupTime", nullable = false)
+    private LocalDateTime pickupTime;
+
+    /** 주문 상태 : 주문확인중, 주문확정, 주문취소, 노쇼, 픽업완료 */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private OrderStatus status;
