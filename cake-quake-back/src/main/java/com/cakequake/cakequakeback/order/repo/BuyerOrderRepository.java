@@ -1,7 +1,6 @@
 package com.cakequake.cakequakeback.order.repo;
 
 import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.order.dto.BuyerOrder;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;

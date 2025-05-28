@@ -7,7 +7,8 @@ import com.cakequake.cakequakeback.member.entities.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 /** 주문 헤더 정보 (cake_order 테이블) */
@@ -15,7 +16,9 @@ import java.util.List;
 @Entity
 @Table(name = "cake_order")
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class CakeOrder extends BaseEntity {
 
     // 주문 ID (PK)
@@ -41,17 +44,21 @@ public class CakeOrder extends BaseEntity {
     @Column(name = "orderNote", length = 255)
     private String orderNote;
 
+    //주문 상품 총 개수
+    @Column(name = "totalNumber", nullable = false)
+    private Integer totalNumber;
+
     //주문 총 가격
     @Column(name = "orderTotalPrice", nullable = false)
     private Integer orderTotalPrice;
 
     //픽업 날짜
     @Column(name = "pickupDate", nullable = false)
-    private LocalDateTime pickupDate;
+    private LocalDate pickupDate;
 
-    //픽업 날짜
+    //픽업 시간
     @Column(name = "pickupTime", nullable = false)
-    private LocalDateTime pickupTime;
+    private LocalTime pickupTime;
 
     /** 주문 상태 : 주문확인중, 주문확정, 주문취소, 노쇼, 픽업완료 */
     @Enumerated(EnumType.STRING)
