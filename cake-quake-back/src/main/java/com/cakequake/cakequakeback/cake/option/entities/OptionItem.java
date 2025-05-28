@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.option.entities;
 
+import com.cakequake.cakequakeback.cake.option.dto.UpdateOptionItemDTO;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
 import jakarta.persistence.*;
@@ -16,13 +17,7 @@ import lombok.*;
 @ToString
 public class OptionItem extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cake_option_item_seq")
-    @SequenceGenerator(
-            name = "cake_option_item_seq",
-            sequenceName = "cake_option_item_seq",
-            initialValue = 1,
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long optionItemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,4 +47,11 @@ public class OptionItem extends BaseEntity {
     @JoinColumn(name = "modifiedBy", nullable = false)
     private Member modifiedBy;
 
+    public void updateFromDTO(UpdateOptionItemDTO dto) {
+        if (dto.getOptionName() != null) this.optionName = dto.getOptionName();
+        if (dto.getIsUsed() != null) this.isUsed = dto.getIsUsed();
+        if (dto.getAllowQuantity() != null) this.allowQuantity = dto.getAllowQuantity();
+        if (dto.getPrice() != null) this.price = dto.getPrice();
+        if (dto.getPosition() != null) this.position = dto.getPosition();
+    }
 }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-// 상품 옵션 타입 조회 DTO
+// 상품 옵션 타입 목록 조회 DTO
 public class CakeOptionTypeDTO {
     private Long optionTypeId;
     private String optionType;

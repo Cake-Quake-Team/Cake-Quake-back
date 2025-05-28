@@ -22,4 +22,7 @@ public class AddOptionItemDTO {
     @NotNull(message = "가격은 0원보다 커야 합니다.")
     @Min(value = 1, message = "가격은 0원보다 커야 합니다.")
     private Integer price;
+
+    private Boolean allowQuantity;
+    private Integer position;
 }
