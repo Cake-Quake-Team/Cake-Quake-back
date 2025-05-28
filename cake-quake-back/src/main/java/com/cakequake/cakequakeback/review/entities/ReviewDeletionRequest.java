@@ -19,13 +19,7 @@ import java.time.LocalDateTime;
 @Builder
 public class ReviewDeletionRequest extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "deletion_request_seq_gen")
-    @SequenceGenerator(
-            name = "deletion_request_seq_gen",
-            sequenceName = "deletion_request _seq",
-            initialValue = 1,
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long requestId;
 
 
