@@ -1,5 +1,8 @@
 package com.cakequake.cakequakeback.member.service;
 
+import com.cakequake.cakequakeback.common.exception.BusinessException;
+import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.common.util.PhoneNumberUtils;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationCheckDTO;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationRequestDTO;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationResponseDTO;
@@ -37,25 +40,32 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plusMinutes(EXPIRES_MINUTES); // 만료 시간 계산
 
+        // 전화번호 형식 검사
+        if(!PhoneNumberUtils.isValid(phoneNumber)) {
+            throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
+        }
+
         Optional<PhoneVerification> verificationOpt = repository.findByPhoneNumberAndType(phoneNumber, type);
 
         if (verificationOpt.isPresent()) {
+
             // 기존 인증 요청이 있을 경우
             PhoneVerification existing = verificationOpt.get();
+
+            log.debug("기존 요청 modDate: {}", existing.getModDate());
 
             // 인증번호 재전송 제한: 최근 요청이 1분 이내일 경우 차단
             if (existing.getModDate() != null &&
                     existing.getModDate().isAfter(now.minusSeconds(RESEND_COOLDOWN_SECONDS))) {
 
-                return PhoneVerificationResponseDTO.builder()
-                        .success(false)
-                        .message("인증번호는 1분 후에 다시 요청할 수 있습니다.")
-                        .build();
+                log.debug("1분 이내 재요청 차단, 메시지 전송 중");
+                throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS_IN_SHORT_TIME); // 1102
             } // end if
 
             // 기존 요청에 새로운 코드와 만료 시간 업데이트
             existing.changeCode(code, expiresAt);
             repository.save(existing);
+            log.debug("수정 후 modDate: {}", existing.getModDate());
         } else {
             // 최초 인증 요청 저장
             PhoneVerification newVerification = PhoneVerification.builder()
@@ -68,7 +78,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         }
 
         // 실제 환경에서는 문자 API 호출해야 함
-        log.info("휴대폰 인증번호 전송: " + phoneNumber + " / 코드: " + code);
+        log.debug("휴대폰 인증번호 전송: {}, / 코드: {} ", phoneNumber, code);
 
         return PhoneVerificationResponseDTO.builder()
                 .success(true)
@@ -83,33 +93,28 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         String code = checkDTO.getCode();
         VerificationType type = checkDTO.getType();
 
-        // 번호와 코드로 인증 요청 조회
-        Optional<PhoneVerification> foundOpt = repository.findByPhoneNumberAndCodeAndType(phoneNumber, code, type);
-
-        // 일치하는 인증 정보 없으면 실패 응답
-        if (foundOpt.isEmpty()) {
-            return PhoneVerificationResponseDTO.builder()
-                    .success(false)
-                    .message("인증번호가 일치하지 않습니다.")
-                    .build();
+        // 전화번호 또는 코드 형식 검증
+        if (!PhoneNumberUtils.isValid(phoneNumber)) {
+            throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
+        }
+        if (!isValidOtp(code)) {
+            throw new BusinessException(ErrorCode.INVALID_OTP_FORMAT); // 622
         }
 
-        PhoneVerification verification = foundOpt.get();
+        // 번호와 코드로 db에 인증 요청 조회
+        PhoneVerification verification = repository.findByPhoneNumberAndCodeAndType(phoneNumber, code, type)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_OTP)); // 807_잘못된 인증
 
-        // 이미 인증된 번호면 실패 응답
+        // 이미 이 인증 요청은 완료된 상태
+        log.debug("현재 verified 상태: {}", verification.isVerified());
         if (verification.isVerified()) {
-            return PhoneVerificationResponseDTO.builder()
-                    .success(false)
-                    .message("이미 인증이 완료된 번호입니다.")
-                    .build();
+            log.warn("이미 인증 완료된 번호입니다. 예외 발생!");
+            throw new BusinessException(ErrorCode.ALREADY_VERIFIED_PHONE); // 716
         }
 
-        // 인증번호가 만료되었으면 실패 응답
+        // 만료된 인증번호 입력한 경우
         if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
-            return PhoneVerificationResponseDTO.builder()
-                    .success(false)
-                    .message("인증번호가 만료되었습니다.")
-                    .build();
+            throw new BusinessException(ErrorCode.EXPIRED_OTP); // 808
         }
 
         // 검증 성공 → 인증 완료 처리
@@ -126,5 +131,10 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
     private String generateRandomCode(int length) {
         Random random = new Random();
         return String.format("%0" + length + "d", random.nextInt((int) Math.pow(10, length)));
+    }
+
+    // 인증 코드 형식 검사
+    private boolean isValidOtp(String code) {
+        return code != null && code.matches("^\\d{6}$"); // 6자리 숫자
     }
 }

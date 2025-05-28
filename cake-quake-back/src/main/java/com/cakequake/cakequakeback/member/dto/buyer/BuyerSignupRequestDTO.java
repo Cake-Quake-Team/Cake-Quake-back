@@ -34,8 +34,7 @@ public class BuyerSignupRequestDTO {
     private String phoneNumber;
 
     @NotBlank(message = "정보 공개 여부는 필수 입력값입니다.")
-    @Pattern(regexp = "^[yn]{1}$", message = "정보 공개 여부는 y 또는 n만 허용됩니다.")
-    private String publicInfo;
+    private Boolean publicInfo;
 
     @NotNull(message = "알람 설정 값은 필수입니다.")
     private Boolean alarm;
@@ -46,5 +45,11 @@ public class BuyerSignupRequestDTO {
 
     @Pattern(regexp = "^(basic)$", message = "가입 유형은 basic만 허용됩니다.")
     private String joinType;
+
+    @Override
+    public String toString() {
+        return String.format("BuyerSignupRequestDTO{userId='%s', uname='%s', phoneNumber='%s', publicInfo='%s', alarm=%s, role='%s', joinType='%s'}",
+                userId, uname, phoneNumber, publicInfo, alarm, role, joinType);
+    }
 
 }

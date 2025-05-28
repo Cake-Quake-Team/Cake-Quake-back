@@ -1,5 +1,8 @@
-package com.cakequake.cakequakeback.config;
+package com.cakequake.cakequakeback.security.config;
 
+import com.cakequake.cakequakeback.security.exception.CustomAccessDeniedHandler;
+import com.cakequake.cakequakeback.security.exception.CustomAuthenticationEntryPoint;
+import com.cakequake.cakequakeback.security.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +24,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomSecurityConfig {
 
+    private final CustomUserDetailsService customUserDetailsService;
+
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -34,13 +42,20 @@ public class CustomSecurityConfig {
              */
         });
 
+        http.userDetailsService(customUserDetailsService);
+
         http.formLogin(config -> config.disable() );
 
         http.csrf(csrf -> csrf.disable() );
 
-        http.cors(cors -> {
-            cors.configurationSource(corsConfigurationSource());
-        });
+        http.cors(cors ->
+            cors.configurationSource(corsConfigurationSource())
+        );
+
+        http.exceptionHandling(ex -> ex
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler)
+        );
 
         return http.build();
     }

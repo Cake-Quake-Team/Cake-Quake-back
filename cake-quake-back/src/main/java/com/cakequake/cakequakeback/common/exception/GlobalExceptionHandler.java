@@ -22,4 +22,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ec.getHttpStatus()).body(body);
     }
 
+    @ExceptionHandler(CustomSecurityException.class)
+    public ResponseEntity<ErrorResponseDTO> handleCustomSecurityException(CustomSecurityException ex) {
+        ErrorCode ec = ex.getErrorCode();
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                ec.getHttpStatus(),
+                ec.getCode(),
+                ec.getMessage()
+        );
+        return ResponseEntity.status(ec.getHttpStatus()).body(body);
+    }
+
 }

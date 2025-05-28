@@ -16,13 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Member extends BaseEntity {
     @Id
-    @GeneratedValue ( strategy = GenerationType.SEQUENCE, generator = "user_seq_gen")
-    @SequenceGenerator(
-            name = "user_seq_gen",       // JPA 내부에서 쓸 식별자
-            sequenceName = "user_seq",   // DB에 생성된 시퀀스 이름
-            initialValue = 1,            // 시퀀스 START WITH 값
-            allocationSize = 50          // 한 번에 미리 가져올 시퀀스 수
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long uid;
 
     @Column(nullable = false, length = 20)

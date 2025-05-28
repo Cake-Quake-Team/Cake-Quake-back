@@ -33,4 +33,10 @@ public class BuyerWithDetailResponseDTO {
     private LocalDateTime memberModDate;
     private LocalDateTime memberDetailModDate;
 
+    @Override
+    public String toString() {
+        return String.format("BuyerSignupRequestDTO{uname='%s', userId='%s', role='%s', alarm=%s, socialType='%s', badges='%s', delDate='%s', memberRegDate='%s', memberModDate='%s', memberDetailModDate='%s'}",
+                uname, userId, role, alarm, socialType, badges, delDate, memberRegDate, memberModDate, memberDetailModDate);
+    }
+
 }
