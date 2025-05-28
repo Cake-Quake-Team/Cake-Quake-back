@@ -114,9 +114,11 @@ public enum ErrorCode {
     ALREADY_PAID_PRODUCT       (409, 713, "이미 결제된 상품입니다"),
     ALREADY_USED_COUPON        (409, 714, "이미 사용된 쿠폰입니다"),
     EXCEEDED_COUPON_LIMIT      (409, 715, "쿠폰 2개 이상 사용할 수 없습니다"),
+    ALREADY_VERIFIED_PHONE (409, 716, "이미 인증이 완료된 전화번호입니다."),
 
     //HTTP 429 Too Many Request (code:1101)
     EXCEEDED_SMS_LIMIT         (429,1101,"SMS 요청 한도를 초과했습니다"),
+    TOO_MANY_REQUESTS_IN_SHORT_TIME(429, 1102, "인증번호는 1분 후에 다시 요청할 수 있습니다."),
 
     //HTTP 500 InternalServer Error & 502 Bad Gateway
     INTERNAL_SERVER_ERROR      (500,1500,"서버 내부 오류입니다"),

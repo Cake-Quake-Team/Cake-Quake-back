@@ -44,4 +44,11 @@ public class SocialSignupRequestDTO {
     @Pattern(regexp = "^(kakao|google)$", message = "가입 유형은 kakao 또는 google만 허용됩니다.")
     private String joinType;
 
+    @Override
+    public String toString() {
+        return String.format("BuyerSignupRequestDTO{userId='%s', uname='%s', phoneNumber='%s', publicInfo='%s', alarm=%s, role='%s', joinType='%s'}",
+                userId, uname, phoneNumber, publicInfo, alarm, role, joinType);
+    }
+
+
 }
