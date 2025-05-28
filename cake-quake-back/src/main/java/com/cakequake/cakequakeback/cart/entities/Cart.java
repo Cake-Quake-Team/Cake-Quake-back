@@ -15,12 +15,7 @@ public class Cart extends BaseEntity {
 
     /*장바구니 ID(PK)*/
     @Id
-    @GeneratedValue
-    @SequenceGenerator(
-            name = "cart_seq_gen",         // JPA 내부에서 참조하는 시퀀스 생성기 이름
-            sequenceName = "cart_seq",      // DB에 생성된 시퀀스 이름
-            allocationSize = 50              // 한 번에 시퀀스를 얼마나 가져올지 설정
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cartId")
     private Long cartId;
 
