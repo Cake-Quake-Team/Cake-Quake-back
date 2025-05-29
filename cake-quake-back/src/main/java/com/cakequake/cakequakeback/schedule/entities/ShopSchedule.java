@@ -23,7 +23,7 @@ public class ShopSchedule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "scheduleId")
+    @Column(nullable = false)
     private Long scheduleId;
 
     @ManyToOne(fetch =FetchType.LAZY)
