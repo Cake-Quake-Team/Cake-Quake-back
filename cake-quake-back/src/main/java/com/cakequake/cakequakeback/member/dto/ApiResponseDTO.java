@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.member.dto.verification;
+package com.cakequake.cakequakeback.member.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PhoneVerificationResponseDTO {
+public class ApiResponseDTO {
 
     private boolean success;
     private String message;

@@ -2,7 +2,7 @@ package com.cakequake.cakequakeback.member.controller;
 
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationCheckDTO;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationRequestDTO;
-import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationResponseDTO;
+import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
 import com.cakequake.cakequakeback.member.service.PhoneVerificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,20 +23,20 @@ public class PhoneVerificationController {
 
     // 인증 코드 발송
     @PostMapping("/send")
-    public ResponseEntity<PhoneVerificationResponseDTO> sendVerificationCode(@RequestBody @Valid PhoneVerificationRequestDTO requestDTO) {
+    public ResponseEntity<ApiResponseDTO> sendVerificationCode(@RequestBody @Valid PhoneVerificationRequestDTO requestDTO) {
         service.sendVerificationCode(requestDTO);
 
-        return ResponseEntity.ok(PhoneVerificationResponseDTO.builder()
+        return ResponseEntity.ok(ApiResponseDTO.builder()
                 .success(true)
                 .message("인증번호 발송 성공")
                 .build());
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<PhoneVerificationResponseDTO> verifyCode(@RequestBody @Valid PhoneVerificationCheckDTO checkDTO) {
+    public ResponseEntity<ApiResponseDTO> verifyCode(@RequestBody @Valid PhoneVerificationCheckDTO checkDTO) {
         service.verifyCode(checkDTO);
 
-        return ResponseEntity.ok(PhoneVerificationResponseDTO.builder()
+        return ResponseEntity.ok(ApiResponseDTO.builder()
                 .success(true)
                 .message("인증번호 검증 성공")
                 .build());
