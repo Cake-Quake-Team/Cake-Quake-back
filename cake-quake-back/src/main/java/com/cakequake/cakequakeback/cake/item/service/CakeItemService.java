@@ -13,7 +13,7 @@ import java.util.List;
 public interface CakeItemService {
 
     // 케이크 등록
-    Long addCake(AddCakeDTO addCakeDTO, Long shopId, Long uid);
+    Long addCake(AddCakeDTO addCakeDTO, Long shopId);
 
     // 케이크 목록 조회
     InfiniteScrollResponseDTO<CakeListDTO> getAllCakeList(PageRequestDTO pageRequestDTO, CakeCategory category);
@@ -22,7 +22,7 @@ public interface CakeItemService {
     InfiniteScrollResponseDTO<CakeListDTO> getShopCakeList(Long shopId, PageRequestDTO pageRequestDTO, CakeCategory category);
 
     // 케이크 상세 조회
-    CakeDetailDTO getCakeDetail(Long cakeId);
+    CakeDetailDTO getCakeDetail(Long shopId, Long cakeId);
 
     // 케이크 수정
     void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO);

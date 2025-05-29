@@ -14,30 +14,25 @@ import lombok.*;
 @Getter
 public class CakeImage extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cake_image_seq")
-    @SequenceGenerator(
-            name = "cake_image_seq",
-            sequenceName = "cake_image_seq",
-            initialValue = 1,
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
     private Long imageId;
 
-    @Column(nullable = false)
+    @Column
     private String imageUrl;
 
-    @Column(nullable = false)
+    @Column
     private Boolean isThumbnail = false;        // 대표 이미지 여부
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cakeId", nullable = false)
+    @JoinColumn(name = "cake_id")
     private CakeItem cakeItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "createdBy", nullable = false)
+    @JoinColumn(name = "created_by")
     private Member createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modifiedBy", nullable = false)
+    @JoinColumn(name = "modified_by")
     private Member modifiedBy;
 }

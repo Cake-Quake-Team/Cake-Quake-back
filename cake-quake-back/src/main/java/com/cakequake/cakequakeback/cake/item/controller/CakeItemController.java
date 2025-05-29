@@ -14,9 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-
-
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -32,22 +29,26 @@ public class CakeItemController {
         return cakeItemService.getAllCakeList(pageRequestDTO, keyword);
     }
 
-    @GetMapping("/cakes/{cakeId}")
-    public CakeDetailDTO getCakeDetail(@PathVariable Long cakeId) {
-        return cakeItemService.getCakeDetail(cakeId);
+    @GetMapping("/shops/{shopId}/cakes/{cakeId}")
+    public CakeDetailDTO getCakeDetail(
+            @PathVariable Long shopId,
+            @PathVariable Long cakeId) {
+
+        return cakeItemService.getCakeDetail(shopId, cakeId);
     };
 
     @PostMapping("/shops/{shopId}/cakes")
-    public ResponseEntity<CakeDetailDTO> addCake(
+    public ResponseEntity<CakeListDTO> addCake(
             @PathVariable Long shopId,
             @RequestBody AddCakeDTO addCakeDTO){
 
-        Long cakeId = cakeItemService.addCake(addCakeDTO, shopId, addCakeDTO.getUid());
+        Long cakeId = cakeItemService.addCake(addCakeDTO, shopId);
 
-        CakeDetailDTO response = CakeDetailDTO.builder()
+        CakeListDTO response = CakeListDTO.builder()
                 .cakeId(cakeId)
-                .shopId(shopId)
-                .createdAt(LocalDateTime.now())
+                .cname(addCakeDTO.getCname())
+                .price(addCakeDTO.getPrice())
+                .thumbnailImageUrl(addCakeDTO.getThumbnailImageUrl())
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -60,7 +61,7 @@ public class CakeItemController {
 
         cakeItemService.updateCake(shopId, cakeId, updateCakeDTO);
 
-        return cakeItemService.getCakeDetail(cakeId);
+        return cakeItemService.getCakeDetail(shopId, cakeId);
     }
 
     @DeleteMapping("shops/{shopId}/cakes/{cakeId}")
