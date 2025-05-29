@@ -56,8 +56,8 @@ public class OptionItemServiceImpl implements OptionItemService {
                 .optionType(optionType)
                 .optionName(addOptionItemDTO.getOptionName())
                 .price(addOptionItemDTO.getPrice())
-                .allowQuantity(addOptionItemDTO.getAllowQuantity())
-                .position(addOptionItemDTO.getPosition())
+                .version(1)
+                .isDeleted(false)
                 .build();
 
         optionItemRepository.save(optionItem);
@@ -97,10 +97,8 @@ public class OptionItemServiceImpl implements OptionItemService {
                 .optionItemId(optionItem.getOptionItemId())
                 .optionName(optionItem.getOptionName())
                 .price(optionItem.getPrice())
-                .price(optionItem.getPrice())
-                .isUsed(optionItem.getIsUsed())
-                .allowQuantity(optionItem.getAllowQuantity())
-                .position(optionItem.getPosition())
+                .regDate(optionItem.getRegDate())
+                .modDate(optionItem.getModDate())
                 .build();
     }
 
@@ -123,6 +121,6 @@ public class OptionItemServiceImpl implements OptionItemService {
 
         OptionItem optionItem = getOptionItemOrThrow(optionItemId);
 
-        optionItemRepository.delete(optionItem);
+        optionItem.changeIsDeleted(true);
     }
 }

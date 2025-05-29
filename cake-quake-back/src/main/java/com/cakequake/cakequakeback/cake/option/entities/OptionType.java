@@ -22,30 +22,33 @@ public class OptionType extends BaseEntity {
     private Long optionTypeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shopId", nullable = false)
+    @JoinColumn(name = "shopId")
     private Shop shop;
 
-    @Column(nullable = false)
+    @Column
     private String optionType;                   // 시트모양, 시트크기, 케이크단 등등
 
-    @Column(nullable = false)
+    @Column
     private Boolean isUsed = true;               // 사용여부
 
-    @Column(nullable = false)
+    @Column
+    private Boolean isDeleted = false;           // 삭제여부
+
+    @Column
     private Boolean isRequired = false;          // 필수선택여부
 
-    @Column(nullable = false)
-    private int minSelection = 0;                // 최소선택개수
+    @Column
+    private Integer minSelection = 0;                // 최소선택개수
 
-    @Column(nullable = false)
-    private int maxSelection = 1;                // 최대선택개수
+    @Column
+    private Integer maxSelection = 1;                // 최대선택개수
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "createdBy", nullable = false)
+    @JoinColumn(name = "createdBy")
     private Member createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modifiedBy", nullable = false)
+    @JoinColumn(name = "modifiedBy")
     private Member modifiedBy;
 
     public void updateFromDTO(UpdateOptionTypeDTO dto) {
@@ -54,5 +57,9 @@ public class OptionType extends BaseEntity {
         if (dto.getIsUsed() != null) this.isUsed = dto.getIsUsed();
         if (dto.getMinSelection() != null) this.minSelection = dto.getMinSelection();
         if (dto.getMaxSelection() != null) this.maxSelection = dto.getMaxSelection();
+    }
+
+    public void changeIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 }

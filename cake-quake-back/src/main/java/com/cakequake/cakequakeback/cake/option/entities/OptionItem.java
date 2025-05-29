@@ -21,37 +21,37 @@ public class OptionItem extends BaseEntity {
     private Long optionItemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "optionTypeId", nullable = false)
+    @JoinColumn(name = "optionTypeId")
     private OptionType optionType;
 
-    @Column(nullable = false)
+    @Column
     private String optionName;
 
-    @Column(nullable = false)
+    @Column
     private int price = 0;
 
-    @Column(nullable = false)
-    private Boolean isUsed = true;              // 사용여부
+    @Column
+    private int version = 1;    // 업데이트 버전 - 옵션 값 수정 시 1씩 증가
 
-    @Column(nullable = false)
-    private int position = 0;                   // 표시순서
-
-    @Column(nullable = false)
-    private Boolean allowQuantity = false;      // 수량조절가능여부
+    @Column
+    private Boolean isDeleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "createdBy", nullable = false)
+    @JoinColumn(name = "createdBy")
     private Member createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modifiedBy", nullable = false)
+    @JoinColumn(name = "modifiedBy")
     private Member modifiedBy;
 
     public void updateFromDTO(UpdateOptionItemDTO dto) {
-        if (dto.getOptionName() != null) this.optionName = dto.getOptionName();
-        if (dto.getIsUsed() != null) this.isUsed = dto.getIsUsed();
-        if (dto.getAllowQuantity() != null) this.allowQuantity = dto.getAllowQuantity();
-        if (dto.getPrice() != null) this.price = dto.getPrice();
-        if (dto.getPosition() != null) this.position = dto.getPosition();
+        boolean updated = false;
+        if (dto.getOptionName() != null && !dto.getOptionName().equals(this.optionName)) {this.optionName = dto.getOptionName(); updated = true;}
+        if (dto.getPrice() != null && dto.getPrice() != this.price) {this.price = dto.getPrice(); updated = true;}
+        if (updated) this.version += 1;
+    }
+
+    public void changeIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 }

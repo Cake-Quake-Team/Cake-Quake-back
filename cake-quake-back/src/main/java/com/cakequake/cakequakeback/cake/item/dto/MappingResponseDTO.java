@@ -1,6 +1,6 @@
 package com.cakequake.cakequakeback.cake.item.dto;
 
-import com.cakequake.cakequakeback.cake.option.dto.CakeOptionTypeDTO;
+import com.cakequake.cakequakeback.cake.option.dto.CakeOptionItemDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,5 +15,5 @@ import java.util.List;
 // 상품에 연결된 옵션 타입 조회 DTO
 public class MappingResponseDTO {
     private Long cakeId;
-    private List<CakeOptionTypeDTO> optionTypes;
+    private List<CakeOptionItemDTO> optionItems;
 }

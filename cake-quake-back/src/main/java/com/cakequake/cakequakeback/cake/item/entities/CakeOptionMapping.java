@@ -1,6 +1,6 @@
 package com.cakequake.cakequakeback.cake.item.entities;
 
-import com.cakequake.cakequakeback.cake.option.entities.OptionType;
+import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import jakarta.persistence.*;
 
@@ -16,6 +16,9 @@ public class CakeOptionMapping extends BaseEntity {
     private CakeItem cakeItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "optionTypeId")
-    private OptionType optionType;
+    @JoinColumn(name = "optionItemId")
+    private OptionItem optionItem;
+
+    @Column
+    private Boolean isUsed;
 }

@@ -41,10 +41,10 @@ public class CakeItemServiceImpl implements CakeItemService {
     private final ShopRepository shopRepository;
 
     // shopId가 존재하지 않을 경우
-    public void shopExists(Long shopId) {
-        if (!shopRepository.existsById(shopId)) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID);
-        }
+    public Shop shopExists(Long shopId) {
+        return shopRepository.findById(shopId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
+
     }
 
     // cakeId가 존재하지 않을 경우
@@ -57,10 +57,9 @@ public class CakeItemServiceImpl implements CakeItemService {
     // 상품 등록
     public Long addCake(AddCakeDTO addCakeDTO, Long shopId) {
 
-        Shop shop = shopRepository.findById(shopId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
+        Shop shop = shopExists(shopId);
 
-        if (addCakeDTO.getCname() == null || addCakeDTO.getCname().trim().isEmpty()) {
+        if (addCakeDTO.getCname() == null || addCakeDTO.getCname().trim().isEmpty() || addCakeDTO.getCname().length() > 20) {
             throw new BusinessException(ErrorCode.INVALID_LONG_NAME);
         }
 
