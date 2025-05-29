@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +17,6 @@ public class UpdateCakeDTO {
 
     private String cname;
 
-    @Min(value = 1, message = "가격은 0원보다 커야 합니다.")
     private Integer price;
 
     private String description;
@@ -23,6 +24,8 @@ public class UpdateCakeDTO {
     private CakeCategory category;
 
     private String thumbnailImageUrl;
+
+    private List<String> imageUrls;
 
     private Boolean isOnsale;   // 품절 : TRUE, 판매 중 : FALSE
 }

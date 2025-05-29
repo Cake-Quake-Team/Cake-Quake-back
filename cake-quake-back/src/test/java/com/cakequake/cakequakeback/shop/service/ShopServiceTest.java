@@ -148,7 +148,7 @@ public class ShopServiceTest {
         for (CakeListDTO cake : cakeList) {
             System.out.printf(" - [ID: %d] %s | 가격: %d원",
                     cake.getCakeId(),
-                    cake.getCName(),
+                    cake.getCname(),
                     cake.getPrice()
             );
 

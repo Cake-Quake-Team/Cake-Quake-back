@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 // 케이크 상품 목록 조회 DTO
 public class CakeListDTO {
     private Long cakeId;
-    private String cName;
+    private String cname;
     private int price;
     private String thumbnailImageUrl;
 }

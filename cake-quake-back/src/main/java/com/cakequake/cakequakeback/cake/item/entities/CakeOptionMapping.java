@@ -8,20 +8,14 @@ import jakarta.persistence.*;
 @Table(name = "cake_mapping")
 public class CakeOptionMapping extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cake_mapping_seq")
-    @SequenceGenerator(
-            name = "cake_mapping",
-            sequenceName = "cake_mapping",
-            initialValue = 1,
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long mappingId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cakeId", nullable = false)
+    @JoinColumn(name = "cakeId")
     private CakeItem cakeItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "optionTypeId", nullable = false)
+    @JoinColumn(name = "optionTypeId")
     private OptionType optionType;
 }

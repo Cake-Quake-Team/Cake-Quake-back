@@ -27,5 +27,6 @@ public class CakeDetailDTO {
     private int orderCount;
     private Boolean isOnsale;
     private Boolean isDeleted;
-    private LocalDateTime createdAt;
+    private LocalDateTime regDate;
+    private LocalDateTime modDate;
 }
