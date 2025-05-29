@@ -15,13 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ShopNotice extends BaseEntity {
     @Id
-   @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "shopnotice_seq_gen")
-   @SequenceGenerator(
-           name = "shopnotice_seq_gen",
-           sequenceName="shopnotice_seq",
-           initialValue=1,
-           allocationSize = 50
-   )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long shopNoticeId;
 
     @ManyToOne(fetch =FetchType.LAZY)

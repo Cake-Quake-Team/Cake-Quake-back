@@ -15,13 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ShopImage extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "shop_image_seq_gen")
-    @SequenceGenerator(
-            name="shop_image_seq_gen",
-            sequenceName = "shop_image_seq",
-            initialValue = 1,
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long imageId;
 
     @ManyToOne(fetch =FetchType.LAZY)

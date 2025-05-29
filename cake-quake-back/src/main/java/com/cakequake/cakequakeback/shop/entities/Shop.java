@@ -25,13 +25,8 @@ import java.util.List;
 
 public class Shop extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "shop_seq_gen")
-    @SequenceGenerator(
-            name = "shop_seq_gen",
-            sequenceName="shop_seq",
-            initialValue=1,
-            allocationSize = 50
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long shopId;
 
     //userId 컬럼이 member 테이블의 userId 참조
