@@ -5,7 +5,7 @@ import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.common.util.PhoneNumberUtils;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationCheckDTO;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationRequestDTO;
-import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationResponseDTO;
+import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
 import com.cakequake.cakequakeback.member.entities.PhoneVerification;
 import com.cakequake.cakequakeback.member.entities.VerificationType;
 import com.cakequake.cakequakeback.member.repo.PhoneVerificationRepository;
@@ -32,7 +32,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
 
     // 인증번호 발송
     @Override
-    public PhoneVerificationResponseDTO sendVerificationCode(PhoneVerificationRequestDTO requestDTO) {
+    public ApiResponseDTO sendVerificationCode(PhoneVerificationRequestDTO requestDTO) {
         String phoneNumber = requestDTO.getPhoneNumber();
         String code = generateRandomCode(CODE_LENGTH);
         VerificationType type = requestDTO.getType();
@@ -80,7 +80,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         // 실제 환경에서는 문자 API 호출해야 함
         log.debug("휴대폰 인증번호 전송: {}, / 코드: {} ", phoneNumber, code);
 
-        return PhoneVerificationResponseDTO.builder()
+        return ApiResponseDTO.builder()
                 .success(true)
                 .message("인증번호가 전송되었습니다.")
                 .build();
@@ -88,7 +88,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
 
     // 인증번호 검증
     @Override
-    public PhoneVerificationResponseDTO verifyCode(PhoneVerificationCheckDTO checkDTO) {
+    public ApiResponseDTO verifyCode(PhoneVerificationCheckDTO checkDTO) {
         String phoneNumber = checkDTO.getPhoneNumber();
         String code = checkDTO.getCode();
         VerificationType type = checkDTO.getType();
@@ -121,7 +121,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         verification.changeVerified(true);
         repository.save(verification);
 
-        return PhoneVerificationResponseDTO.builder()
+        return ApiResponseDTO.builder()
                 .success(true)
                 .message("인증이 완료되었습니다.")
                 .build();

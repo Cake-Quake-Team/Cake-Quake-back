@@ -7,7 +7,7 @@ public enum ErrorCode {
     //HTTP 400 BAD Request (600~650)
     INVALID_USER_ID(400, 601, "아이디가 조건에 불충족할 경우"),
     INVALID_PASSWORD(400, 602, "비밀번호가 조건에 불충족할 경우"),
-    INVALID_NAME_SHORT(400, 603, "이름 또는 닉네임(20자)이 조건에 불충족할 경우"),
+    INVALID_NAME_SHORT(400, 603, "이름은 한글 또는 영어가 최소 1개 이상 포함되고, 한글, 영어, 숫자 조합으로 20자 미만으로 입력해야합니다."),
     INVALID_PHONE(400, 604, "전화번호 형식이 올바르지 않습니다"),
     INVALID_PRIVACY_SETTING(400, 605, "정보공개 여부 값이 유효하지 않습니다"),
     INVALID_SIGNUP_TYPE(400, 606, "가입 유형이 조건에 불충족할 경우"),

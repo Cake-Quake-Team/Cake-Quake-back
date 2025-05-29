@@ -2,7 +2,7 @@ package com.cakequake.cakequakeback.member.service;
 
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationCheckDTO;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationRequestDTO;
-import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationResponseDTO;
+import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
 import com.cakequake.cakequakeback.member.entities.PhoneVerification;
 import com.cakequake.cakequakeback.member.entities.VerificationType;
 import com.cakequake.cakequakeback.member.repo.PhoneVerificationRepository;
@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 
@@ -40,7 +38,7 @@ public class PhoneVerificationServiceTests {
         dto.setPhoneNumber("01012345678");
         dto.setType(VerificationType.SIGNUP);
 
-        PhoneVerificationResponseDTO response = service.sendVerificationCode(dto);
+        ApiResponseDTO response = service.sendVerificationCode(dto);
 
         log.info("응답 결과: {}", response.getMessage());
         assertTrue(response.isSuccess());
@@ -81,7 +79,7 @@ public class PhoneVerificationServiceTests {
 
         log.info("phoneNumber: {}, code: {}", checkDTO.getPhoneNumber(), checkDTO.getCode());
 
-        PhoneVerificationResponseDTO response = service.verifyCode(checkDTO);
+        ApiResponseDTO response = service.verifyCode(checkDTO);
 
         assertTrue(response.isSuccess());
         assertEquals("인증이 완료되었습니다.", response.getMessage());
@@ -111,7 +109,7 @@ public class PhoneVerificationServiceTests {
         checkDTO.setCode("000000"); // 틀린 코드
 
 
-        PhoneVerificationResponseDTO response = service.verifyCode(checkDTO);
+        ApiResponseDTO response = service.verifyCode(checkDTO);
 
         assertFalse(response.isSuccess());
         assertEquals("인증번호가 일치하지 않습니다.", response.getMessage());
@@ -135,7 +133,7 @@ public class PhoneVerificationServiceTests {
         checkDTO.setType(VerificationType.SIGNUP);
         checkDTO.setCode("111111");
 
-        PhoneVerificationResponseDTO response = service.verifyCode(checkDTO);
+        ApiResponseDTO response = service.verifyCode(checkDTO);
 
         assertFalse(response.isSuccess());
         assertEquals("인증번호가 만료되었습니다.", response.getMessage());
