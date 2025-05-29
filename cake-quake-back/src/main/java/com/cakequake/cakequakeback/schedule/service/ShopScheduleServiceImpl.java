@@ -26,8 +26,8 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
     public ShopScheduleResponseDTO createShopSchedule(CakeOrder order, Long shopId) {
         // 1. 날짜 + 시간 합치기
         LocalDateTime scheduleDateTime = LocalDateTime.of(
-                order.getPickupDate().toLocalDate(),
-                order.getPickupTime().toLocalTime()
+                order.getPickupDate(),
+                order.getPickupTime()
         );
 
         // 2. 해당 스케줄이 이미 예약되었는지 확인

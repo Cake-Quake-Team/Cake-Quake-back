@@ -124,7 +124,7 @@ public class TemperatureServiceImpl implements TemperatureService {
 
         CakeOrder order = buyerOrderRepository.findById(orderId).get();
 
-        LocalDate pickUpDate = order.getPickupDate().toLocalDate();
+        LocalDate pickUpDate = order.getPickupDate();
         LocalDate today = LocalDate.now();
 
         Member member = order.getMember();
