@@ -14,5 +14,5 @@ import java.util.List;
 // 상품에 옵션 타입 연결 요청 DTO
 public class MappingRequestDTO {
     private Long cakeId;
-    private List<Long> optionTypeIds;
+    private List<Long> optionItemIds;
 }

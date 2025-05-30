@@ -12,6 +12,6 @@ public interface OptionTypeRepository extends JpaRepository<OptionType, Long> {
 
     // 옵션 타입 목록 조회
     @Query("SELECT new com.cakequake.cakequakeback.cake.option.dto.CakeOptionTypeDTO(ot.optionTypeId, ot.optionType)" +
-            "FROM OptionType ot WHERE ot.shop.shopId = :shopId")
+            "FROM OptionType ot WHERE ot.shop.shopId = :shopId AND ot.isDeleted = false")
     Page<CakeOptionTypeDTO> findOptionType(@Param("shopId") Long shopId, Pageable pageable);
 }

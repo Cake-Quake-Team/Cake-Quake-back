@@ -8,6 +8,7 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.shop.entities.Shop;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -28,10 +29,10 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     private final OptionItemRepository optionItemRepository;
 
     // shopId가 존재하지 않을 경우
-    public void shopExists(Long shopId) {
-        if (!shopRepository.existsById(shopId)) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID);
-        }
+    public Shop shopExists(Long shopId) {
+        return shopRepository.findById(shopId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
+
     }
 
     // optionTypeId가 존재하지 않을 경우
@@ -44,13 +45,36 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     // 옵션 타입 등록
     public Long addOptionType(Long shopId, AddOptionTypeDTO addOptionTypeDTO) {
 
-        shopExists(shopId);
+        Shop shop = shopExists(shopId);
+
+        if (addOptionTypeDTO.getOptionType() == null || addOptionTypeDTO.getOptionType().trim().isEmpty() || addOptionTypeDTO.getOptionType().length() > 20) {
+            throw new BusinessException(ErrorCode.INVALID_TYPE);
+        }
+//        if (addOptionTypeDTO.getIsRequired() != null && addOptionTypeDTO.getIsRequired() == true) {
+//            if (addOptionTypeDTO.getMinSelection() == 0) {
+//                throw new BusinessException(ErrorCode.INVALID_SELECTION_WHEN_REQUIRED);
+//            }
+//        }
+//
+//        if (addOptionTypeDTO.getMinSelection() != null && addOptionTypeDTO.getMaxSelection() != null) {
+//            if (addOptionTypeDTO.getMinSelection() > addOptionTypeDTO.getMaxSelection()) {
+//                throw new BusinessException(ErrorCode.INVALID_SELECTION_RANGE);
+//            }
+//        }
+
+        // isRequired/min/max 기본값 처리
+        boolean isRequired = (addOptionTypeDTO.getIsRequired() != null) ? addOptionTypeDTO.getIsRequired() : false;
+        int minSelection = (addOptionTypeDTO.getMinSelection() != null) ? addOptionTypeDTO.getMinSelection() : 0;
+        int maxSelection = (addOptionTypeDTO.getMaxSelection() != null) ? addOptionTypeDTO.getMaxSelection() : 1;
 
         OptionType optionType = OptionType.builder()
+                .shop(shop)
                 .optionType(addOptionTypeDTO.getOptionType())
-                .isRequired(addOptionTypeDTO.getIsRequired())
-                .minSelection(addOptionTypeDTO.getMinSelection())
-                .maxSelection(addOptionTypeDTO.getMaxSelection())
+                .isRequired(isRequired)
+                .minSelection(minSelection)
+                .maxSelection(maxSelection)
+                .isUsed(true)
+                .isDeleted(false)
                 .build();
 
         OptionType savedOptionType = optionTypeRepository.save(optionType);
@@ -66,6 +90,10 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     public InfiniteScrollResponseDTO<CakeOptionTypeDTO> getOptionTypeList(PageRequestDTO pageRequestDTO, Long shopId) {
 
         shopExists(shopId);
+
+        if (pageRequestDTO.getPage() < 1 || pageRequestDTO.getSize() < 1) {
+            throw new BusinessException(ErrorCode.INVALID_PAGE_SIZE);
+        }
 
         Pageable pageable = pageRequestDTO.getPageable("regDate");
 
@@ -90,8 +118,11 @@ public class OptionTypeServiceImpl implements OptionTypeService {
                 .optionTypeId(optionType.getOptionTypeId())
                 .optionType(optionType.getOptionType())
                 .isRequired(optionType.getIsRequired())
+                .isUsed(optionType.getIsUsed())
                 .minSelection(optionType.getMinSelection())
                 .maxSelection(optionType.getMaxSelection())
+                .regDate(optionType.getRegDate())
+                .modDate(optionType.getModDate())
                 .build();
     }
 
@@ -100,6 +131,23 @@ public class OptionTypeServiceImpl implements OptionTypeService {
     public void updateOptionType(Long shopId, Long optionTypeId, UpdateOptionTypeDTO updateOptionTypeDTO) {
 
         shopExists(shopId);
+
+        if (updateOptionTypeDTO.getOptionType() != null){
+           if(updateOptionTypeDTO.getOptionType().trim().isEmpty() || updateOptionTypeDTO.getOptionType().length() > 20
+           ) {
+               throw new BusinessException(ErrorCode.INVALID_TYPE);
+           }
+        }
+//        if (updateOptionTypeDTO.getIsRequired() != null && updateOptionTypeDTO.getIsRequired()) {
+//            if (updateOptionTypeDTO.getMinSelection() == 0) {
+//                throw new BusinessException(ErrorCode.INVALID_SELECTION_WHEN_REQUIRED);
+//            }
+//        }
+//        if (updateOptionTypeDTO.getMinSelection() != null && updateOptionTypeDTO.getMaxSelection() != null) {
+//            if (updateOptionTypeDTO.getMinSelection() > updateOptionTypeDTO.getMaxSelection()) {
+//                throw new BusinessException(ErrorCode.INVALID_SELECTION_RANGE);
+//            }
+//        }
 
         OptionType optionType = getOptionTypeOrThrow(optionTypeId);
 
@@ -115,8 +163,8 @@ public class OptionTypeServiceImpl implements OptionTypeService {
         OptionType optionType = getOptionTypeOrThrow(optionTypeId);
 
         // 옵션 타입에 속해있는 옵션 값들 먼저 삭제
-        optionItemRepository.deleteAllByOptionType(optionType);
+        optionItemRepository.markAllDeletedByOptionType(optionType);
 
-        optionTypeRepository.delete(optionType);
+        optionType.changeIsDeleted(true);
     }
 }
