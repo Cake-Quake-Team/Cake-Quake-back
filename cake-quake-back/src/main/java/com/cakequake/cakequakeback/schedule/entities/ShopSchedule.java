@@ -17,6 +17,8 @@ import java.time.LocalTime;
 @Table( name = "shop_schedule")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 
 
 public class ShopSchedule {
@@ -28,25 +30,16 @@ public class ShopSchedule {
 
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name="shopId",nullable = false)
-    private Shop shop;
+    private Shop shop; //가게ID
 
-    // ✅ 예약 일시를 직접 가짐 (날짜 + 시간)
     @Column(name = "schedule_datetime", nullable = false)
-    private LocalDateTime scheduleDateTime;
+    private LocalDateTime scheduleDateTime; //예약 가능 시간
 
-    @Column(nullable = false)
-    private boolean isReserved;
-
-    // Optional: 예약된 주문
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "orderId")
-    private CakeOrder cakeOrder;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status; //예약 상태
 
 
-    public ShopSchedule( Shop shop, LocalDateTime scheduleDateTime, boolean isReserved, CakeOrder cakeOrder) {
-        this.shop = shop;
-        this.scheduleDateTime = scheduleDateTime;
-        this.isReserved = isReserved;
-        this.cakeOrder = cakeOrder;
-    }
+
+
 }
