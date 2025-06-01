@@ -4,10 +4,7 @@ import com.cakequake.cakequakeback.cake.item.dto.CakeListDTO;
 import com.cakequake.cakequakeback.cake.item.service.CakeItemService;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
-import com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO;
-import com.cakequake.cakequakeback.shop.dto.ShopNoticeDetailDTO;
-import com.cakequake.cakequakeback.shop.dto.ShopNoticePreviewDTO;
-import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
+import com.cakequake.cakequakeback.shop.dto.*;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import com.cakequake.cakequakeback.shop.entities.ShopNotice;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
@@ -106,6 +103,41 @@ public class ShopServiceImpl implements ShopService {
         return shopNoticeRepository.findNoticeDetailById(noticeId)
                 .orElseThrow(() -> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
     }
+
+    //공지사항 추가
+    @Override
+   public Long createNotice(Long shopId, ShopNoticeDTO noticeDTO){
+        Shop shop =shopRepository.findById(shopId)
+                .orElseThrow(()-> new EntityNotFoundException("매장을 찾을 수 없습니다."));
+
+        ShopNotice notice = ShopNotice.builder()
+                .shop(shop)
+                .title(noticeDTO.getTitle())
+                .content(noticeDTO.getContent())
+                .build();
+
+        return shopNoticeRepository.save(notice).getShopNoticeId();
+    };
+
+    //공지사항 수정
+    @Override
+    public void updateNotice(Long noticeId, ShopNoticeDTO noticeDTO){
+     ShopNotice notice = shopNoticeRepository.findById(noticeId)
+             .orElseThrow(()-> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
+
+     notice.update(noticeDTO.getTitle(), noticeDTO.getContent());
+
+    }
+
+    //공지사항 삭제
+    @Override
+    public void deleteNotice(Long noticeId){
+        if(!shopNoticeRepository.existsById(noticeId)) {
+            throw new EntityNotFoundException("공지사항이 존재하지 않습니다.");
+        }
+        shopNoticeRepository.deleteById(noticeId);
+    }
+
 
 }
 

@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 
+//기능 수정 필요
 public class TemperatureServiceImpl implements TemperatureService {
     private final TemperatureRepository temperatureRepository;
     private final TemperatureHistoryRepository temperatureHistoryRepository;
@@ -211,7 +212,6 @@ public class TemperatureServiceImpl implements TemperatureService {
         String picture = review.getReviewPictureUrl();
         float changeAmount;
 
-        // 4. 등급에 따라 변화량 계산
         if (!picture.isBlank()) {
             changeAmount = 1.0f;
         } else {

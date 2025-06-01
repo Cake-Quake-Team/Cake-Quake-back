@@ -126,7 +126,6 @@ public class ShopRepoTest {
                         .shop(shop)
                         .title("공지사항 제목 " + i + " (매장 ID: " + shopId + ")")
                         .content("이것은 매장 [" + shop.getShopName() + "]의 공지사항 내용 " + i + "입니다.")
-                        .isVisible(true)
                         .build();
 
                 shopNoticeRepository.save(notice);
@@ -324,7 +323,6 @@ public class ShopRepoTest {
         System.out.println("가게 ID: " + dto.getShopId());
         System.out.println("제목: " + dto.getTitle());
         System.out.println("내용: " + dto.getContent());
-        System.out.println("공개 여부: " + dto.isVisible());
         System.out.println("등록일: " + dto.getRegDate());
     }
 
