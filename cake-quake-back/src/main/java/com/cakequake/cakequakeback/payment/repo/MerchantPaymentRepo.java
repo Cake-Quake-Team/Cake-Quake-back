@@ -22,4 +22,6 @@ public interface MerchantPaymentRepo extends JpaRepository<MerchantPaymentKey,Lo
       @Param("provider") String provider,
       @Param("isActive") boolean isActive
     );
+
+
 }

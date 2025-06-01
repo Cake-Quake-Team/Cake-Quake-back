@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TossPaymentResponseDTO {
+public class TossPayReadyResponseDTO {
     private String paymentKey;                  // 결제 키
     private String orderId;                     // 가맹점 주문번호
     private String orderName;                   // 주문명

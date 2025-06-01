@@ -1,5 +1,7 @@
 package com.cakequake.cakequakeback.payment.dto;
 
+import com.cakequake.cakequakeback.payment.entities.Payment;
+import com.cakequake.cakequakeback.payment.entities.PaymentProvider;
 import com.cakequake.cakequakeback.payment.entities.PaymentStatus;
 import lombok.*;
 
@@ -14,6 +16,9 @@ import java.time.LocalDateTime;
 public class PaymentResponseDTO {
     // 결제 아이디
     private long paymentId;
+
+
+    private PaymentProvider provider;
 
     //결제 수단
     private PaymentStatus status;
@@ -46,4 +51,20 @@ public class PaymentResponseDTO {
     private String paymentUrl;
 
 
+    public static PaymentResponseDTO fromEntity(Payment payment) {
+        return PaymentResponseDTO.builder()
+                .paymentId(payment.getPaymentId())
+                .provider(payment.getProvider())
+                .status(payment.getStatus())
+                .amount(payment.getAmount())
+                .transactionId(payment.getTransactionId())
+                .regDate(payment.getRegDate())
+                .completedAt(payment.getCompletedAt())
+                .cancelReason(payment.getCancelReason())
+                .refundAt(payment.getRefundAt())
+                .refundReason(payment.getRefundReason())
+                .redirectUrl(payment.getRedirectUrl())
+                .paymentUrl(payment.getPaymentUrl())
+                .build();
+    }
 }

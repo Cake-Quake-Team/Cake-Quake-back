@@ -67,6 +67,25 @@ public class Payment extends BaseEntity {
     @Column(name = "refund_reason", length = 255)
     private String refundReason;
 
+    // ────────────────────────────────
+    // 아래 두 필드를 추가해야 쿼리에서 p.redirectUrl, p.paymentUrl 참조 가능
+    // ────────────────────────────────
+
+    // 카카오페이 결제 키 (redirectUrl)
+    @Column( length = 500)
+    private String redirectUrl;
+
+    // 토스페이 결제 URL (paymentUrl)
+    @Column( length = 500)
+    private String paymentUrl;
+
+
+    //상태 변경 메서드
+    public void approveByPg(){
+        if(this.status != PaymentStatus.READY){
+            throw new IllegalStateException("Ready 상태가 아닌 결제는 승인할 수 없습니다.");
+        }
+    }
 
     //승인된 결제만 취소 가능
     public void cancelByBuyer(String cancelReason){

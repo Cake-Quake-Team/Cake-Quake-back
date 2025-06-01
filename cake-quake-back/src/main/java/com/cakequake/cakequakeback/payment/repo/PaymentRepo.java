@@ -26,8 +26,8 @@ public interface PaymentRepo extends JpaRepository<Payment,Long> {
     p.cancelReason,
     p.refundAt,
     p.refundReason,
-    null,
-    null
+    p.redirectUrl,
+    p.paymentUrl
     )
     FROM Payment p
     WHERE p.member.uid = :uid
@@ -50,9 +50,8 @@ public interface PaymentRepo extends JpaRepository<Payment,Long> {
               p.cancelReason,
               p.refundAt,
               p.refundReason,
-              null,
-              null
-    
+              p.redirectUrl,
+              p.paymentUrl
     )
     From Payment p
     WHERE p.paymentId = :paymentId
@@ -73,32 +72,32 @@ public interface PaymentRepo extends JpaRepository<Payment,Long> {
     Optional<Payment> findByOrderOrderId(Long orderId);
 
     // PG사 거래 식별자(transactionId)으로 조회
-    Optional<Payment> findByTransactionId(String transactionId);
+    Optional<Payment> findByTransactionId( String transactionId);
 
     /** 매장별 전체 결제 목록 조회 → DTO 바로 반환 */
-    @Query("""
-      SELECT new com.cakequake.cakequakeback.payment.dto.PaymentResponseDTO(
-        p.paymentId,
-        p.provider,
-        p.status,
-        p.amount,
-        p.transactionId,
-        p.regDate,
-        p.completedAt,
-        p.cancelReason,
-        p.refundAt,
-        p.refundReason,
-        null,
-        null
-      )
-      FROM Payment p
-      WHERE p.order.shop.shopId = :shopId
-      ORDER BY p.regDate DESC
-    """)
-    List<PaymentResponseDTO> selectByShopId(@Param("shopId") Long shopId);
+//    @Query("""
+//      SELECT new com.cakequake.cakequakeback.payment.dto.PaymentResponseDTO(
+//        p.paymentId,
+//        p.provider,
+//        p.status,
+//        p.amount,
+//        p.transactionId,
+//        p.regDate,
+//        p.completedAt,
+//        p.cancelReason,
+//        p.refundAt,
+//        p.refundReason,
+//        null,
+//        null
+//      )
+//      FROM Payment p
+//      WHERE p.order.shop.shopId = :shopId
+//      ORDER BY p.regDate DESC
+//    """)
+//    List<PaymentResponseDTO> selectByShopId(@Param("shopId") Long shopId);
 
-    /** 매장별 결제 엔티티 페이징 조회 */
-    Page<Payment> findAllByOrderShopId(Long shopId, Pageable pageable);
+//    /** 매장별 결제 엔티티 페이징 조회 */
+//    Page<Payment> findAllByOrderShopId(Long shopId, Pageable pageable);
 
 
 }

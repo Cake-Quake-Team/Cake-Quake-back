@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.payment.service;
 
+import com.cakequake.cakequakeback.payment.dto.KakaoPayApproveResponse;
 import com.cakequake.cakequakeback.payment.dto.KakaoPayCancelResponseDTO;
 import com.cakequake.cakequakeback.payment.dto.KakaoPayReadyResponseDTO;
 
@@ -11,4 +12,6 @@ public interface KakaoPayService {
 
     //결체 취소(환불) 요청
     KakaoPayCancelResponseDTO cancel(Long shopId, String tid, BigDecimal amount);
+
+    KakaoPayApproveResponse approvePayment(String tid, String patnerOrderId, String partnerUserId, String pgToken);
 }
