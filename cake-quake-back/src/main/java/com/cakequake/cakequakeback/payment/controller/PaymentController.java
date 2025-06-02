@@ -60,23 +60,23 @@ public class PaymentController {
     }
 
     //결제 취소
-    @PostMapping("/{id}/cancel")
+    @PostMapping("/{paymentId}/cancel")
     public PaymentResponseDTO cancelPayment(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Long userId,
+            @PathVariable Long paymentId,
+            @AuthenticationPrincipal Long uid,
             @Valid @RequestBody PaymentCancelRequestDTO dto
     ) {
-        return paymentService.cancelPayment(id, userId, dto);
+        return paymentService.cancelPayment(paymentId, uid, dto);
     }
 
     //결제 환불
-    @PostMapping("/{id}/refund")
+    @PostMapping("/{paymentId}/refund")
     public PaymentResponseDTO refundPayment(
-            @PathVariable Long id,
+            @PathVariable Long paymentId,
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody PaymentRefundRequestDTO dto
     ) {
-        return paymentService.refundPayment(id, userId, dto);
+        return paymentService.refundPayment(paymentId, userId, dto);
     }
 
 

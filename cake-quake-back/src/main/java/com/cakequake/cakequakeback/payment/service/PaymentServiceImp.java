@@ -6,6 +6,7 @@ import com.cakequake.cakequakeback.order.entities.CakeOrderItem;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemRepository;
 import com.cakequake.cakequakeback.payment.dto.*;
 import com.cakequake.cakequakeback.payment.entities.Payment;
+import com.cakequake.cakequakeback.payment.entities.PaymentProvider;
 import com.cakequake.cakequakeback.payment.entities.PaymentStatus;
 import com.cakequake.cakequakeback.payment.repo.PaymentRepo;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class PaymentServiceImp implements PaymentService{
     private final KakaoPayService kakaoPayService;
     private final CakeOrderItemRepository cakeOrderItemRepository;
     private final MemberRepository memberRepository;
-    //private final TossPayService tossPayService;
+    private final TossPayService tossPayService;
 
 
 
@@ -37,27 +38,57 @@ public class PaymentServiceImp implements PaymentService{
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
-        //카카오 페이 준비(ready)호출
-        KakaoPayReadyResponseDTO kakaoRes = kakaoPayService.ready(
-                paymentRequestDTO.getShopId(), paymentRequestDTO.getOrderId(), paymentRequestDTO.getAmount()
-        );
+        //provider 분기("KAKAO", "TOSS")
+        PaymentProvider proveider = paymentRequestDTO.getProvider();
+        Payment paymentEntity;
 
-        //Payment 엔티티 생성 & 저장(Ready상태)
-        Payment payment = Payment.builder()
-                //.order(cakeOrderItem)
-                .member(member)
-                .provider(paymentRequestDTO.getProvider())
-                .status(PaymentStatus.READY)
-                .amount(paymentRequestDTO.getAmount())
-                .transactionId(kakaoRes.getTid())
-                .redirectUrl(kakaoRes.getNextRedirectPcRul())
-                .paymentUrl(null)
-                .build();
-        paymentRepo.save(payment);
+        if(proveider == PaymentProvider.KAKAO){
+            //카카오 페이 준비(ready)호출
+            KakaoPayReadyResponseDTO kakaoRes = kakaoPayService.ready(
+                    paymentRequestDTO.getShopId(), paymentRequestDTO.getOrderId(), paymentRequestDTO.getAmount()
+            );
 
+            //Payment 엔티티 생성 & 저장(Ready상태)
+            paymentEntity = Payment.builder()
+                    //.order(cakeOrderItem)
+                    .member(member)
+                    .provider(paymentRequestDTO.getProvider())
+                    .status(PaymentStatus.READY)
+                    .amount(paymentRequestDTO.getAmount())
+                    .transactionId(kakaoRes.getTid())
+                    .redirectUrl(kakaoRes.getNextRedirectPcRul())
+                    .paymentUrl(null)
+                    .build();
+        }
+        else if(proveider == PaymentProvider.TOSS){
+            //토스페이 준비
+            String customerKey = "USER_" + userId;
 
+            TossPayReadyResponseDTO tossResponse = tossPayService.requestPayment(
+                    paymentRequestDTO.getShopId(),
+                    paymentRequestDTO.getOrderId(),
+                    customerKey,
+                    paymentRequestDTO.getAmount().longValue()
+            );
 
-        return PaymentResponseDTO.fromEntity(payment);
+            paymentEntity = Payment.builder()
+                    //.order(cakeOrderItem)
+                    .member(member)
+                    .provider(PaymentProvider.TOSS)
+                    .status(PaymentStatus.READY)
+                    .amount(paymentRequestDTO.getAmount())
+                    .transactionId(tossResponse.getPaymentKey())
+                    .redirectUrl(null)  //카카오처럼 Redirect용이 없으므로 null
+                    .paymentUrl(tossResponse.getPaymentUrl())
+                    .build();
+        }
+        else{
+            throw new IllegalArgumentException("지원하지 않는 결제 수단입니다");
+        }
+
+        Payment saved = paymentRepo.save(paymentEntity);
+
+        return PaymentResponseDTO.fromEntity(saved);
     }
 
     //카카오페이 승인 콜백 처리
@@ -83,9 +114,9 @@ public class PaymentServiceImp implements PaymentService{
         }
 
         payment.approveByPg();
-        paymentRepo.save(payment);
+        Payment update = paymentRepo.save(payment);
 
-        return PaymentResponseDTO.fromEntity(payment);
+        return PaymentResponseDTO.fromEntity(update);
     }
 
     //단건 결제 조화
@@ -111,57 +142,120 @@ public class PaymentServiceImp implements PaymentService{
     //결제 취소
     @Override
     public PaymentResponseDTO cancelPayment(Long paymentId, Long uid, PaymentCancelRequestDTO paymentCancelRequestDTO) {
+
+        //본인 결제 엔티티 조회
         Payment payment = paymentRepo.findByPaymentIdAndMemberUid(paymentId, uid)
                 .orElseThrow(()-> new IllegalArgumentException("결제를 찾을 수 없습니다"));
+        //상태 검증
         if(payment.getStatus() != PaymentStatus.APPROVED){
             throw new IllegalStateException("취소할 수 없는 상태입니다.");
         }
 
-        //카카오페이 결제 취소 API 호출
-        var cancelRes = kakaoPayService.cancel(
-                payment.getOrder().getOrderId(),//.getShop().getShopId(), 로 바꿔야 함
-                payment.getTransactionId(),
-                payment.getAmount()
-        );
+        PaymentProvider provider = payment.getProvider();
 
-        //응답 검증
-        if(cancelRes == null || !"CANCEL".equalsIgnoreCase(cancelRes.getStatus())){
-            throw new IllegalStateException("카카오페이 결제 취소 실패");
+
+        if(provider == PaymentProvider.KAKAO){
+            //카카오페이 결제 취소 API 호출
+            var cancelRes = kakaoPayService.cancel(
+                    payment.getOrder().getOrderId(),//.getShop().getShopId(), 로 바꿔야 함
+                    payment.getTransactionId(),
+                    payment.getAmount()
+            );
+
+            //응답 검증
+            if(cancelRes == null || !"CANCEL".equalsIgnoreCase(cancelRes.getStatus())){
+                throw new IllegalStateException("카카오페이 결제 취소 실패");
+            }
+
+            //엔티티 상태 변경 & 저장
+            payment.cancelByBuyer(paymentCancelRequestDTO.getReason());
+            paymentRepo.save(payment);
+
         }
+        else if(provider == PaymentProvider.TOSS){
 
-        //엔티티 상태 변경 & 저장
-        payment.cancelByBuyer(paymentCancelRequestDTO.getReason());
-        paymentRepo.save(payment);
+            TossPayCancelRequestDTO cancelRequest = TossPayCancelRequestDTO.builder()
+                    .paymentKey(payment.getTransactionId())
+                    .amount(payment.getAmount().longValue())
+                    .reason(paymentCancelRequestDTO.getReason())
+                    .build();
 
+            TossPayCancelResponseDTO tossCancelResponse = tossPayService.cancel(
+                payment.getOrder().getOrderId(), //마찬가지로 shopIㅇ로 바꾸려면 구조 수정 필요
+                cancelRequest
+            );
+
+            //응답 검증(토스페이 "status"필드가 "CANCELED"인지 확인)
+            if(tossCancelResponse == null || !"CANCEL".equalsIgnoreCase(tossCancelResponse.getStatus())){
+                throw new IllegalStateException("토스페이 환불 요청 실패");
+            }
+
+            // 엔티티 상태 변경 및 저장 : CANCELED
+            payment.refundByBuyer(paymentCancelRequestDTO.getReason());
+            paymentRepo.save(payment);
+        }
+        else {
+            throw new IllegalArgumentException("지원하지 않는 결제 수단입니다.");
+        }
 
         return paymentRepo.selectPaymentDTO(paymentId,uid);
     }
 
-    //결제 환불
+    //결제 환불 : 이미 취소됐거나 완료된 결제에 대해 고객에게 실제로 금액을 돌려줄 때
     @Override
     public PaymentResponseDTO refundPayment(Long paymentId, Long uid, PaymentRefundRequestDTO paymentRefundRequestDTO) {
-
+        //본인 결제 엔티티 조회
         Payment payment = paymentRepo.findByPaymentIdAndMemberUid(paymentId,uid)
                 .orElseThrow(() -> new IllegalArgumentException("결제를 찾을 수 없습니다."));
 
+        //상태 검증 이미 완료이거나, 이미 취소된 상태에서만 가능
         PaymentStatus status = payment.getStatus();
         if(status != PaymentStatus.APPROVED && status != PaymentStatus.CANCELLED){
             throw new IllegalStateException("환불할 수 없는 상태입니다.");
         }
 
-        var cancelRes = kakaoPayService.cancel(
-                payment.getOrder().getOrderId(),//.getShop().getShopId(), 로 바꿔야 함
-                payment.getTransactionId(),
-                payment.getAmount()
-        );
+        PaymentProvider provider = payment.getProvider();
 
-        //응답 검증
-         if(cancelRes == null || !"CANCEL".equalsIgnoreCase(cancelRes.getStatus())){
-             throw new IllegalStateException("카카오페이 환불 실패");
-         }
+        if(provider == PaymentProvider.KAKAO){
+            var cancelRes = kakaoPayService.cancel(
+                    payment.getOrder().getOrderId(),//.getShop().getShopId(), 로 바꿔야 함
+                    payment.getTransactionId(),
+                    payment.getAmount()
+            );
 
-         payment.refundByBuyer(paymentRefundRequestDTO.getReason());
-         paymentRepo.save(payment);
+            //응답 검증
+            if(cancelRes == null || !"CANCEL".equalsIgnoreCase(cancelRes.getStatus())){
+                throw new IllegalStateException("카카오페이 환불 실패");
+            }
+
+            payment.refundByBuyer(paymentRefundRequestDTO.getReason());
+            paymentRepo.save(payment);
+
+        }
+        else if(provider == PaymentProvider.TOSS){
+            //토스페이 환불 요청 DTO생성
+            TossPayRefundRequestDTO refundRequestDTO = TossPayRefundRequestDTO.builder()
+                    .paymentKey(payment.getTransactionId())
+                    .amount(payment.getAmount().longValue())
+                    .reason(paymentRefundRequestDTO.getReason())
+                    .build();
+            // 토스페이 refund API호출
+            TossPayRefundResponseDTO tossRefundRespons = tossPayService.refund(
+                    payment.getOrder().getOrderId(), //실제 shop으로 바꿀 필요있음
+                    refundRequestDTO
+            );
+
+            if(tossRefundRespons == null || !"DONE".equalsIgnoreCase(tossRefundRespons.getStatus())){
+                throw new IllegalStateException("토스페이 환불 요청 실패");
+            }
+
+            payment.refundByBuyer(paymentRefundRequestDTO.getReason());
+            paymentRepo.save(payment);
+        }else{
+            throw new IllegalArgumentException("지원하지 않는 결제 수단입니다");
+        }
+
+
 
         return paymentRepo.selectPaymentDTO(paymentId,uid);
     }

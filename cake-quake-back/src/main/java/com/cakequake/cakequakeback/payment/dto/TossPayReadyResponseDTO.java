@@ -18,6 +18,8 @@ public class TossPayReadyResponseDTO {
     private String requestedAt;                 // 요청 시각
     private String approvedAt;                  // 승인 시각
     @JsonProperty("cancelledAt")
+    //결제 화면으로 이동할 URL —★ 이 필드를 반드시 추가하세요!
+    private String paymentUrl;
     private String cancelledAt;                 // 취소 시각 (있을 때)
     private String failUrl;                     // 실패 리다이렉트 URL
     private String successUrl;                  // 성공 리다이렉트 URL
