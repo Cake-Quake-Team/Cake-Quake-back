@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.option.entities;
 
+import com.cakequake.cakequakeback.cake.option.dto.AddOptionItemDTO;
 import com.cakequake.cakequakeback.cake.option.dto.UpdateOptionItemDTO;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
@@ -53,5 +54,14 @@ public class OptionItem extends BaseEntity {
 
     public void changeIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
+    }
+
+    // 삭제된 옵션타입과 같은 이름의 옵션타입을 등록하려고 할 때
+    public void restoreOptionItem(AddOptionItemDTO dto) {
+        this.isDeleted = false;
+
+        // 값이 없으면 기존 값 유지
+        if (dto.getPrice() != null) this.price = dto.getPrice();
+
     }
 }

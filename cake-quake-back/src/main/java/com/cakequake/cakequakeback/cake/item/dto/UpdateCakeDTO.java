@@ -25,7 +25,9 @@ public class UpdateCakeDTO {
 
     private String thumbnailImageUrl;
 
-    private List<String> imageUrls;
+    private List<ImageDTO> imageUrls;
 
     private Boolean isOnsale;   // 품절 : TRUE, 판매 중 : FALSE
+
+    private List<Long> optionItemIds;
 }

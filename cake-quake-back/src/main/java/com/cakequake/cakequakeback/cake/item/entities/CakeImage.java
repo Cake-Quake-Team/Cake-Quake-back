@@ -35,4 +35,8 @@ public class CakeImage extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modified_by")
     private Member modifiedBy;
+
+    public void changeThumbnail(Boolean isThumbnail) {
+        this.isThumbnail = isThumbnail;
+    }
 }

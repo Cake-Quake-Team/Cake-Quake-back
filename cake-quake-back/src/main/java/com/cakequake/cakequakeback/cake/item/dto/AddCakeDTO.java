@@ -20,5 +20,6 @@ public class AddCakeDTO {
     private CakeCategory category;
     private String description;
     private String thumbnailImageUrl;   // 대표 이미지
-    private List<String> imageUrls;    // 이미지 URL 목록
+    private List<ImageDTO> imageUrls;    // 이미지 URL 목록
+    private MappingRequestDTO mappingRequestDTO;    // 매핑할 옵션 목록
 }

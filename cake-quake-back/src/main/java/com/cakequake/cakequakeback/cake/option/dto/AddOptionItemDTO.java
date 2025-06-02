@@ -15,6 +15,4 @@ public class AddOptionItemDTO {
     private Long optionTypeId;
     private String optionName;
     private Integer price;
-    private Boolean allowQuantity;
-    private Integer position;
 }

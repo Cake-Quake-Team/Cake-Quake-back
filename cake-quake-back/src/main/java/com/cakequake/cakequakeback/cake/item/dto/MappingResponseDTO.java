@@ -12,8 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Getter
-// 상품에 연결된 옵션 타입 조회 DTO
+// 상품에 연결된 옵션 조회 DTO
 public class MappingResponseDTO {
-    private Long cakeId;
-    private List<CakeOptionItemDTO> optionItems;
+    private CakeDetailDTO cakeDetailDTO;
+    private List<CakeOptionItemDTO> options;
 }

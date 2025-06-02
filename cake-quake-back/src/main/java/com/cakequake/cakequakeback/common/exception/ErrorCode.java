@@ -55,6 +55,18 @@ public enum ErrorCode {
     MISSING_SCHEDULE_ID(400, 648, "scheduleId가 누락되었습니다"),
     MISSING_RESERVATION_ID(400, 649, "reservationId가 누락되었습니다"),
     INVALID_PAYMENT_METHOD(400, 650, "결제 수단이 유효하지 않거나 지원하지 않습니다"),
+    INVALID_OPTION_ITEM(400, 651,"존재하지 않는 옵션이 포함되었습니다."),
+    MISSING_IMAGE_LIST(400, 652, "이미지를 최소 한 개 이상 첨부해야 합니다."),
+    INVALID_THUMBNAIL_COUNT(400, 653, "이미지 중 썸네일은 정확히 하나만 지정해야 합니다."),
+    BUSINESS_TOO_LARGE_REQUEST(400, 654, "요청 개수는 최대 100개입니다."),
+    BUSINESS_BAD_JSON(400, 655, "JSON 형식 오류입니다."),
+    BUSINESS_MALFORMED_DATA(400, 656, "필수 요청 항목이 누락되었습니다."),
+    EXTERNAL_CLIENT_ERROR(400, 657, "외부 API 요청 오류"),
+    EXTERNAL_CLIENT_ERROR_KAKAO(400, 658, "카카오 API 요청 오류"),
+    EXTERNAL_CLIENT_ERROR_GOOGLE(400, 659, "구글 API 요청 오류"),
+    EXTERNAL_CLIENT_ERROR_ODCLOUD(400, 660, "공공데이터 요청 오류"),
+    INVALID_SELECTION_WHEN_REQUIRED(400, 661, "옵션이 필수 선택인 경우 최소 선택 수는 1 이상이어야 합니다."),
+    INVALID_SELECTION_RANGE(400, 662, "최소 선택 수는 최대 선택 수보다 클 수 없습니다."),
 
     //HTTP 401 Unauthorized (code:801~809)
     INVALID_CREDENTIALS(401, 801, "아이디 또는 패스워드가 일치하지 않습니다"),
@@ -66,6 +78,7 @@ public enum ErrorCode {
     INVALID_OTP(401, 807, "잘못된 인증번호입니다"),
     EXPIRED_OTP(401, 808, "만료된 인증번호입니다"),
     INVALID_PG_SIGNATURE(401, 809, "PG사 서명이 유효하지 않습니다"),
+    BUSINESS_INVALID_SERVICE_KEY(401, 810, "유효하지 않은 서비스 키입니다."),
 
 
     //HTTP 403 Forbidden (code:901~911)
@@ -97,6 +110,7 @@ public enum ErrorCode {
     INVALID_COUPON             (404, 1012, "유효하지 않은 쿠폰입니다"),
     NOT_FOUND_PAYMENT_ID       (404, 1013, "해당 결제 ID가 존재하지 않습니다"),
     DELETION_REQUEST_NOT_FOUND(404,1014, "해당 삭제 내역을 찾을 수 없습니다"),
+    BUSINESS_NO_DATA(404, 1015, "조회된 사업자 정보가 없습니다."),
 
     //HTTP 409 Conflict (code: 701~715)
     ALREADY_EXIST_USER_ID      (409, 701, "이미 존재하는 아이디입니다"),
@@ -122,7 +136,15 @@ public enum ErrorCode {
 
     //HTTP 500 InternalServer Error & 502 Bad Gateway
     INTERNAL_SERVER_ERROR      (500,1500,"서버 내부 오류입니다"),
-    BAD_GATEWAY                (502,1502,"외부 서비스(PG)와 연결이 끊겼습니다");
+    BUSINESS_INTERNAL_ERROR(500, 1501, "공공 데이터 API 내부 오류입니다."),
+    BAD_GATEWAY                (502,1502,"외부 서비스(PG)와 연결이 끊겼습니다"),
+    BUSINESS_HTTP_ERROR(500, 1503, "공공 데이터 API HTTP 오류입니다."),
+    BUSINESS_VERIFICATION_FAILED(502, 1504, "사업자 진위 확인 중 외부 서버 오류가 발생했습니다"),
+    BUSINESS_UNKNOWN_ERROR(500, 1505, "사업자 진위 확인 중 알 수 없는 내부 오류가 발생했습니다."),
+    EXTERNAL_SERVER_ERROR(502, 1506, "외부 API 서버 오류"),
+    EXTERNAL_SERVER_ERROR_KAKAO(502, 1507, "카카오 API 서버 오류"),
+    EXTERNAL_SERVER_ERROR_GOOGLE(502, 1508, "구글 API 서버 오류"),
+    EXTERNAL_SERVER_ERROR_ODCLOUD(502, 1509, "공공데이터 서버 오류");
 
 
     private final int httpStatus;
