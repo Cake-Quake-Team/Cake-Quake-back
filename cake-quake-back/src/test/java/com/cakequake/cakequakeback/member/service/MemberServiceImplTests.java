@@ -32,7 +32,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class MemberServiceImplTests {
 
     @Autowired
-    private MemberServiceImpl memberServiceImpl;
+    private MemberService service;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -43,7 +43,7 @@ public class MemberServiceImplTests {
 //    @Disabled
     @Test
     @DisplayName("일반 회원가입 성공 테스트")
-    void testBasicSignup() {
+    public void testBasicSignup() {
         BuyerSignupRequestDTO dto = BuyerSignupRequestDTO.builder()
                 .userId("testuser12")
                 .uname("테스터12")
@@ -57,7 +57,7 @@ public class MemberServiceImplTests {
 
         log.debug(dto.toString());
 
-        ApiResponseDTO response = memberServiceImpl.signup(dto);
+        ApiResponseDTO response = service.signup(dto);
         // 응답 검증
         assertThat(response.isSuccess()).isTrue();
         assertThat(response.getMessage()).isEqualTo("회원 가입에 성공하였습니다.");

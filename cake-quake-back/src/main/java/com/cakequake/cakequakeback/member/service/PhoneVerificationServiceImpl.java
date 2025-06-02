@@ -8,6 +8,7 @@ import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationRequ
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
 import com.cakequake.cakequakeback.member.entities.PhoneVerification;
 import com.cakequake.cakequakeback.member.entities.VerificationType;
+import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.repo.PhoneVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,16 +16,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
 @Service
 @Transactional
 @Slf4j
-@RequiredArgsConstructor
 public class PhoneVerificationServiceImpl implements PhoneVerificationService {
+    private final MemberRepository memberRepository;
 
     private final PhoneVerificationRepository repository;
+
+    public PhoneVerificationServiceImpl(PhoneVerificationRepository repository,
+                                        MemberRepository memberRepository) {
+        this.repository = repository;
+        this.memberRepository = memberRepository;
+    }
 
     private static final int CODE_LENGTH = 6;
     private static final int EXPIRES_MINUTES = 3;   // 인증번호 유효시간. 3분
@@ -43,6 +51,11 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         // 전화번호 형식 검사
         if(!PhoneNumberUtils.isValid(phoneNumber)) {
             throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
+        }
+
+        // 전화번호 중복 검사
+        if (type == VerificationType.SIGNUP && memberRepository.existsByPhoneNumber(phoneNumber)) {
+            throw new BusinessException(ErrorCode.ALREADY_EXIST_PHONE); // 702
         }
 
         Optional<PhoneVerification> verificationOpt = repository.findByPhoneNumberAndType(phoneNumber, type);
@@ -65,6 +78,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
             // 기존 요청에 새로운 코드와 만료 시간 업데이트
             existing.changeCode(code, expiresAt);
             repository.save(existing);
+
             log.debug("수정 후 modDate: {}", existing.getModDate());
         } else {
             // 최초 인증 요청 저장
@@ -80,9 +94,11 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         // 실제 환경에서는 문자 API 호출해야 함
         log.debug("휴대폰 인증번호 전송: {}, / 코드: {} ", phoneNumber, code);
 
+        // 임시로 모달 창으로 보여줄 코드 반환
         return ApiResponseDTO.builder()
                 .success(true)
                 .message("인증번호가 전송되었습니다.")
+                .data(Map.of("verificationCode", code))
                 .build();
     }
 
