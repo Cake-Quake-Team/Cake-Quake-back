@@ -7,22 +7,25 @@ import com.cakequake.cakequakeback.member.entities.MemberRole;
 import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-
 @Service
-@RequiredArgsConstructor
 @Transactional
 @Slf4j
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberValidator memberValidator;
+
+    public MemberServiceImpl(MemberRepository memberRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator) {
+        this.memberRepository = memberRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.memberValidator = memberValidator;
+    }
 
     public ApiResponseDTO signup(BuyerSignupRequestDTO requestDTO) {
         log.debug("---------signup--------------");
@@ -31,7 +34,7 @@ public class MemberServiceImpl implements MemberService {
 
         /*
         유효성 형식 검사 - userId, 비밀번호, uname 길이, 전화번호 형식, 가입 방식
-        중복 검사 - userId
+        중복 검사 - userId, 전화번호
         */
         memberValidator.validateSignupRequest(requestDTO);
         log.debug("---memberValidator 통과---");
@@ -50,7 +53,7 @@ public class MemberServiceImpl implements MemberService {
                 break;
 
             default:
-                throw new IllegalArgumentException("지원하지 않는 가입 방식입니다.");
+                throw new IllegalArgumentException("지원하지 않는 가입 방식입니다."); // 나중에 변경
         }
 
         // 휴대폰 인증은 프론트에서 따로 호출

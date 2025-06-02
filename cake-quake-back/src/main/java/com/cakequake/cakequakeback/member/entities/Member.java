@@ -33,7 +33,8 @@ public class Member extends BaseEntity {
     private String socialId;    // 소셜에서 제공한 고유 ID
 
     @Enumerated(EnumType.STRING)
-    private SocialType socialType;  // GOOGLE, KAKAO 등
+    @Column(nullable = false)
+    private SocialType socialType;  // GOOGLE, KAKAO, BASIC 등
 
     @Builder.Default
     @Column(nullable = false)

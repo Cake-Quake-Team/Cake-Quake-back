@@ -30,7 +30,7 @@ public class BuyerSignupRequestDTO {
     private String password;
 
     @NotBlank(message = "전화번호는 필수 입력값입니다.")
-    @Pattern(regexp = "^\\d{3}-\\d{4}-\\d{4}$", message = "전화번호 양식은 XXX-XXXX-XXXX로 입력해야합니다.")
+    @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$", message = "전화번호 양식은 XXX-XXX(X)-XXXX로 입력해야합니다.")
     private String phoneNumber;
 
     @NotNull(message = "정보 공개 여부는 필수 입력값입니다.")
