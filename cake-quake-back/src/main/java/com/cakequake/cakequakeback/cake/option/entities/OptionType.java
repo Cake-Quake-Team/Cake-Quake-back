@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.option.entities;
 
+import com.cakequake.cakequakeback.cake.option.dto.AddOptionTypeDTO;
 import com.cakequake.cakequakeback.cake.option.dto.UpdateOptionTypeDTO;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
@@ -55,11 +56,38 @@ public class OptionType extends BaseEntity {
         if (dto.getOptionType() != null) this.optionType = dto.getOptionType();
         if (dto.getIsRequired() != null) this.isRequired = dto.getIsRequired();
         if (dto.getIsUsed() != null) this.isUsed = dto.getIsUsed();
-        if (dto.getMinSelection() != null) this.minSelection = dto.getMinSelection();
+        if (dto.getMinSelection() != null) {
+            this.minSelection = dto.getMinSelection();
+            if (this.minSelection >= 1) {
+                this.isRequired = true;
+            }
+        }
         if (dto.getMaxSelection() != null) this.maxSelection = dto.getMaxSelection();
     }
 
     public void changeIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
+
+    // 삭제된 옵션타입과 같은 이름의 옵션타입을 등록하려고 할 때
+    public void restoreOptionType(AddOptionTypeDTO dto) {
+        this.isDeleted = false;
+        this.isUsed = true;
+
+        if (dto.getIsRequired() != null) {
+            this.isRequired = dto.getIsRequired();
+        }
+        // 값이 없으면 기존 값 유지
+        if (dto.getMinSelection() != null) {
+            this.minSelection = dto.getMinSelection();
+            if (this.minSelection >= 1) {
+                this.isRequired = true;
+            }
+        }
+        if (dto.getMaxSelection() != null) {
+            this.maxSelection = dto.getMaxSelection();
+        }
+    }
+
+
 }

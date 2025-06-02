@@ -45,6 +45,7 @@ public class OptionItemController {
         CakeOptionItemDTO response = CakeOptionItemDTO.builder()
                 .optionItemId(optionItemId)
                 .optionName(addOptionItemDTO.getOptionName())
+                .price(addOptionItemDTO.getPrice())
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

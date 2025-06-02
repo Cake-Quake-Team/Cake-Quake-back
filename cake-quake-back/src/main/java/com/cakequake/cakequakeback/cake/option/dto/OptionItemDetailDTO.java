@@ -16,7 +16,7 @@ public class OptionItemDetailDTO {
     private Long optionItemId;
     private String optionName;
     private int price;
-    private Boolean isUsed;
+    private Boolean isDeleted;
     private Long createdBy;
     private Long modifiedBy;
     private LocalDateTime regDate;

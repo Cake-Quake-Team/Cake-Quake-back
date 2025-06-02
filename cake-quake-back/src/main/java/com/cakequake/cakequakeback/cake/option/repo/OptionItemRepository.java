@@ -10,6 +10,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface OptionItemRepository extends JpaRepository<OptionItem, Long> {
 
     // 옵션 값 목록 조회
@@ -22,4 +25,10 @@ public interface OptionItemRepository extends JpaRepository<OptionItem, Long> {
     @Query("UPDATE OptionItem oi SET oi.isDeleted = true WHERE oi.optionType = :optionType")
     void markAllDeletedByOptionType(@Param("optionType") OptionType optionType);
 
+    // 매핑 시 옵션 값 목록
+    @Query("SELECT oi FROM OptionItem oi WHERE oi.optionItemId IN :optionItemIds AND oi.isDeleted = false")
+    List<OptionItem> findAllActiveOptionItem(@Param("optionItemIds") List<Long> optionItemIds);
+
+    // 삭제된 동일 이름의 OptionName이 존재하는지 확인
+    Optional<OptionItem> findByOptionNameAndIsDeletedTrue(String optionName);
 }

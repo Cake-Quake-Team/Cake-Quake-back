@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.cake.option.dto;
 
+import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,4 +15,13 @@ public class CakeOptionItemDTO {
     private Long optionItemId;
     private String optionName;
     private int price;
+
+    public static CakeOptionItemDTO fromEntity(OptionItem optionItem) {
+        return CakeOptionItemDTO.builder()
+                .optionItemId(optionItem.getOptionItemId())
+                .optionName(optionItem.getOptionName())
+                .price(optionItem.getPrice())
+                .build();
+    }
+
 }

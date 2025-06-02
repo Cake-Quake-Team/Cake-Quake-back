@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class AddOptionTypeDTO {
 
     private String optionType;
-    private Boolean isRequired;
-    private Integer minSelection;
-    private Integer maxSelection;
+    private Boolean isRequired = false;
+    private Integer minSelection = 0;
+    private Integer maxSelection = 1;
 }

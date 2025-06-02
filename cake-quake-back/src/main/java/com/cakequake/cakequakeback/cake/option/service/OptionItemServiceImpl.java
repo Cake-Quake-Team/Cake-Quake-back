@@ -5,10 +5,9 @@ import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
 import com.cakequake.cakequakeback.cake.option.entities.OptionType;
 import com.cakequake.cakequakeback.cake.option.repo.OptionItemRepository;
 import com.cakequake.cakequakeback.cake.option.repo.OptionTypeRepository;
+import com.cakequake.cakequakeback.cake.validator.OptionValidator;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
-import com.cakequake.cakequakeback.common.exception.BusinessException;
-import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -17,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -28,29 +29,25 @@ public class OptionItemServiceImpl implements OptionItemService {
     private final OptionItemRepository optionItemRepository;
     private final ShopRepository shopRepository;
     private final OptionTypeRepository optionTypeRepository;
-
-    // shopId가 존재하지 않을 경우
-    public void shopExists(Long shopId) {
-        if (!shopRepository.existsById(shopId)) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID);
-        }
-    }
-
-    // optionItemId가 존재하지 않을 경우
-    private OptionItem getOptionItemOrThrow(Long optionItemId) {
-        return optionItemRepository.findById(optionItemId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_OPTION_ID));
-    }
-
+    private final OptionValidator optionValidator;
 
     @Override
     // 옵션 값 등록
     public Long addOptionItem(Long shopId, AddOptionItemDTO addOptionItemDTO) {
 
-        shopExists(shopId);
+        optionValidator.validateShop(shopId);
+        OptionType optionType = optionValidator.validateOptionType(addOptionItemDTO.getOptionTypeId());
+        optionValidator.validateAddOptionItem(addOptionItemDTO);
 
-        OptionType optionType = optionTypeRepository.findById(addOptionItemDTO.getOptionTypeId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_OPTION_ID));
+        // 삭제된 동일 이름의 OptionName이 존재하는지 확인
+        Optional<OptionItem> alreadyDeleted = optionItemRepository.findByOptionNameAndIsDeletedTrue(addOptionItemDTO.getOptionName());
+
+        if (alreadyDeleted.isPresent()) {
+            OptionItem deleted = alreadyDeleted.get();
+            deleted.restoreOptionItem(addOptionItemDTO);
+
+            return deleted.getOptionItemId();
+        }
 
         OptionItem optionItem = OptionItem.builder()
                 .optionType(optionType)
@@ -72,7 +69,8 @@ public class OptionItemServiceImpl implements OptionItemService {
     // 옵션 값 목록 조회
     public InfiniteScrollResponseDTO<CakeOptionItemDTO> getOptionItemList(Long shopId, PageRequestDTO pageRequestDTO) {
 
-        shopExists(shopId);
+        optionValidator.validateShop(shopId);
+        optionValidator.validatePaging(pageRequestDTO);
 
         Pageable pageable = pageRequestDTO.getPageable("regDate");
 
@@ -89,14 +87,14 @@ public class OptionItemServiceImpl implements OptionItemService {
     // 옵션 값 상세 조회
     public OptionItemDetailDTO getOptionItemDetail(Long shopId, Long optionItemId) {
 
-        shopExists(shopId);
-
-        OptionItem optionItem = getOptionItemOrThrow(optionItemId);
+        optionValidator.validateShop(shopId);
+        OptionItem optionItem = optionValidator.vlidateOptionItem(optionItemId);
 
         return OptionItemDetailDTO.builder()
                 .optionItemId(optionItem.getOptionItemId())
                 .optionName(optionItem.getOptionName())
                 .price(optionItem.getPrice())
+                .isDeleted(optionItem.getIsDeleted())
                 .regDate(optionItem.getRegDate())
                 .modDate(optionItem.getModDate())
                 .build();
@@ -106,9 +104,8 @@ public class OptionItemServiceImpl implements OptionItemService {
     // 옵션 값 수정
     public void updateOptionItem(Long shopId, Long optionItemId, UpdateOptionItemDTO updateOptionItemDTO) {
 
-        shopExists(shopId);
-
-        OptionItem optionItem = getOptionItemOrThrow(optionItemId);
+        optionValidator.validateShop(shopId);
+        OptionItem optionItem = optionValidator.vlidateOptionItem(optionItemId);
 
         optionItem.updateFromDTO(updateOptionItemDTO);
     }
@@ -117,9 +114,8 @@ public class OptionItemServiceImpl implements OptionItemService {
     // 옵션 값 삭제
     public void deleteOptionItem(Long shopId, Long optionItemId) {
 
-        shopExists(shopId);
-
-        OptionItem optionItem = getOptionItemOrThrow(optionItemId);
+        optionValidator.validateShop(shopId);
+        OptionItem optionItem = optionValidator.vlidateOptionItem(optionItemId);
 
         optionItem.changeIsDeleted(true);
     }

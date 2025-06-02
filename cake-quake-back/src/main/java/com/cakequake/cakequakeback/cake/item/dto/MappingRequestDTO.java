@@ -11,8 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-// 상품에 옵션 타입 연결 요청 DTO
+// 상품에 옵션 값 연결 요청 DTO
 public class MappingRequestDTO {
-    private Long cakeId;
     private List<Long> optionItemIds;
 }
