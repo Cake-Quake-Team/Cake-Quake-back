@@ -17,13 +17,16 @@ import java.util.Optional;
 public interface ShopRepository extends JpaRepository<Shop, Long> {
     //매장 정보 상세 조회
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO(" +
-            "s.shopId, m.uid, s.businessNumber, s.shopName, s.address, s.phone, s.content, " +
+            "s.shopId, m.uid, s.businessNumber, s.shopName, s.address, " +
+            "COALESCE(s.phone, m.phoneNumber), s.content, " +
             "s.rating, s.reviewCount, s.operationHours, s.closeDays, s.websiteUrl, " +
             "s.instagramUrl, s.status, s.lat, s.lng) " +
             "FROM Shop s " +
             "JOIN s.member m " +
             "WHERE s.shopId = :shopId")
     Optional<ShopDetailResponseDTO> selectDTO(@Param("shopId") Long shopId);
+
+
 
     //매장 목록
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating) " +

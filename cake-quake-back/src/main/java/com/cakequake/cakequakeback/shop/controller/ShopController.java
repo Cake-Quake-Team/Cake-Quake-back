@@ -6,6 +6,7 @@ import com.cakequake.cakequakeback.cake.item.service.CakeItemService;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO;
+import com.cakequake.cakequakeback.shop.dto.ShopNoticeDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopNoticeDetailDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
@@ -31,6 +32,7 @@ public class ShopController {
     public ShopDetailResponseDTO getShopDetail(@PathVariable Long shopId) {
         return shopService.getShopDetail(shopId);
     }
+
     //매장 목록 조회
     @GetMapping
     @Transactional(readOnly = true)
@@ -63,6 +65,26 @@ public class ShopController {
     public ResponseEntity<ShopNoticeDetailDTO> getNoticeDetail(@PathVariable Long noticeId) {
         ShopNoticeDetailDTO detail = shopService.getNoticeDetail(noticeId);
         return ResponseEntity.ok(detail);
+    }
+
+    @PostMapping("/{shopId}/notices")
+    public ResponseEntity<Long> createNotice(@PathVariable Long shopId,
+                                             @RequestBody ShopNoticeDTO dto) {
+        Long id = shopService.createNotice(shopId, dto);
+        return ResponseEntity.ok(id);
+    }
+
+    @PutMapping("/{shopId}/notices/{noticeId}")
+    public ResponseEntity<Void> updateNotice(@PathVariable Long noticeId,
+                                             @RequestBody ShopNoticeDTO dto) {
+        shopService.updateNotice(noticeId, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{shopId}/notices/{noticeId}")
+    public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) {
+        shopService.deleteNotice(noticeId);
+        return ResponseEntity.ok().build();
     }
 
 

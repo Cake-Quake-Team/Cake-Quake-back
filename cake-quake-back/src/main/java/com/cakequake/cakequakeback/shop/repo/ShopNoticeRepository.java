@@ -23,14 +23,14 @@ public interface ShopNoticeRepository extends JpaRepository<ShopNotice, Long> {
 
     // 공지사항 목록 조회 (isVisible = true)
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopNoticeDetailDTO(sn.shopNoticeId, s.shopId, " +
-            "sn.title, sn.content, sn.isVisible, sn.regDate, sn.modDate) " +
+            "sn.title, sn.content, sn.regDate, sn.modDate) " +
             "FROM ShopNotice sn JOIN sn.shop s " +
-            "WHERE s.shopId = :shopId AND sn.isVisible = true")
+            "WHERE s.shopId = :shopId ")
     Page<ShopNoticeDetailDTO> findNoticesByShopId(@Param("shopId") Long shopId, Pageable pageable);
 
     // 상세 조회
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopNoticeDetailDTO(sn.shopNoticeId, s.shopId, sn.title, " +
-            "sn.content, sn.isVisible, sn.regDate, sn.modDate) " +
+            "sn.content, sn.regDate, sn.modDate) " +
             "FROM ShopNotice sn JOIN sn.shop s " +
             "WHERE sn.shopNoticeId = :noticeId")
     Optional<ShopNoticeDetailDTO> findNoticeDetailById(@Param("noticeId") Long noticeId);

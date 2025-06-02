@@ -34,25 +34,28 @@ public class Shop extends BaseEntity {
     @JoinColumn(name = "uid", nullable = false)
     private Member member;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length =50)
     private String businessNumber; //사업자 등록 번호
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=100)
     private String shopName; // 매장 이름
 
     @Column(nullable = false)
     private String address;
 
-    @Column(nullable = false)
-    private String phone;
+    @Column(nullable = false, length=50)
+    private String bossName; // 대표자명
 
     @Column
+    private String phone; //가게 전화번호 -> null시 본인의 번호가 나오게
+
+    @Column(nullable = false)
     private String content;
 
     @Column(precision = 2,scale=1)
     private BigDecimal rating;
 
-    @Column
+    @Column(nullable = false)
     private Integer reviewCount;
 
     @Column
