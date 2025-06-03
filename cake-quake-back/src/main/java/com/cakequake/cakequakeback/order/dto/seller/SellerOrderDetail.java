@@ -1,94 +1,76 @@
 package com.cakequake.cakequakeback.order.dto.seller;
 
-import com.cakequake.cakequakeback.cake.option.entities.OptionType;
-import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.order.entities.CakeOrderItem;
-import com.cakequake.cakequakeback.order.entities.OrderStatus;
-import com.cakequake.cakequakeback.shop.entities.Shop;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-
-/** 판매자 주문 받은 상품 상세 */
-// 여기에 결제 관련된 거, 포인트 사용, 쿠폰 사용된 걸 확인하는 걸 넣어야겠지??
+import java.util.Map;
 
 public class SellerOrderDetail {
-
     @Getter
     @Builder
-    private static class Response{
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Response {
+        /** 주문 고유 ID */
         private Long orderId;
+
+        /** 주문 번호 */
         private String orderNumber;
-        private OrderStatus status;
+
+        /** 주문 상태 (예: "픽업 예정", "픽업 완료") */
+        private String status;
+
+        /** 픽업 날짜 */
         private LocalDate pickupDate;
+        /** 픽업 시간 */
         private LocalTime pickupTime;
-        private List<OrderItem> cake;
-        private List<BuyerInfo> buyer;
-        private Integer orderTotalPrice;
 
-        private Response(Long orderId, String orderNumber, OrderStatus status, LocalDate pickupDate,
-                         LocalTime pickupTime, List<OrderItem> cake, List<BuyerInfo> buyer, Integer orderTotalPrice){
+        private List<ProductDetail> products;
 
-            this.orderId = orderId;
-            this.orderNumber = orderNumber;
-            this.status = status;
-            this.pickupDate = pickupDate;
-            this.pickupTime = pickupTime;
-            this.cake = cake;
-            this.buyer = buyer;
-            this.orderTotalPrice = orderTotalPrice;
-        }
+        private BuyerInfo buyer;
+
+        /** 해당 주문의 총 금액 */
+        private Integer OrderTotalPrice;
     }
-
     @Getter
     @Builder
-    private static class OrderItem{
-        private String cname;
-        private Integer productCnt;
-        private Integer price;
-        private String thumbnailUrl;
-        private List<OptionInfo> option;
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProductDetail {
+        /** CakeItem 엔티티의 name 필드 */
+        private String name;
 
-        private OrderItem(String cname, Integer productCnt, Integer price, String thumbnailImageUrl, List<OptionInfo> option) {
-            this.cname = cname;
-            this.productCnt = productCnt;
-            this.price = price;
-            this.thumbnailUrl = thumbnailImageUrl;
-            this.option = option;
-        }
+        /** CakeOrderItem 엔티티의 quantity 필드 (주문 수량) */
+        private Integer quantity;
+
+        /** CakeOrderItem 엔티티의 unitPrice 필드 (단가) */
+        private Integer unitPrice;
+
+        /** CakeOrderItem 엔티티의 subTotalPrice 필드 (소계 금액) */
+        private BigDecimal subTotalPrice;
+
+        /** CakeItem 엔티티의 thumbnailImageUrl 필드 (썸네일 URL) */
+        private String thumbnailImageUrl;
+
+        /**CakeOrderItemOption 엔티티에서 가져온 “선택된 옵션 매핑 정보”*/
+        private Map<String, Integer> options;
     }
-
     @Getter
     @Builder
-    private static class BuyerInfo{
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BuyerInfo {
+        /** Member 엔티티의 name 필드 */
         private String uname;
+
+        /** Member 엔티티의 phone 필드 */
         private String phoneNumber;
-
-        private BuyerInfo(String uname, String phoneNumber) {
-            this.uname = uname;
-            this.phoneNumber = phoneNumber;
-        }
     }
-
-    // 내일 다시 해야할 거
-    @Getter
-    @Builder
-    private static class OptionInfo{
-        private Shop shop;
-        private Long optionTypeId;
-        private String optionType;
-
-        private OptionInfo(Shop shop, Long optionTypeId, String optionType) {
-            this.shop = shop;
-            this.optionTypeId = optionTypeId;
-            this.optionType = optionType;
-        }
-
-    }
-
-
 }

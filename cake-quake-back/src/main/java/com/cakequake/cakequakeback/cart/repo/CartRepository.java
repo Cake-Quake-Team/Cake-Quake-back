@@ -13,6 +13,9 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     // Cart 엔티티의 'member' 필드를 기준으로 조회
     Optional<Cart> findByMember(Member member);
 
+    // Member 엔티티를 기준으로 Cart 존재 여부 확인
+    //boolean existsByMember(Member member);
+
     // Cart 엔티티의 'member' 필드를 기준으로 삭제
-    void deleteByMember(Member member);
+    //void deleteByMember(Member member);
 }

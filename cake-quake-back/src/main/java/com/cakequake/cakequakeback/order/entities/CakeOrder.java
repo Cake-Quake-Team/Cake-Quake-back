@@ -4,6 +4,7 @@ package com.cakequake.cakequakeback.order.entities;
 import com.cakequake.cakequakeback.cart.entities.Cart;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.shop.entities.Shop;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,7 +18,7 @@ import java.util.List;
 @Table(name = "cake_order")
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 public class CakeOrder extends BaseEntity {
 
@@ -32,13 +33,14 @@ public class CakeOrder extends BaseEntity {
     @JoinColumn(name = "uid", nullable = false, foreignKey = @ForeignKey(name = "fk_order_member"))
     private Member member;
 
+    // 매장(Shop)과 연결 (ManyToOne)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "shopId", nullable = false, foreignKey = @ForeignKey(name = "fk_order_shop"))
+    private Shop shop;
+
     //주문 번호
     @Column(name = "orderNumber", nullable = false, unique = true)
     private String orderNumber;
-
-    //주문한 케이크 상품
-    @OneToMany(mappedBy = "orderItemId", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CakeOrderItem> cakeOrderItems;
 
     //주문할 때 구매자가 적은 글
     @Column(name = "orderNote", length = 255)
