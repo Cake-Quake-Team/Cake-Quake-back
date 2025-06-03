@@ -33,4 +33,8 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
             "FROM Shop s WHERE s.status = :status")
     Page<ShopPreviewDTO> findAll(@Param("status") ShopStatus status, Pageable pageable);
 
+    // 중복 검사용
+    boolean existsByBusinessNumber(String businessNumber);
+
+    boolean existsByPhone(String phone);
 }

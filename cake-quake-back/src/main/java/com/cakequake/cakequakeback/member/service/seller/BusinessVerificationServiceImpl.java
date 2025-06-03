@@ -46,9 +46,9 @@ public class BusinessVerificationServiceImpl implements BusinessVerificationServ
     public ApiResponseDTO verify(BusinessVerificationRequestDTO requestDTO) {
 
         // 이미 등록된 사업자 번호 확인
-//        if (shopRepository.existsByBusinessNumber(requestDTO.getB_no())) {
-//            throw new BusinessException(ErrorCode.ALREADY_EXIST_BUSINESS_NUM);  // 703
-//        }
+        if (shopRepository.existsByBusinessNumber(requestDTO.getB_no())) {
+            throw new BusinessException(ErrorCode.ALREADY_EXIST_BUSINESS_NUM);  // 703
+        }
 
         log.debug("---BusinessVerificationServiceImpl---verify 호출---");
         log.debug("requestDTO: {}", requestDTO);

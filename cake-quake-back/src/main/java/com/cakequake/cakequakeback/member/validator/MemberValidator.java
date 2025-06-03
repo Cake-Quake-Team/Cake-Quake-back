@@ -4,18 +4,25 @@ import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
+import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
 import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.member.entities.VerificationType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.repo.PhoneVerificationRepository;
+import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class MemberValidator {
 
     private final MemberRepository memberRepository;
+    private final ShopRepository shopRepository;
+
+    public MemberValidator(MemberRepository memberRepository, ShopRepository shopRepository) {
+        this.memberRepository = memberRepository;
+        this.shopRepository = shopRepository;
+    }
 
     public void validateSignupRequest(BuyerSignupRequestDTO dto) {
 
@@ -94,6 +101,38 @@ public class MemberValidator {
         }
     }
 
+    public void validateSellerSignup2(SellerSignupStep2RequestDTO dto) {
+
+        if (dto.getTempSellerId() == null) {
+            throw new BusinessException(ErrorCode.MISSING_TEMP_SELLER_ID); // 611
+        }
+
+        if (dto.getShopAddress() == null || dto.getShopAddress().isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_SHOP_ADDRESS); // 613
+        }
+
+        if (dto.getShopPhoneNumber() != null && !dto.getShopPhoneNumber().matches("^\\d{2,4}-\\d{3,4}-\\d{4}$")) {
+            throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
+        }
+
+        if (dto.getOpenTime() == null || dto.getCloseTime() == null) {
+            throw new BusinessException(ErrorCode.INVALID_BUSINESS_HOURS); // 616
+        }
+
+        if (dto.getMainProductDescription() == null || dto.getMainProductDescription().isBlank()) {
+            throw new BusinessException(ErrorCode.MISSING_SHORT_DESCRIPTION); // 633
+        }
+
+        int length = dto.getMainProductDescription().length();
+        if (length < 10 || length > 200) {
+            throw new BusinessException(ErrorCode.MISSING_SHORT_DESCRIPTION); // 633
+        }
+
+        if (shopRepository.existsByPhone(dto.getShopPhoneNumber())) {
+            throw new BusinessException(ErrorCode.ALREADY_EXIST_PHONE); // 702
+        }
+
+    }
 
     public void validateUserId(String userId) {
         if (!isValidUserId(userId)) {
@@ -150,7 +189,7 @@ public class MemberValidator {
     }
 
     private boolean isValidBusinessNumber(String businessNumber) {
-        return businessNumber != null && businessNumber.matches("^\\d{3}-\\d{2}-\\d{5}$");
+        return businessNumber != null && businessNumber.matches("^\\d{10}$");
     }
 
     private boolean isValidBossName(String bossName) {

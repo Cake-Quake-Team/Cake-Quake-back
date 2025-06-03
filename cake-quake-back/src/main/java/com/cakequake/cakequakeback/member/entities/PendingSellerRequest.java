@@ -4,6 +4,8 @@ import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalTime;
+
 @Entity
 @Table(name = "pending_seller_requests",
         indexes = {
@@ -35,7 +37,7 @@ public class PendingSellerRequest extends BaseEntity {
     /*
         사업자 진위여부에 필수 정보: 사업자 등록 번호, 대표자명, 개업일자
      */
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 10)
     private String businessNumber; // 사업자 등록 번호
 
     @Column(nullable = false, length = 50)
@@ -58,26 +60,29 @@ public class PendingSellerRequest extends BaseEntity {
     @Column(nullable = false)
     private String businessCertificateUrl; // 사업자 등록증 파일
 
-
-    // 아래는 2단계 인증에서 사용. 그 전에 저장을 위해서 null 허용
-    private String address;
-
-    private String operationHours; // 운영시간
-
-    @Column(length = 50)
-    private String category; // 케이크 카테고리
-
-    @Column(columnDefinition = "TEXT")
-    private String mainProductDescription; // 주요 상품 설명
-
-    private String sanitationCertificateUrl; // 위생 관련 인증서.
-
-    private String shopImageUrl; // 매장 대표 이미지
-
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SellerRequestStatus status = SellerRequestStatus.PENDING; // 가입 신청 상태
+
+
+    // 아래는 2단계 인증에서 사용. 그 전에 저장을 위해서 null 허용
+    private String address;
+
+        // 운영시간
+    private LocalTime openTime;
+
+    private LocalTime closeTime;
+
+    @Column(columnDefinition = "TEXT")
+    private String mainProductDescription; // 주요 상품 설명
+
+    @Column(length = 20)
+    private String shopPhoneNumber; // 전화번호
+
+    private String shopImageUrl; // 매장 대표 이미지
+
+    private String sanitationCertificateUrl; // 위생 관련 인증서.
 
 
     // 수정용
@@ -105,20 +110,20 @@ public class PendingSellerRequest extends BaseEntity {
         this.businessCertificateUrl = url;
     }
 
-    public void changeShopPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void changeShopPhoneNumber(String shopPhoneNumber) {
+        this.shopPhoneNumber = shopPhoneNumber;
     }
 
     public void changeAddress(String address) {
         this.address = address;
     }
 
-    public void changeOperationHours(String operationHours) {
-        this.operationHours = operationHours;
+    public void changeOpenTime(LocalTime openTime) {
+        this.openTime = openTime;
     }
 
-    public void changeCategory(String category) {
-        this.category = category;
+    public void changeCloseTime(LocalTime closeTime) {
+        this.closeTime = closeTime;
     }
 
     public void changeMainProductDescription(String description) {
