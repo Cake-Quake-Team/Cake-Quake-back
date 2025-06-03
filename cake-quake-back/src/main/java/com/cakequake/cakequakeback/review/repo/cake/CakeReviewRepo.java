@@ -2,6 +2,7 @@ package com.cakequake.cakequakeback.review.repo.cake;
 
 import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
 import com.cakequake.cakequakeback.review.entities.Review;
+import com.cakequake.cakequakeback.review.repo.common.CommonReviewRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 //케이트 단일 조회
-public interface CakeReviewRepo extends JpaRepository<Review, Long> {
+public interface CakeReviewRepo extends CommonReviewRepo {
     @Query("SELECT new com.cakequake.cakequakeback.review.dto.ReviewResponseDTO(" +
             "r.reviewId ," +
             "r.order.orderId," +
