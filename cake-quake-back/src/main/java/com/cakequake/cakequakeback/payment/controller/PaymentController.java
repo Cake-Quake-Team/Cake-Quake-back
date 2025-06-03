@@ -25,9 +25,10 @@ public class PaymentController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PaymentResponseDTO create(
-            @Valid @RequestBody PaymentRequestDTO paymentRequestDTO,
-            @AuthenticationPrincipal Long uid
+            @Valid @RequestBody PaymentRequestDTO paymentRequestDTO
+            //,@AuthenticationPrincipal Long uid
             ){
+        Long uid = 1L;
         return paymentService.createPayment(paymentRequestDTO, uid);
     }
 
@@ -43,7 +44,7 @@ public class PaymentController {
     }
 
     //단건 조회
-    @GetMapping("/{id}")
+    @GetMapping("/{paymentId}")
     public PaymentResponseDTO getPayment(
         @PathVariable Long paymentId,
         @AuthenticationPrincipal Long uid
@@ -63,9 +64,10 @@ public class PaymentController {
     @PostMapping("/{paymentId}/cancel")
     public PaymentResponseDTO cancelPayment(
             @PathVariable Long paymentId,
-            @AuthenticationPrincipal Long uid,
+            //@AuthenticationPrincipal Long uid,
             @Valid @RequestBody PaymentCancelRequestDTO dto
     ) {
+        Long uid = 1L;
         return paymentService.cancelPayment(paymentId, uid, dto);
     }
 
@@ -73,10 +75,11 @@ public class PaymentController {
     @PostMapping("/{paymentId}/refund")
     public PaymentResponseDTO refundPayment(
             @PathVariable Long paymentId,
-            @AuthenticationPrincipal Long userId,
+            //@AuthenticationPrincipal Long uid,
             @Valid @RequestBody PaymentRefundRequestDTO dto
     ) {
-        return paymentService.refundPayment(paymentId, userId, dto);
+        Long uid = 1L;
+        return paymentService.refundPayment(paymentId, uid, dto);
     }
 
 
