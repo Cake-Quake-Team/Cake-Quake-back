@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.common.util;
+package com.cakequake.cakequakeback.common.utils;
 
 public class PhoneNumberUtils {
 

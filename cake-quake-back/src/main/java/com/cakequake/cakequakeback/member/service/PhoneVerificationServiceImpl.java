@@ -2,7 +2,7 @@ package com.cakequake.cakequakeback.member.service;
 
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
-import com.cakequake.cakequakeback.common.util.PhoneNumberUtils;
+import com.cakequake.cakequakeback.common.utils.PhoneNumberUtils;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationCheckDTO;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationRequestDTO;
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
@@ -10,7 +10,6 @@ import com.cakequake.cakequakeback.member.entities.PhoneVerification;
 import com.cakequake.cakequakeback.member.entities.VerificationType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.repo.PhoneVerificationRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

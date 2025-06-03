@@ -89,7 +89,7 @@ public class ShopServiceTest {
             System.out.println("    내용: " + notice.getContent());
             System.out.println("    등록일: " + notice.getRegDate());
             System.out.println("    수정일: " + notice.getModDate());
-            System.out.println("    노출여부: " + notice.isVisible());
+//            System.out.println("    노출여부: " + notice.isVisible());
             System.out.println("----------------------------");
         }
 
@@ -113,7 +113,7 @@ public class ShopServiceTest {
         System.out.println("shopId       : " + dto.getShopId());
         System.out.println("title        : " + dto.getTitle());
         System.out.println("content      : " + dto.getContent());
-        System.out.println("isVisible    : " + dto.isVisible());
+//        System.out.println("isVisible    : " + dto.isVisible());
         System.out.println("regDate      : " + dto.getRegDate());
         System.out.println("modDate      : " + dto.getModDate());
         System.out.println("===========================================");

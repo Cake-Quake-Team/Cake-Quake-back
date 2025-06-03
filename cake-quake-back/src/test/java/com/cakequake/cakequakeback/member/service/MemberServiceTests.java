@@ -7,7 +7,6 @@ import com.cakequake.cakequakeback.member.entities.MemberRole;
 import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
         "logging.level.com.cakequake.cakequakeback.member=DEBUG",
         "logging.level.root=INFO"
 })
-public class MemberServiceImplTests {
+public class MemberServiceTests {
 
     @Autowired
     private MemberService service;

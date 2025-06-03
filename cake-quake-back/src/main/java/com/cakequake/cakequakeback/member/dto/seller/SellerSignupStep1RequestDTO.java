@@ -4,10 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
@@ -36,7 +33,7 @@ public class SellerSignupStep1RequestDTO {
     private String phoneNumber;
 
     @NotBlank(message = "사업자 등록 번호는 필수 입력 항목입니다.")
-    @Pattern(regexp = "^\\d{3}-\\d{2}-\\d{5}$", message = "사업자 등록 번호가 유효하지 않습니다.")
+    @Pattern(regexp = "^\\d{10}$", message = "사업자 등록 번호가 유효하지 않습니다.")
     private String businessNumber;
 
     @NotBlank(message = "대표자명은 필수 입력 항목입니다.")
@@ -51,14 +48,61 @@ public class SellerSignupStep1RequestDTO {
     @Size(min = 1, max = 50, message = "상호명 1~50자 사이로 입력해야 합니다.")
     private String shopName;
 
-    @NotBlank(message = "정보 공개 여부는 필수 입력 항목입니다.")
+    @NotNull(message = "정보 공개 여부는 필수 입력 항목입니다.")
     private Boolean publicInfo;
 
     @Pattern(regexp = "^(basic)$", message = "가입 유형은 basic만 허용됩니다.")
     private String joinType;
 
+    @NotBlank(message = "사업자 등록증 파일은 필수입니다.")
+    private String businessCertificateUrl;
+
     @NotNull(message = "사업자 등록증 파일은 필수입니다.")
     private MultipartFile businessCertificate;
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setUname(String uname) {
+        this.uname = uname;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setBusinessNumber(String businessNumber) {
+        this.businessNumber = businessNumber;
+    }
+
+    public void setBossName(String bossName) {
+        this.bossName = bossName;
+    }
+
+    public void setOpeningDate(String openingDate) {
+        this.openingDate = openingDate;
+    }
+
+    public void setShopName(String shopName) {
+        this.shopName = shopName;
+    }
+
+    public void setJoinType(String joinType) {
+        this.joinType = joinType;
+    }
+
+    public void setBusinessCertificateUrl(String businessCertificateUrl) {
+        this.businessCertificateUrl = businessCertificateUrl;
+    }
+
+    public void setBusinessCertificate(MultipartFile businessCertificate) {
+        this.businessCertificate = businessCertificate;
+    }
 
     @Override
     public String toString() {
@@ -69,7 +113,8 @@ public class SellerSignupStep1RequestDTO {
                 ", bossName='" + bossName + '\'' +
                 ", businessNumber='" + mask(businessNumber) +  // 또는
                 ", shopName='" + shopName + '\'' +
-                ", publicInfo=" + publicInfo +
+                ", publicInfo=" + publicInfo + '\'' +
+                ", businessCertificateUrl=" + businessCertificateUrl + '\'' +
                 ", businessCertificate=" + (businessCertificate != null ? businessCertificate.getOriginalFilename() : "null") +
                 '}';
     }
