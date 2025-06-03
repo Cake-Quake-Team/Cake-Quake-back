@@ -54,10 +54,12 @@ spring:
 
   pg:
     kakao:
-      base-url: https://kapi.kakao.com           # 카카오페이 운영 URL (샌드박스도 동일)
-      # 타사 서비스에서는 샌드박스 URL을 달리 쓰지만, 카카오페이는 동일 주소로 샌드박스/운영 구분
+      base-url: https://kapi.kakao.com
+      admin-key: ${KAKAO_ADMIN_KEY}   # 환경 변수에서 읽어오는 카카오 Admin Key
+      cid:       ${KAKAO_CID}         # 환경 변수에서 읽어오는 카카오 CID
     toss:
-      base-url: https://api.tosspayments.com      # 토스페이 기본 URL
+      base-url: https://api.tosspayments.com
+      secret-key: ${TOSS_SECRET_KEY}   # 환경 변수에서 읽어오는 토스페이 Secret Key
+
   app:
-    base-url: https://my-app.example.com         # 우리 서비스(앱) 기본 URL, ngrok 혹은 실제 도메인
-    # 예시: https://abc123.ngrok.io
+    base-url: ${APP_BASE_URL}        # our-service(ngrok 혹은 실제 도메인)
