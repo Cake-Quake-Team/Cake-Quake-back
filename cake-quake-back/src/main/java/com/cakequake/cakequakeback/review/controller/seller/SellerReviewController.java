@@ -13,7 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/shops/{shopId}/reviews")
+@RequestMapping("/api/shops/{shopId}/reviews")
 @RequiredArgsConstructor
 public class SellerReviewController {
     private final SellerReviewService sellerReviewService;
@@ -41,9 +41,9 @@ public class SellerReviewController {
     public void reply(
             @PathVariable Long reviewId,
             @PathVariable Long shopId,
-            @Valid ReplyRequestDTO replyRequestDTO
+            @RequestBody @Valid ReplyRequestDTO replyRequestDTO
     ){
-        sellerReviewService.replyToReview(shopId,replyRequestDTO,reviewId);
+        sellerReviewService.replyToReview(reviewId,replyRequestDTO,shopId);
     }
 
     @PostMapping("/{reviewId}/delete")

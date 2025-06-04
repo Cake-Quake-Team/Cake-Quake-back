@@ -27,7 +27,7 @@ public class Review extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uid", nullable = false)
-    private Member user;
+    private Member member;
 
     //주문테이블과 연결
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,6 +58,7 @@ public class Review extends BaseEntity {
     @Column(name = "reviewPictureUrl", length = 255)
     private String reviewPictureUrl;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReviewStatus status = ReviewStatus.ACTIVE;
