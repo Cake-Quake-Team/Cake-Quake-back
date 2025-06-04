@@ -23,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Log4j2
 public class SellerReviewServiceImpl implements SellerReviewService {
 
-    private SellerReviewRepo sellerReviewRepo;
-    private ReviewDeletionRequestRepo reviewDeletionRequestRepo;
+    private final SellerReviewRepo sellerReviewRepo;
+    private final ReviewDeletionRequestRepo reviewDeletionRequestRepo;
 
 
     //매장 전체 리뷰 조회

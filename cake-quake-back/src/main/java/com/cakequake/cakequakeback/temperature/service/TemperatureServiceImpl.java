@@ -204,7 +204,7 @@ public class TemperatureServiceImpl implements TemperatureService {
         log.info("노쇼 처리: 리뷰 ID = {}", ReviewId);
 
         // 2. 리뷰 작성자 정보 조회
-        Member member = review.getUser();  // Review에 getMember() 있어야 함
+        Member member = review.getMember();  // Review에 getMember() 있어야 함
         log.info("리뷰 작성자: uid = {}", member.getUserId());
 
         // 3. 온도 정보 조회

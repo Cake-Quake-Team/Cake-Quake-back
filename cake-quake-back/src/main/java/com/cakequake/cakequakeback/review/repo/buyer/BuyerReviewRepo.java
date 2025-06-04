@@ -17,6 +17,7 @@ public interface BuyerReviewRepo extends CommonReviewRepo {
     @Query("SELECT r FROM Review r WHERE r.order.orderId = :orderId")
     Optional<Review> findByOrderId(@Param("orderId") Long orderId);
 
+    Optional<Review> findByOrderOrderIdAndCakeItemCakeId(Long orderId,Long cakeId);
 
     //구매자가 작성한 리뷰 전체 조화(페이징)
     @Query("SELECT new com.cakequake.cakequakeback.review.dto.ReviewResponseDTO(" +
@@ -26,7 +27,7 @@ public interface BuyerReviewRepo extends CommonReviewRepo {
             "r.rating, r.content, r.reviewPictureUrl, r.regDate,r.modDate, cr.reply) " +
             "FROM Review r " +
             "LEFT JOIN r.ceoReview cr " +
-            "WHERE r.user.uid = :uid AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
+            "WHERE r.member.uid = :uid AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
     Page<ReviewResponseDTO> listOfUserReviews(@Param("uid") Long userId, Pageable pageable);
 
 }

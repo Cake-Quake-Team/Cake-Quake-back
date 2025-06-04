@@ -30,8 +30,9 @@ public class BuyerReviewController {
     @ResponseStatus(HttpStatus.CREATED) //성공하면 201 Created 상태 코드가 자동 적용
     public ReviewResponseDTO createReview(
             @PathVariable Long orderId,
-            @Valid ReviewRequestDTO dto,
-            @AuthenticationPrincipal Long userId){
+            @RequestBody @Valid ReviewRequestDTO dto,
+            //@AuthenticationPrincipal String userId
+             @RequestParam(name = "userId", required = false) String userId){
         return buyerReviewService.createReview(orderId, dto, userId);
 
     }
