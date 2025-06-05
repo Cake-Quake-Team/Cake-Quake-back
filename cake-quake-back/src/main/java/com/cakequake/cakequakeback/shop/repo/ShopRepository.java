@@ -19,7 +19,7 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO(" +
             "s.shopId, m.uid, s.businessNumber, s.shopName, s.address, " +
             "COALESCE(s.phone, m.phoneNumber), s.content, " +
-            "s.rating, s.reviewCount, s.operationHours, s.closeDays, s.websiteUrl, " +
+            "s.rating, s.reviewCount, s.openTime,s.closeTime, s.closeDays, s.websiteUrl, " +
             "s.instagramUrl, s.status, s.lat, s.lng) " +
             "FROM Shop s " +
             "JOIN s.member m " +

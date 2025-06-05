@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,9 +63,6 @@ public class ShopRepoTest {
     //Buyer 데이터 추가
     @Test
     public void insertShopsForBuyers() {
-        em.createNativeQuery("DELETE FROM shops").executeUpdate(); // 테이블 비우기
-        // Step 0: 시퀀스를 1로 리셋 (주의: 테스트 전용 코드)
-        em.createNativeQuery("ALTER SEQUENCE shop_seq RESTART WITH 1").executeUpdate();
 
         // Step 1: BUYER 역할을 가진 회원 조회
         List<Member> buyerMembers = memberRepository.findAll().stream()
@@ -80,11 +78,13 @@ public class ShopRepoTest {
                     .businessNumber("123-45-6789" + i)
                     .shopName("CakeQuake Shop " + i)
                     .address("서울시 강남구 가게로 " + (i + 1))
+                    .bossName("김민솔")
                     .phone("02-1234-567" + i)
                     .content("케이크 맛집 " + i)
                     .rating(BigDecimal.valueOf(4.0 + (i % 2) * 0.5))  // 4.0 or 4.5
                     .reviewCount(10 + i)
-                    .operationHours("10:00 ~ 20:00")
+                    .openTime(LocalTime.of(10, 00))
+                    .closeTime(LocalTime.of(20, 00))
                     .closeDays("일요일")
                     .websiteUrl("https://cakequake" + i + ".com")
                     .instagramUrl("https://instagram.com/cakequake" + i)
