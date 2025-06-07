@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TossPayCancelRequestDTO {
     /** 환불(취소)할 paymentKey */
-    private String paymentKey;
+   // private String paymentKey;
 
     /** 환불할 금액(원 단위) */
-    private Long amount;
+    private Long cancelAmount;
 
     /** 환불 사유 */
-    private String reason;
+    private String cancelReason;
 }

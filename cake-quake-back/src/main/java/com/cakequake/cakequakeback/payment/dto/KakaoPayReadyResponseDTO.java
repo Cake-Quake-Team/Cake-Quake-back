@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 public class KakaoPayReadyResponseDTO {
     private String tid; //결제 고유 번호
-    @JsonProperty("next_redirect_pc_rul")
+    @JsonProperty("next_redirect_pc_url")
     private String nextRedirectPcRul; // PC 웹 결제 URL
 
     @JsonProperty("next_redirect_mobile_url")
