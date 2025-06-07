@@ -22,4 +22,9 @@ public interface BuyerOrderRepository extends JpaRepository<CakeOrder, Long> {
             @Param("orderId") Long orderId,
             @Param("userId") String userId
     );
+
+    Optional<CakeOrder> findByOrderIdAndMemberUid(
+            @Param("orderId") Long orderId,
+            @Param("uid") Long uid
+    );
 }

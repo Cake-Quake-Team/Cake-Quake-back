@@ -7,3 +7,4 @@ public enum PaymentStatus {
     CANCELLED , //결제 취소
     REFUNDED
 }
+
