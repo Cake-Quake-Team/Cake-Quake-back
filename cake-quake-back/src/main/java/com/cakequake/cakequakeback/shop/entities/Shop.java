@@ -13,6 +13,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,8 +59,12 @@ public class Shop extends BaseEntity {
     @Column(nullable = false)
     private Integer reviewCount;
 
-    @Column
-    private String operationHours;
+    @Column(nullable = false)
+    private LocalTime openTime;
+
+    @Column(nullable = false)
+    private LocalTime closeTime;
+
 
     @Column
     private String closeDays;
