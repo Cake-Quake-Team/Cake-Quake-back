@@ -18,7 +18,7 @@ public class DeletedCartItem {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    private static class Request {
+    public static class Request {
 
         //장바구니에 담겨있는 상품들 삭제
         @NotNull(message = "삭제할 cartItemIds는 필수입니다.")
@@ -30,4 +30,5 @@ public class DeletedCartItem {
     public static class Response {
         private List<Long> deletedCartItemIds; // 성공적으로 삭제된 cartItem ID 목록
         private String message; // 예: "선택한 상품이 장바구니에서 삭제되었습니다."
-    }}
+    }
+}

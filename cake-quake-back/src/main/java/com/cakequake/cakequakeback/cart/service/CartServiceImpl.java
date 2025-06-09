@@ -2,8 +2,6 @@
 package com.cakequake.cakequakeback.cart.service;
 
 import com.cakequake.cakequakeback.cart.dto.AddCart;
-// DeleteCartItemsDto는 현재 인터페이스에서 사용되지 않으므로 주석 처리 또는 삭제 가능
-// import com.cakequake.cakequakeback.cart.dto.DeleteCartItemsDto;
 import com.cakequake.cakequakeback.cart.dto.DeletedCartItem;
 import com.cakequake.cakequakeback.cart.dto.GetCart;
 import com.cakequake.cakequakeback.cart.dto.UpdateCartItem;
@@ -35,28 +33,25 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final CakeItemRepository cakeItemRepository;
-    /**주어진 Member에 연결된 Cart가 있는지 조회하고,없으면 새 Cart를 생성하여 반환하는 메서드입니다.*/
+
     private Cart getOrCreateCart(Member member) {
         return cartRepository.findByMember(member)
                 .orElseGet(() -> {
                     Cart newCart = Cart.builder()
-                            .member(member) // Cart 엔티티 필드명이 userId(타입 Member)인 경우
+                            .member(member)
                             .cartTotalPrice(0)
                             .build();
                     return cartRepository.save(newCart);
                 });
     }
-    /**주어진 Cart의 CartItem을 모두 조회하여 합산한 뒤,Cart의 cartTotalPrice를 재계산하여 저장하는 메서드*/
-    private void recalculateCartTotalPrice(Cart cart) {
-        // 장바구니가 null일 경우를 대비 (실제로는 cart가 null이면 이 메소드가 호출되기 전에 처리되어야 함)
-        if (cart == null) {return;}
 
+    private void recalculateCartTotalPrice(Cart cart) {
+        if (cart == null) {return;}
         List<CartItem> itemsInCart = cartItemRepository.findByCart(cart);
         int cartTotalPrice = itemsInCart.stream()
                 .mapToInt(item -> item.getItemTotalPrice() != null ? item.getItemTotalPrice().intValue() : 0)
                 .sum();
-        //cart.getCartTotalPrice(cartTotalPrice); // 나중에 테스트코드하면서 해볼거
-        cartRepository.save(cart); // 변경된 Cart 객체 저장
+        cartRepository.save(cart);
     }
 
     @Override
@@ -67,7 +62,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = getOrCreateCart(member);
 
         CakeItem cakeItem = cakeItemRepository.findById(request.getCakeItemId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_PRODUCT_ID));
+                .orElseThrow(() -> new BusinessException(ErrorCode.MISSING_CAKE_ITEM_ID));
 
         Optional<CartItem> existingCartItemOpt = cartItemRepository.findByCart(cart).stream()
                 .filter(ci -> ci.getCakeItem().getCakeId().equals(request.getCakeItemId()))
@@ -77,7 +72,6 @@ public class CartServiceImpl implements CartService {
         int quantity = request.getProductCnt();
 
         if (quantity < 1 || quantity > 99) {
-            // ErrorCode에 QUANTITY_LIMIT_EXCEEDED (수량 제한 초과)가 있다면 사용, 없으면 INVALID_CART_ITEMS 사용
             throw new BusinessException(ErrorCode.QUANTITY_LIMIT_EXCEEDED, "장바구니 상품 수량은 1개 이상 99개 이하여야 합니다.");
         }
 
@@ -88,15 +82,15 @@ public class CartServiceImpl implements CartService {
                 throw new BusinessException(ErrorCode.QUANTITY_LIMIT_EXCEEDED, "상품의 총 수량이 99개를 초과할 수 없습니다.");
             }
             savedCartItem = CartItem.builder()
-                    .cartItemId(existingCartItem.getCartItemId()) // 기존 CartItem ID 유지
-                    .cart(existingCartItem.getCart())             // 기존 Cart 참조 유지
-                    .cakeItem(existingCartItem.getCakeItem())     // 기존 CakeItem 참조 유지
-                    .productCnt(newCount)                         // 새로운 수량
-                    .itemTotalPrice((long) cakeItem.getPrice() * newCount) // 새 총액 (CakeItem의 가격 getter가 getPrice()라고 가정)
+                    .cartItemId(existingCartItem.getCartItemId())
+                    .cart(existingCartItem.getCart())
+                    .cakeItem(existingCartItem.getCakeItem())
+                    .productCnt(newCount)
+                    .itemTotalPrice((long) cakeItem.getPrice() * newCount)
                     .build();
         } else {
             savedCartItem = CartItem.builder()
-                    .cart(cart)             // CartItem 엔티티의 Cart 참조 필드명이 'cart'라고 가정
+                    .cart(cart)
                     .cakeItem(cakeItem)
                     .productCnt(quantity)
                     .itemTotalPrice((long) cakeItem.getPrice() * quantity)
@@ -108,13 +102,11 @@ public class CartServiceImpl implements CartService {
         return AddCart.Response.builder()
                 .cartItemId(savedCartItem.getCartItemId())
                 .cakeItemId(savedCartItem.getCakeItem().getCakeId())
-                .cname(savedCartItem.getCakeItem().getCname()) // CakeItem에 getCname()이 있다고 가정
+                .cname(savedCartItem.getCakeItem().getCname())
                 .productCnt(savedCartItem.getProductCnt())
                 .itemTotalPrice(savedCartItem.getItemTotalPrice())
-                //.message("상품이 장바구니에 추가/업데이트되었습니다.")
                 .build();
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -122,21 +114,19 @@ public class CartServiceImpl implements CartService {
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
         Cart cart = cartRepository.findByMember(member)
-                .orElse(null); // 장바구니가 없을 수도 있음
+                .orElse(null);
 
         if (cart == null) {
             return GetCart.Response.builder()
-                    .Items(List.of()) // 빈 리스트
-                    .cartTotalPrice(0L)   // 총액 0
+                    .Items(List.of())
+                    .cartTotalPrice(0L)
                     .build();
         }
-        List<com.cakequake.cakequakeback.cart.entities.CartItem> cartItemEntities = cartItemRepository.findByCart(cart);
-        List<GetCart.ItemInfo> cartItemDtos = cartItemEntities.stream() // 여기와
-                .map(entity -> GetCart.ItemInfo.builder() // 여기의 클래스 이름을 실제 DTO 내부 클래스 이름으로 일치
+        List<CartItem> cartItemEntities = cartItemRepository.findByCart(cart);
+        List<GetCart.ItemInfo> cartItemDtos = cartItemEntities.stream()
+                .map(entity -> GetCart.ItemInfo.builder()
                         .cartItemId(entity.getCartItemId())
-                        // CakeItem의 PK를 가져오는 getter (getId() 또는 getCakeId()) 와
-                        // GetCart.Response.CartItemDto의 필드명 (cakeId)을 일치시켜야 함.
-                        .cakeId(entity.getCakeItem().getCakeId()) // CakeItem 엔티티의 PK getter가 getId()라고 가정
+                        .cakeId(entity.getCakeItem().getCakeId())
                         .cname(entity.getCakeItem().getCname())
                         .thumbnailImageUrl(entity.getCakeItem().getThumbnailImageUrl())
                         .productCnt(entity.getProductCnt())
@@ -144,7 +134,6 @@ public class CartServiceImpl implements CartService {
                         .build())
                 .collect(Collectors.toList());
 
-        // 4. 최종 응답 DTO 빌드 시 올바른 타입의 리스트 사용
         return GetCart.Response.builder()
                 .Items(cartItemDtos)
                 .cartTotalPrice(cart.getCartTotalPrice() != null ? cart.getCartTotalPrice().longValue() : 0L)
@@ -158,12 +147,18 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByMember(member)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_CART_ID, "해당 사용자의 장바구니를 찾을 수 없습니다."));
 
-        CartItem existingCartItem = cartItemRepository.findByCartItemIdAndCart_CartId(requestDto.getCartItemId(), cart.getCartId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CART_ITEMS, "ID " + requestDto.getCartItemId() + "에 해당하는 장바구니 아이템을 찾을 수 없거나, 사용자 소유가 아닙니다."));
+
+        CartItem existingCartItem = cartItemRepository
+                .findByCartAndCartItemId(cart, requestDto.getCartItemId())
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.NOT_FOUND_CART_ID,
+                        "ID " + requestDto.getCartItemId() +
+                                "에 해당하는 장바구니 아이템을 찾을 수 없거나, 사용자 소유가 아닙니다."
+                ));
 
         int newCnt = requestDto.getProductCnt();
         if (newCnt < 1 || newCnt > 99) {
-            throw new BusinessException(ErrorCode.INVALID_CART_ITEMS, "장바구니 수량은 1~99 사이여야 합니다.");
+            throw new BusinessException(ErrorCode.QUANTITY_LIMIT_EXCEEDED, "장바구니 수량은 1~99 사이여야 합니다.");
         }
         CartItem updatedCartItem = CartItem.builder()
                 .cartItemId(existingCartItem.getCartItemId())
@@ -186,20 +181,17 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public DeletedCartItem.Response deleteCartItem(String userId) {
-
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
         Cart cart = cartRepository.findByMember(member)
-                .orElse(null); // 장바구니가 없을 수도 있음
+                .orElse(null);
 
         if (cart == null) {
-            // 장바구니가 없는 경우, 삭제할 아이템도 없으므로 빈 결과를 반환하거나 예외 처리
             return DeletedCartItem.Response.builder()
                     .deletedCartItemIds(List.of())
                     .message("삭제할 장바구니가 없습니다.")
                     .build();
         }
-
 
         List<CartItem> itemsToDelete = cartItemRepository.findByCart(cart);
         List<Long> deletedIds = new ArrayList<>();
@@ -214,13 +206,10 @@ public class CartServiceImpl implements CartService {
             deletedIds.add(item.getCartItemId());
         }
         cartItemRepository.deleteAllByCart_CartId(cart);
-
-        //cart.updateCartTotalPrice(0);
         cartRepository.save(cart);
 
-
         return DeletedCartItem.Response.builder()
-                .deletedCartItemIds(deletedIds) // 삭제된 (원래 있던) 아이템들의 ID 목록
+                .deletedCartItemIds(deletedIds)
                 .message(userId + " 사용자의 장바구니에 있던 " + deletedIds.size() + "개 상품이 모두 삭제되었습니다.")
                 .build();
     }
