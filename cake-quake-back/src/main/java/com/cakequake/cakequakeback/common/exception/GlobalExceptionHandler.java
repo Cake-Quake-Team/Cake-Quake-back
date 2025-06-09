@@ -1,7 +1,11 @@
 package com.cakequake.cakequakeback.common.exception;
 
 
-import org.springframework.http.HttpStatus;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +14,7 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -43,6 +48,31 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = resolveServerErrorCode(ex);
         return buildErrorResponse(errorCode);
     }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorResponseDTO> handleJwtException(JwtException e) {
+        ErrorCode errorCode;
+
+        if (e instanceof ExpiredJwtException) {
+            errorCode = ErrorCode.EXPIRED_JWT;
+
+        } else if (e instanceof MalformedJwtException) {
+            errorCode = ErrorCode.INVALID_JWT;
+
+        } else if (e instanceof SignatureException) {
+            errorCode = ErrorCode.INVALID_JWT;
+
+        } else if (e instanceof JwtException) {
+            errorCode = ErrorCode.INVALID_JWT;
+
+        } else {
+            errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        }
+        log.error(errorCode.getMessage());
+
+        return buildErrorResponse(errorCode);
+    }
+
 
     // 중복 제거용 공통 메서드
     private ResponseEntity<ErrorResponseDTO> buildErrorResponse(ErrorCode ec) {
