@@ -13,7 +13,7 @@ public interface MerchantPaymentRepo extends JpaRepository<MerchantPaymentKey,Lo
     @Query("""
        SELECT k
        FROM MerchantPaymentKey k
-       WHERE k.shopId = :ShopId
+       WHERE k.shopId = :shopId
        AND k.provider =:provider
        AND k.isActive =:isActive
     """)

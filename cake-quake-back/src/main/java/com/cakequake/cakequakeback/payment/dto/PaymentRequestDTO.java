@@ -14,9 +14,6 @@ import java.math.BigDecimal;
 @Builder
 public class PaymentRequestDTO {
     @NotNull
-    private Long shopId;
-
-    @NotNull
     private Long orderId;
 
     @NotNull

@@ -6,6 +6,7 @@ import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 
 @Getter
@@ -23,7 +24,8 @@ public class ShopDetailResponseDTO {
     private String content;
     private BigDecimal rating;
     private Integer reviewCount;
-    private String operationHours;
+    private LocalTime openTime;
+    private LocalTime closeTime;
     private String closeDays;
     private String websiteUrl;
     private String instagramUrl;
@@ -33,12 +35,7 @@ public class ShopDetailResponseDTO {
     private ShopNoticePreviewDTO noticePreview;
     private List<CakeListDTO> cakes;
 
-    // selectDTO에서 사용되는 생성자는 별도로 분리 (Lombok과 무관)
-    public ShopDetailResponseDTO(Long shopId, Long uid, String businessNumber, String shopName,
-                                 String address, String phone, String content, BigDecimal rating,
-                                 Integer reviewCount, String operationHours, String closeDays,
-                                 String websiteUrl, String instagramUrl, ShopStatus status,
-                                 BigDecimal lat, BigDecimal lng) {
+    public ShopDetailResponseDTO(Long shopId, Long uid, String businessNumber, String shopName, String address, String phone, String content, BigDecimal rating, Integer reviewCount, LocalTime openTime, LocalTime closeTime, String closeDays, String websiteUrl, String instagramUrl, ShopStatus status, BigDecimal lat, BigDecimal lng) {
         this.shopId = shopId;
         this.uid = uid;
         this.businessNumber = businessNumber;
@@ -48,7 +45,8 @@ public class ShopDetailResponseDTO {
         this.content = content;
         this.rating = rating;
         this.reviewCount = reviewCount;
-        this.operationHours = operationHours;
+        this.openTime = openTime;
+        this.closeTime = closeTime;
         this.closeDays = closeDays;
         this.websiteUrl = websiteUrl;
         this.instagramUrl = instagramUrl;

@@ -10,6 +10,8 @@ import java.util.List;
 @Repository
 public interface CakeOrderItemRepository extends JpaRepository<CakeOrderItem, Long> {
 
-//    //특정 주문의 주문 아이템 조회
-//    List<CakeOrderItem> findByCakeOrder(CakeOrder order);
+        //특정 주문의 주문 아이템 조회
+        List<CakeOrderItem> findByCakeOrder_OrderId(Long orderId);
+
+        //Optional<CakeOrderItem> findByOrderItemId(Long orderItemId);
 }

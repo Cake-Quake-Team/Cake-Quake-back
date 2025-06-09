@@ -1,9 +1,11 @@
 package com.cakequake.cakequakeback.cart.dto;
 
 import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,11 +17,14 @@ public class AddCart {
 
     @Getter
     @NoArgsConstructor
+    @Builder
+    @AllArgsConstructor
     public static class Request {
 
         //장바구니에 담을 상품
-        @NotNull(message = "cakeId 필수입니다.")
-        private List<CakeItem> cakeItems;
+        @Valid
+        @NotNull(message = "상품 ID 필수입니다.")
+        private  Long cakeItemId;
 
         //담은 상품 수량(1~99)
         @Min(value = 1, message = "productCnt는 최소 1개 이상이어야 합니다.")
@@ -31,14 +36,11 @@ public class AddCart {
     @Builder
     public static class Response {
 
-        private List<CakeItem> cakeItem;
-        private Integer productCnt;
-
-        private Response(List<CakeItem> cakeItem, Integer productCnt) {
-
-            this.cakeItem = cakeItem;
-            this.productCnt = productCnt;
-        }
+        private Long cartItemId; // 장바구니에 추가된 아이템의 ID
+        private Long cakeItemId;
+        private String cname; // (선택적) 상품명
+        private Integer productCnt; // 최종 수량
+        private Long itemTotalPrice; // 해당 아이템의 총 가격
     }
 
 

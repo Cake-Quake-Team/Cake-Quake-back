@@ -46,7 +46,7 @@ public class Payment extends BaseEntity {
     private BigDecimal amount;
 
     //PG사 거래 식별자 (kakao: tid , Toss:paymentKey)
-    @Column(name = "transactionId", length =100, nullable =false)
+    @Column( length =100, nullable =false, unique = true )
     private String transactionId;
 
     //결제 완료 처리 시각
@@ -80,11 +80,22 @@ public class Payment extends BaseEntity {
     private String paymentUrl;
 
 
+//    public void setTransactionId(String transactionId) {
+//        this.transactionId = transactionId;
+//    }
+//
+//    public void setRedirectUrl(String redirectUrl) {
+//        this.redirectUrl = redirectUrl;
+//    }
+
     //상태 변경 메서드
     public void approveByPg(){
         if(this.status != PaymentStatus.READY){
             throw new IllegalStateException("Ready 상태가 아닌 결제는 승인할 수 없습니다.");
         }
+
+        this.status = PaymentStatus.APPROVED;
+        this.completedAt = LocalDateTime.now();
     }
 
     //승인된 결제만 취소 가능

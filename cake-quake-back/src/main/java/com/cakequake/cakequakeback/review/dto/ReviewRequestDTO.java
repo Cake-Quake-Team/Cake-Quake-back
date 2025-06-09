@@ -15,6 +15,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReviewRequestDTO {
 
+    private Long orderId;
+
+    private Long cakeId;
+
     @NotNull(message = "평점(rating)은 필수입니다.")
     @Min(value = 0 , message = "평점은 최소 0점 이상입니다.")
     @Max(value = 5, message = "평점은 최대 5점 이하입니다.")

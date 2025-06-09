@@ -2,6 +2,7 @@ package com.cakequake.cakequakeback.payment.repo;
 
 import com.cakequake.cakequakeback.payment.dto.PaymentResponseDTO;
 import com.cakequake.cakequakeback.payment.entities.Payment;
+import com.cakequake.cakequakeback.payment.entities.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -61,6 +62,8 @@ public interface PaymentRepo extends JpaRepository<Payment,Long> {
             @Param("paymentId") Long paymentId,
             @Param("uid") Long uid
     );
+    // ① ready 단계(=PaymentStatus.READY)로 생성된 레코드를 찾기 위해
+    Optional<Payment> findByOrder_OrderIdAndStatus(Long orderId, PaymentStatus status);
 
     // 본인 결제 엔티티 단건 조회 (payment_id, member.userId 조건)
     Optional<Payment> findByPaymentIdAndMemberUid(Long paymentId, Long userId);
@@ -73,6 +76,8 @@ public interface PaymentRepo extends JpaRepository<Payment,Long> {
 
     // PG사 거래 식별자(transactionId)으로 조회
     Optional<Payment> findByTransactionId( String transactionId);
+
+    Optional<Payment> findOneByOrderOrderIdAndMemberUidAndStatus(Long orderId, Long uid, PaymentStatus status);
 
     /** 매장별 전체 결제 목록 조회 → DTO 바로 반환 */
 //    @Query("""

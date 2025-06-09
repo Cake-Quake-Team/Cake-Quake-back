@@ -13,9 +13,13 @@ public interface PaymentService {
     PaymentResponseDTO createPayment(PaymentRequestDTO paymentRequestDTO, Long userId);
 
     //카카오페이 승인 콜백 처리 (pgToken받고 -> /vi/payment/approve 호출 -> DB 상태 업데이트)
-    PaymentResponseDTO approveKakao(String tid, String partnerOrderId, String PartnerUserId, String pgToken);
-
+    //PaymentResponseDTO approveKakao(String tid, String partnerOrderId, String partnerUserId, String pgToken);
+    PaymentResponseDTO approveKakao( Long orderId,Long userId , String pgToken);
     // 본인 결제 단건 조회
+
+    PaymentResponseDTO approveToss(String paymentKey, String orderId);
+
+
     PaymentResponseDTO getPayment(Long PaymentID,Long uid);
 
     //내 결제 내역 전체 조회
