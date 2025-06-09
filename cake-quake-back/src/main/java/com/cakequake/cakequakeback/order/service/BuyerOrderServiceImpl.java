@@ -5,6 +5,8 @@ import com.cakequake.cakequakeback.cart.entities.Cart;
 import com.cakequake.cakequakeback.cart.entities.CartItem;
 import com.cakequake.cakequakeback.cart.repo.CartItemRepository;
 import com.cakequake.cakequakeback.cart.repo.CartRepository;
+import com.cakequake.cakequakeback.common.exception.BusinessException;
+import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.order.dto.buyer.CreateOrder;
@@ -43,12 +45,12 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     @Override
     public CreateOrder.Response createOrder(String userId, CreateOrder.Request request) {
         Member member = memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("유효하지 않은 사용자입니다: " + userId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
         // (1) cartItemIds와 directItems 중 하나만 제공되어야 함
         boolean hasCart = request.getCartItemIds() != null && !request.getCartItemIds().isEmpty();
         boolean hasDirect = request.getDirectItems() != null && !request.getDirectItems().isEmpty();
         if (hasCart == hasDirect) { // 둘 다 존재하거나 둘 다 비어있으면 잘못된 요청
-            throw new ValidationException("cartItemIds와 directItems 중 하나만 지정하세요.");
+            throw new BusinessException(ErrorCode.INVALID_CART_ITEMS);
         }
         // (2) CakeOrder 생성
         CakeOrder order = CakeOrder.builder()
@@ -58,7 +60,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .status(OrderStatus.RESERVATION_PENDING)
                 //.orderNumber(generateOrderNumber(memberUid))
                 .build();
-        buyerOrderRepository.save(order);
+        CakeOrder savedOrder = buyerOrderRepository.save(order);
 
         long OrderToTalPrice = 0L;
 
@@ -82,13 +84,11 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     try {
                         mappingId = Long.valueOf(optionsMap.get("mappingId"));
                     } catch (NumberFormatException exception) {
-                        throw new ValidationException("유효하지 않은 mappindId: " + optionsMap.get("mappingId"));
+                        throw new BusinessException(ErrorCode.NOT_FOUND_OPTION_ID);
                     }
                     CakeOptionMapping mapping = cakeOptionMappingRepository
                             .findById(mappingId)                                      // Optional<CakeOptionMapping> 반환
-                            .orElseThrow(() -> new NoSuchElementException(
-                                    "유효하지 않은 옵션 매핑입니다: " + mappingId
-                            ));
+                            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_OPTION_ID));
 
                     CakeOrderItemOption itemOption = CakeOrderItemOption.builder()
                             .cakeOrderItem(item)
@@ -165,11 +165,11 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
         // (4) 응답 DTO 반환
         return CreateOrder.Response.builder()
-                .orderId(order.getOrderId())
-                .orderNumber(order.getOrderNumber())
-                .orderTotalPrice(order.getOrderTotalPrice())
-                .pickupDate(order.getPickupDate())
-                .pickupTime(order.getPickupTime())
+                .orderId(savedOrder.getOrderId())
+                .orderNumber(savedOrder.getOrderNumber())
+                .orderTotalPrice(savedOrder.getOrderTotalPrice())
+                .pickupDate(savedOrder.getPickupDate())
+                .pickupTime(savedOrder.getPickupTime())
                 .build();
     }
 
@@ -194,8 +194,14 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
     @Override
     public OrderDetail.Response getOrderDetail(String userId, Long orderId) {
-        CakeOrder order = buyerOrderRepository.findByOrderIdAndMemberUserId(orderId, userId)
-                .orElseThrow(() -> new NoSuchElementException("주문을 찾을 수 없습니다: " + orderId));
+        CakeOrder order = buyerOrderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID));
+
+        // 2) 소유자 검증: 내 주문이 아니면 BusinessException(NOT_OWN_ORDER)
+        if (!order.getMember().getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NOT_OWN_ORDER);
+
+        }
 
         List<CakeOrderItem> items = cakeOrderItemRepository.findByCakeOrder_OrderId(orderId);
 
@@ -228,13 +234,13 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     public void cancelOrder(String userId, Long orderId) {
         CakeOrder order = buyerOrderRepository
                 .findById(orderId)
-                .orElseThrow(() -> new NoSuchElementException("주문을 찾을 수 없습니다: " + orderId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID));
 
         if (!Objects.equals(order.getMember().getUid(), userId)) {
-            throw new IllegalArgumentException("본인의 주문이 아닙니다.");
+            throw new BusinessException(ErrorCode.NOT_OWN_ORDER);
         }
         if (order.getStatus() != OrderStatus.RESERVATION_PENDING) {
-            throw new IllegalStateException("진행 중인 주문은 취소할 수 없습니다.");
+            throw new BusinessException(ErrorCode.INVALID_TIME_RANGE);
         }
 
         //order.getStatus(OrderStatus.RESERVATION_CANCELLED);

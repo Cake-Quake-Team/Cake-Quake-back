@@ -17,8 +17,10 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     Optional<CartItem> findByCartItemIdAndCart_CartId(Long cartItemId, Long cartId);
 
     // 특정 CartItem ID와 해당 CartItem이 속한 Cart 엔티티를 기준으로 CartItem 삭제
-    //void deleteByCartItemIdAndCart_CartId(Long cartItemId, Cart cart); //나중에 프론트하면서 적용
+    void deleteByCartItemIdAndCart_CartId(Long cartItemId, Cart cart); //나중에 프론트하면서 적용
 
     // 특정 Cart의 모든 CartItem 삭제
     void deleteAllByCart_CartId(Cart cart);
+
+    Optional<CartItem> findByCartAndCartItemId(Cart testCart, long cartItemId);
 }
