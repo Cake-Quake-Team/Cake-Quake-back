@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/auth/otp")
+@RequestMapping("/api/v1/auth/otp")
 public class PhoneVerificationController {
 
     private final PhoneVerificationService service;
@@ -24,21 +24,17 @@ public class PhoneVerificationController {
     // 인증 코드 발송
     @PostMapping("/send")
     public ResponseEntity<ApiResponseDTO> sendVerificationCode(@RequestBody @Valid PhoneVerificationRequestDTO requestDTO) {
-        service.sendVerificationCode(requestDTO);
 
-        return ResponseEntity.ok(ApiResponseDTO.builder()
-                .success(true)
-                .message("인증번호 발송 성공")
-                .build());
+        ApiResponseDTO response = service.sendVerificationCode(requestDTO);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/verify")
     public ResponseEntity<ApiResponseDTO> verifyCode(@RequestBody @Valid PhoneVerificationCheckDTO checkDTO) {
-        service.verifyCode(checkDTO);
 
-        return ResponseEntity.ok(ApiResponseDTO.builder()
-                .success(true)
-                .message("인증번호 검증 성공")
-                .build());
+        ApiResponseDTO response = service.verifyCode(checkDTO);
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -69,14 +69,14 @@ public enum ErrorCode {
     INVALID_SELECTION_RANGE(400, 662, "최소 선택 수는 최대 선택 수보다 클 수 없습니다."),
 
     //HTTP 401 Unauthorized (code:801~809)
-    INVALID_CREDENTIALS(401, 801, "아이디 또는 패스워드가 일치하지 않습니다"),
-    MISSING_JWT(401, 802, "JWT 토큰이 존재하지 않거나 형식이 올바르지 않습니다"),
-    INVALID_JWT(401, 803, "유효하지 않은 JWT 토큰입니다"),
-    EXPIRED_JWT(401, 804, "만료된 JWT 토큰입니다"),
-    INVALID_REFRESH_TOKEN(401, 805, "refresh 토큰이 잘못되었거나 없습니다"),
-    EXPIRED_REFRESH_TOKEN(401, 806, "유효하지 않은 refresh 토큰입니다"),
-    INVALID_OTP(401, 807, "잘못된 인증번호입니다"),
-    EXPIRED_OTP(401, 808, "만료된 인증번호입니다"),
+    INVALID_CREDENTIALS(401, 801, "아이디 또는 패스워드가 일치하지 않습니다."),
+    MISSING_JWT(401, 802, "JWT 토큰이 존재하지 않거나 형식이 올바르지 않습니다."),
+    INVALID_JWT(401, 803, "유효하지 않은 JWT 토큰입니다."),
+    EXPIRED_JWT(401, 804, "만료된 JWT 토큰입니다."),
+    INVALID_REFRESH_TOKEN(401, 805, "refresh 토큰이 잘못되었거나 없습니다."),
+    EXPIRED_REFRESH_TOKEN(401, 806, "유효하지 않은 refresh 토큰입니다."),
+    INVALID_OTP(401, 807, "잘못된 인증번호입니다."),
+    EXPIRED_OTP(401, 808, "만료된 인증번호입니다."),
     INVALID_PG_SIGNATURE(401, 809, "PG사 서명이 유효하지 않습니다"),
     BUSINESS_INVALID_SERVICE_KEY(401, 810, "유효하지 않은 서비스 키입니다."),
 
@@ -111,6 +111,7 @@ public enum ErrorCode {
     NOT_FOUND_PAYMENT_ID       (404, 1013, "해당 결제 ID가 존재하지 않습니다"),
     DELETION_REQUEST_NOT_FOUND(404,1014, "해당 삭제 내역을 찾을 수 없습니다"),
     BUSINESS_NO_DATA(404, 1015, "조회된 사업자 정보가 없습니다."),
+    MEMBER_NOT_FOUND(404, 1016, "해당 회원을 찾을 수 없습니다.."),
 
     //HTTP 409 Conflict (code: 701~715)
     ALREADY_EXIST_USER_ID      (409, 701, "이미 존재하는 아이디입니다"),

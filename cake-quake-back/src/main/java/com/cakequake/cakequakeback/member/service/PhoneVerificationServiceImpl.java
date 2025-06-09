@@ -138,7 +138,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
 
         return ApiResponseDTO.builder()
                 .success(true)
-                .message("인증이 완료되었습니다.")
+                .message("인증에 성공하였습니다.")
                 .build();
     }
 

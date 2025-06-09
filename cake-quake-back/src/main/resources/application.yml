@@ -14,11 +14,11 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASS}
     hikari:
-      maximum-pool-size: 5   # ?? ??? ??
-      minimum-idle: 2         # ?? ?? ??? ??
-      idle-timeout: 30000     # ???? ?? ??? ???? ?? ?? (???)
-      max-lifetime: 1800000   # ???? ?? ???? (???)
-      connection-timeout: 2000 # ??? ?? ? ?? ?? ?? (???)
+      maximum-pool-size: 5   # 최대 커넥션 개수. 개발용 사이즈 설정
+      minimum-idle: 2        # 최소 유휴 커넥션 개수
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 2000
 
   #JPA Config
   jpa:
@@ -34,11 +34,6 @@ spring:
     init:
       mode: never
 
-  #?? ??
-  logging:
-    level:
-      com.cakequake: INFO
-      org.springframework.security: TRACE
 
   output:
     ansi:
@@ -61,3 +56,15 @@ spring:
   app:
     base-url: https://my-app.example.com         # 우리 서비스(앱) 기본 URL, ngrok 혹은 실제 도메인
     # 예시: https://abc123.ngrok.io
+
+jwt:
+  secret: ${JWT_SECRET}
+
+#개발용 로그 레벨. 운영 시 변경 필요
+logging:
+  level:
+    com.cakequake: INFO
+    com.cakequake.cakequakeback.common: DEBUG
+    com.cakequake.cakequakeback.member: DEBUG
+    com.cakequake.cakequakeback.security: DEBUG
+    org.springframework.security: TRACE

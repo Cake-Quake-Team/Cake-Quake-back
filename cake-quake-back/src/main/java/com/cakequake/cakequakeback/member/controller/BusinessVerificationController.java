@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/auth/business")
+@RequestMapping("/api/v1/auth/business")
 public class BusinessVerificationController {
 
     private final BusinessVerificationService service;
