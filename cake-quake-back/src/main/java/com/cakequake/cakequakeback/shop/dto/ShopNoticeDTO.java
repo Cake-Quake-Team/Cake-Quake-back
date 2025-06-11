@@ -15,9 +15,6 @@ import java.time.LocalDateTime;
 public class ShopNoticeDTO {
     private String title;
     private String content;
-    private LocalDateTime modDate;
-
-
 
 
 }

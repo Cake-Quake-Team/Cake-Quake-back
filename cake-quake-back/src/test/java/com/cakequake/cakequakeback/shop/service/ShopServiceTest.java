@@ -46,7 +46,7 @@ public class ShopServiceTest {
                 .size(5)
                 .build();
 
-        ShopStatus status = ShopStatus.Active;
+        ShopStatus status = ShopStatus.ACTIVE;
 
         // when
         InfiniteScrollResponseDTO<ShopPreviewDTO> response =
@@ -123,7 +123,7 @@ public class ShopServiceTest {
     @Test
     void DetailShops() {
         // given
-        Long existingShopId = 2L; // 이 ID에 해당하는 shop이 DB에 있어야 함
+        Long existingShopId = 5L; // 이 ID에 해당하는 shop이 DB에 있어야 함
 
         // when
         ShopDetailResponseDTO result = shopService.getShopDetail(existingShopId);

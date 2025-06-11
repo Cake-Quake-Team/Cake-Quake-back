@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/shops")
+@RequestMapping("api/shops")
 @RequiredArgsConstructor
 
 public class ShopController {
@@ -67,6 +67,7 @@ public class ShopController {
         return ResponseEntity.ok(detail);
     }
 
+    //공지사항 생성
     @PostMapping("/{shopId}/notices")
     public ResponseEntity<Long> createNotice(@PathVariable Long shopId,
                                              @RequestBody ShopNoticeDTO dto) {
@@ -74,16 +75,18 @@ public class ShopController {
         return ResponseEntity.ok(id);
     }
 
+    //공지사항 수정
     @PutMapping("/{shopId}/notices/{noticeId}")
-    public ResponseEntity<Void> updateNotice(@PathVariable Long noticeId,
+    public ResponseEntity<Void> updateNotice(@PathVariable Long shopId, @PathVariable Long noticeId,
                                              @RequestBody ShopNoticeDTO dto) {
-        shopService.updateNotice(noticeId, dto);
+        shopService.updateNotice(shopId,noticeId, dto);
         return ResponseEntity.ok().build();
     }
 
+    //공지사항 삭제
     @DeleteMapping("/{shopId}/notices/{noticeId}")
-    public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) {
-        shopService.deleteNotice(noticeId);
+    public ResponseEntity<Void> deleteNotice(@PathVariable Long shopId, @PathVariable Long noticeId) {
+        shopService.deleteNotice(shopId, noticeId);
         return ResponseEntity.ok().build();
     }
 

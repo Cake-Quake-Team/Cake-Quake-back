@@ -35,5 +35,8 @@ public interface ShopNoticeRepository extends JpaRepository<ShopNotice, Long> {
             "WHERE sn.shopNoticeId = :noticeId")
     Optional<ShopNoticeDetailDTO> findNoticeDetailById(@Param("noticeId") Long noticeId);
 
+    //공지사항 검증
+    Optional<ShopNotice> findByShopNoticeIdAndShopShopId(Long shopNoticeId, Long shopId);
+
 }
 
