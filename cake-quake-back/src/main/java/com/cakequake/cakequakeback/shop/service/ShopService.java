@@ -25,8 +25,8 @@ public interface ShopService {
     Long createNotice(Long shopId, ShopNoticeDTO noticeDTO);
 
     //공지사항 수정
-    void updateNotice(Long noticeId, ShopNoticeDTO noticeDTO);
+    void updateNotice(Long shopId, Long noticeId, ShopNoticeDTO noticeDTO);
 
     //공지사항 삭제
-    void deleteNotice(Long noticeId);
+    void deleteNotice(Long shopId, Long noticeId);
 }

@@ -53,6 +53,9 @@ public class Shop extends BaseEntity {
     @Column(nullable = false)
     private String content;
 
+    @Column
+    private String thumbnailImageUrl;
+
     @Column(precision = 2,scale=1)
     private BigDecimal rating;
 
@@ -84,6 +87,7 @@ public class Shop extends BaseEntity {
 
     @Column(precision = 9,scale = 6)
     private BigDecimal lng;
+
 
 
 

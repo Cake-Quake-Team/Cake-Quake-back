@@ -17,22 +17,26 @@ public class ShopImage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private Long imageId;
+    private Long shopImageId;
 
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name="shopId",nullable = false)
     private Shop shop; //매장ID
 
     @Column(nullable = false)
-    private String shopImage; //이미지 URL
+    private String shopImageUrl; //이미지 URL
 
     @Column(nullable = false)
-    private String thumbnail; //대표이미지
+    private Boolean isThumbnail=false; //대표이미지
 
     @Column(nullable = false)
     private String createdBy; //생성자
 
     @Column( nullable = false)
     private String modifiedBy; //수정자
+
+    public void changeThumbnail(boolean isThumbnail) {
+        this.isThumbnail = isThumbnail;
+    }
 }
 
