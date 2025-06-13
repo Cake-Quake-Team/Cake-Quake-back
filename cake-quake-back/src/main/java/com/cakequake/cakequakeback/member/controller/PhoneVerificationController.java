@@ -24,6 +24,7 @@ public class PhoneVerificationController {
     // 인증 코드 발송
     @PostMapping("/send")
     public ResponseEntity<ApiResponseDTO> sendVerificationCode(@RequestBody @Valid PhoneVerificationRequestDTO requestDTO) {
+        log.debug("--- sendVerificationCode--- controller --- dto: {}", requestDTO);
 
         ApiResponseDTO response = service.sendVerificationCode(requestDTO);
 
@@ -32,6 +33,7 @@ public class PhoneVerificationController {
 
     @PostMapping("/verify")
     public ResponseEntity<ApiResponseDTO> verifyCode(@RequestBody @Valid PhoneVerificationCheckDTO checkDTO) {
+        log.debug("--- verifyCode--- controller --- checkDTO.code: {}, phon:{}, type:{}", checkDTO.getCode(), checkDTO.getPhoneNumber(), checkDTO.getType());
 
         ApiResponseDTO response = service.verifyCode(checkDTO);
 

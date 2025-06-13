@@ -70,7 +70,8 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     private static final List<String> EXCLUDE_PATHS = List.of(
             "/api/v1/auth/signin",
             "/api/v1/auth/signup",
-            "/api/v1/auth/otp",
+            "/api/v1/auth/otp/send", // 전화번호 인증
+            "/api/v1/auth/otp/verify",
             "/api/v1/auth/business/verify",
             "/api/v1/auth/refresh",
             "/css/",
