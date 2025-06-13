@@ -43,7 +43,6 @@ public class CustomSecurityConfig {
         http.authorizeHttpRequests(auth -> {
 //            auth.requestMatchers("/**").permitAll(); // 모든 요청 허용
             auth.requestMatchers(
-                    "/",
                     "/api/v1/auth/signup/**",
                     "/api/v1/auth/signin",
                     "/api/v1/auth/otp/send", // 전화번호 인증

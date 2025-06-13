@@ -7,6 +7,7 @@ import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO
 import com.cakequake.cakequakeback.member.service.MemberService;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
 import com.cakequake.cakequakeback.security.domain.CustomUserDetails;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ public class MemberAuthController {
 
     @PostMapping("/signup/buyers")
     public ResponseEntity<ApiResponseDTO> signupBuyer(@RequestBody @Valid BuyerSignupRequestDTO dto) {
+        log.debug(dto.toString());
         // service에서 joinType에 따라 분기 처리. basic/kakao/google
         ApiResponseDTO response = memberService.signup(dto);
         return ResponseEntity.ok(response);
@@ -65,16 +67,23 @@ public class MemberAuthController {
         return ResponseEntity.ok(memberService.refreshTokens(accessToken, requestDTO));
     }
 
+    @PostMapping("/signout")
+    public ResponseEntity<Void> signout(HttpServletResponse response) {
+        log.debug("---MemberAuthController---signout()");
+
+        return ResponseEntity.ok().build();
+    }
+
     /*
         테스트 용
      */
     @PreAuthorize("hasRole('BUYER')")
     @GetMapping("/token-test")
     public ResponseEntity<ApiResponseDTO> tokenTest(){
-            return ResponseEntity.ok(ApiResponseDTO.builder()
-                    .success(true)
-                    .message("로그인 후 토큰으로 테스트 접근 성공")
-                    .build());
+        return ResponseEntity.ok(ApiResponseDTO.builder()
+                .success(true)
+                .message("로그인 후 토큰으로 테스트 접근 성공")
+                .build());
     }
 
     @PreAuthorize("hasRole('SELLER')")

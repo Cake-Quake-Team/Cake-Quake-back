@@ -40,7 +40,11 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
     // 인증번호 발송
     @Override
     public ApiResponseDTO sendVerificationCode(PhoneVerificationRequestDTO requestDTO) {
-        String phoneNumber = requestDTO.getPhoneNumber();
+
+        // 전화번호 정규화 (하이픈 제거)
+        String rawPhoneNumber = requestDTO.getPhoneNumber();
+        String normalized = PhoneNumberUtils.normalize(rawPhoneNumber);
+
         String code = generateRandomCode(CODE_LENGTH);
         VerificationType type = requestDTO.getType();
 
@@ -48,16 +52,16 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         LocalDateTime expiresAt = now.plusMinutes(EXPIRES_MINUTES); // 만료 시간 계산
 
         // 전화번호 형식 검사
-        if(!PhoneNumberUtils.isValid(phoneNumber)) {
+        if(!PhoneNumberUtils.isValid(normalized)) {
             throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
         }
 
         // 전화번호 중복 검사
-        if (type == VerificationType.SIGNUP && memberRepository.existsByPhoneNumber(phoneNumber)) {
+        if (type == VerificationType.SIGNUP && memberRepository.existsByPhoneNumber(normalized)) {
             throw new BusinessException(ErrorCode.ALREADY_EXIST_PHONE); // 702
         }
 
-        Optional<PhoneVerification> verificationOpt = repository.findByPhoneNumberAndType(phoneNumber, type);
+        Optional<PhoneVerification> verificationOpt = repository.findByPhoneNumberAndType(normalized, type);
 
         if (verificationOpt.isPresent()) {
 
@@ -82,7 +86,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         } else {
             // 최초 인증 요청 저장
             PhoneVerification newVerification = PhoneVerification.builder()
-                    .phoneNumber(phoneNumber)
+                    .phoneNumber(normalized)
                     .type(type)
                     .code(code)
                     .expiresAt(expiresAt)
@@ -91,7 +95,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         }
 
         // 실제 환경에서는 문자 API 호출해야 함
-        log.debug("휴대폰 인증번호 전송: {}, / 코드: {} ", phoneNumber, code);
+        log.debug("휴대폰 인증번호 전송: {}, / 코드: {} ", normalized, code);
 
         // 임시로 모달 창으로 보여줄 코드 반환
         return ApiResponseDTO.builder()
@@ -104,12 +108,17 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
     // 인증번호 검증
     @Override
     public ApiResponseDTO verifyCode(PhoneVerificationCheckDTO checkDTO) {
-        String phoneNumber = checkDTO.getPhoneNumber();
+
+        // 전화번호 정규화 (하이픈 제거)
+        String rawPhoneNumber = checkDTO.getPhoneNumber();
+        String normalized = PhoneNumberUtils.normalize(rawPhoneNumber);
+
+//        String phoneNumber = checkDTO.getPhoneNumber();
         String code = checkDTO.getCode();
         VerificationType type = checkDTO.getType();
 
         // 전화번호 또는 코드 형식 검증
-        if (!PhoneNumberUtils.isValid(phoneNumber)) {
+        if (!PhoneNumberUtils.isValid(normalized)) {
             throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
         }
         if (!isValidOtp(code)) {
@@ -117,7 +126,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
         }
 
         // 번호와 코드로 db에 인증 요청 조회
-        PhoneVerification verification = repository.findByPhoneNumberAndCodeAndType(phoneNumber, code, type)
+        PhoneVerification verification = repository.findByPhoneNumberAndCodeAndType(normalized, code, type)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_OTP)); // 807_잘못된 인증
 
         // 이미 이 인증 요청은 완료된 상태
