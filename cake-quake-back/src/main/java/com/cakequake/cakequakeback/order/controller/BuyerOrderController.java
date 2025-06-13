@@ -5,7 +5,6 @@ import com.cakequake.cakequakeback.order.dto.buyer.OrderDetail;
 import com.cakequake.cakequakeback.order.dto.buyer.OrderList;
 import com.cakequake.cakequakeback.order.service.BuyerOrderService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -14,10 +13,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/buyers/orders")
-@RequiredArgsConstructor
+@RequestMapping("/api/v1/buyer/order")
 public class BuyerOrderController {
     private final BuyerOrderService buyerOrderService;
+
+    public BuyerOrderController(BuyerOrderService buyerOrderService) {
+        this.buyerOrderService = buyerOrderService;
+    }
 
     @PostMapping
     public ResponseEntity<CreateOrder.Response> createOrder(
@@ -37,13 +39,14 @@ public class BuyerOrderController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("{orderId}") // 경로 명확화
+    @GetMapping("/{orderId}") // 경로 명확화
     public ResponseEntity<OrderDetail.Response> getOrderDetail(
             @AuthenticationPrincipal String userId,
             @PathVariable Long orderId
     ) {
         OrderDetail.Response response = buyerOrderService.getOrderDetail(userId, orderId);
         return ResponseEntity.ok(response);
+
     }
 
     @DeleteMapping("/{orderId}")

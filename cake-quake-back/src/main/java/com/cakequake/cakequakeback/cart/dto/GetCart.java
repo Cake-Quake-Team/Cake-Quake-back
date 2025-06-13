@@ -18,7 +18,6 @@ public class GetCart {
         private List<ItemInfo> Items;
         private Long cartTotalPrice;
 
-
     }
 
     @Getter

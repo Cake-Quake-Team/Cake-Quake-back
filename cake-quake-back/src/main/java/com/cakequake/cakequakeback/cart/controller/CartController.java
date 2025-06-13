@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @Log4j2
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/buyers/cart")
+@RequestMapping("/api/v1/buyer/cart")
 @Validated
 public class CartController {
 
@@ -35,18 +35,20 @@ public class CartController {
     /** 현재 사용자의 장바구니 전체 조회 */
     @GetMapping
     public ResponseEntity<GetCart.Response> getCart(
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal String userId
     ) {
-        String userId = userDetails.getMember().getUserId();
-        GetCart.Response responseDto = cartService.getCart(userId);
-        return ResponseEntity.ok(responseDto);
+        log.info("principal userId={}", userId);
+        return ResponseEntity.ok(cartService.getCart(userId));
+        //String userId = userD.getMember().getUserId();
+        //GetCart.Response responseDto = cartService.getCart(userId);
+        //log.info("principal userId",userId);
+        //return ResponseEntity.ok(cartService.getCart(userId));
     }
 
     /** 장바구니 내 특정 아이템 수량 수정 */
     @PatchMapping("/{cartItemId}")
     public ResponseEntity<Void> updateCartItem(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long cartItemId,
             @Validated @RequestBody UpdateCartItem.Request requestDto
     ) {
         String userId = userDetails.getMember().getUserId();
@@ -58,10 +60,14 @@ public class CartController {
     @DeleteMapping("/{cartItemId}")
     public ResponseEntity<Void> deleteCartItem(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long cartItemId
+            @PathVariable Long cartItemId   // ← 이 변수, 이제 사용합니다
     ) {
         String userId = userDetails.getMember().getUserId();
-        cartService.deleteCartItem(userId);
-        return ResponseEntity.ok().build();
+
+        // cartItemId를 함께 넘겨줘야 실제로 해당 아이템을 삭제할 수 있어요
+        cartService.deleteCartItem(userId, cartItemId);
+
+        // 삭제는 204 No Content가 더 RESTful
+        return ResponseEntity.noContent().build();
     }
 }
