@@ -4,9 +4,11 @@ import com.cakequake.cakequakeback.member.dto.*;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
+import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.service.MemberService;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
 import com.cakequake.cakequakeback.security.domain.CustomUserDetails;
+import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +25,12 @@ public class MemberAuthController {
 
     private final MemberService memberService;
     private final SellerService sellerService;
+    private final AuthenticatedUserService authenticatedUserService;
 
-    public MemberAuthController(MemberService memberService, SellerService sellerService) {
+    public MemberAuthController(MemberService memberService, SellerService sellerService, AuthenticatedUserService authenticatedUserService) {
         this.memberService = memberService;
         this.sellerService = sellerService;
+        this.authenticatedUserService = authenticatedUserService;
     }
 
     @PostMapping("/signup/buyers")
@@ -77,12 +81,17 @@ public class MemberAuthController {
     /*
         테스트 용
      */
-    @PreAuthorize("hasRole('BUYER')")
+//    @PreAuthorize("hasRole('BUYER')")
     @GetMapping("/token-test")
     public ResponseEntity<ApiResponseDTO> tokenTest(){
+
+        Member member = authenticatedUserService.getCurrentMember();
+        log.debug("UserId: {}, Uid: {}", member.getUserId(), member.getUid());
+
         return ResponseEntity.ok(ApiResponseDTO.builder()
                 .success(true)
                 .message("로그인 후 토큰으로 테스트 접근 성공")
+//                        .data(member)
                 .build());
     }
 
