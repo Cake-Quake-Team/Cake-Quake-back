@@ -24,11 +24,12 @@ public class SellerReviewController {
     public InfiniteScrollResponseDTO<ReviewResponseDTO> getShopReviews(
             PageRequestDTO pageRequestDTO,
             @PathVariable Long shopId
-            //, @AuthenticationPrincipal Long uesrId
+            //@AuthenticationPrincipal Long uesrId
             ) {
         return sellerReviewService.getShopReviews(pageRequestDTO, shopId);
     };
 
+    //매장 리뷰 단건 상세 조회
     @GetMapping("/{reviewId}")
     public ReviewResponseDTO getReview(
             @PathVariable Long reviewId,
@@ -36,6 +37,7 @@ public class SellerReviewController {
         return sellerReviewService.getReview(shopId,reviewId);
     }
 
+    //리뷰에 답글 달기
     @PostMapping("/{reviewId}/reply")
     @ResponseStatus(HttpStatus.CREATED)
     public void reply(
@@ -46,6 +48,7 @@ public class SellerReviewController {
         sellerReviewService.replyToReview(reviewId,replyRequestDTO,shopId);
     }
 
+    //리뷰 삭제 요청
     @PostMapping("/{reviewId}/delete")
     @ResponseStatus(HttpStatus.CREATED)
     public void requestDelete(

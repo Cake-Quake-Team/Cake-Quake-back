@@ -11,7 +11,7 @@ public interface SellerReviewService {
     InfiniteScrollResponseDTO<ReviewResponseDTO> getShopReviews(PageRequestDTO pageRequestDTO, Long shopId);
 
     //매장 리뷰 단건 조회
-    ReviewResponseDTO getReview(Long reviewId, Long shopId);
+    ReviewResponseDTO getReview(Long shopId, Long reviewId);
 
     //판매자 답글 작성
     void replyToReview(Long reviewId, ReplyRequestDTO dto, Long shopId);

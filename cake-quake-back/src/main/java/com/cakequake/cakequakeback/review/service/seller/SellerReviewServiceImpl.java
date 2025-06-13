@@ -45,7 +45,7 @@ public class SellerReviewServiceImpl implements SellerReviewService {
     //매장 리뷰 상세 보기
     @Override
     @Transactional(readOnly = true)
-    public ReviewResponseDTO getReview(Long reviewId, Long shopId) {
+    public ReviewResponseDTO getReview(Long shopId, Long reviewId) {
         Review review = sellerReviewRepo.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_REVIEW_ID));
         if(!review.getCakeItem().getShop().getShopId().equals(shopId)){
