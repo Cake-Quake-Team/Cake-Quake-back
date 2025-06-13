@@ -8,7 +8,7 @@ import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
 public interface BuyerReviewService {
 
     //리뷰 생성후 응답용 DTO 전체 반환
-    ReviewResponseDTO createReview(Long orderId, ReviewRequestDTO dto, String userId);
+    ReviewResponseDTO createReview(Long orderId, ReviewRequestDTO dto, Long uid);
 
     //구매자 내 리뷰 전체 조회 (무한 스크롤)
     InfiniteScrollResponseDTO<ReviewResponseDTO> getMyReviews(PageRequestDTO pageRequestDTO, Long uid);

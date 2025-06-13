@@ -6,6 +6,7 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.common.utils.CustomImageUtils;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.order.entities.CakeOrderItem;
 import com.cakequake.cakequakeback.order.repo.BuyerOrderRepository;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,34 +33,56 @@ import java.util.List;
 @Log4j2
 public class BuyerReviewServiceImpl implements BuyerReviewService {
 
+    private static final String UPLOAD_DIR = "C:/nginx-1.26.3/html/reviewuploads";
+
     private final BuyerReviewRepo buyerReviewRepo;
     private final BuyerOrderRepository buyerOrderRepo;
     private final CakeOrderItemRepository cakeOrderItemRepository;
     private final PointService pointService;
-
+    private final CustomImageUtils imageUtils;
 
     //구매자 리뷰 추가
     @Override
-    public ReviewResponseDTO createReview(Long orderId, ReviewRequestDTO dto, String userId) {
+    public ReviewResponseDTO createReview(Long orderId, ReviewRequestDTO dto, Long uid) {
 
         log.info("--------------review created-------------");
-
+        log.info("🔍 createReview 호출 — orderId={}, uid={}", orderId, uid);
         //해당 주문서가 존재하지 않거나 권한이 없는 경우
-        CakeOrder order = buyerOrderRepo.findByOrderIdAndMemberUserId(orderId,userId)
+        CakeOrder order = buyerOrderRepo.findByOrderIdAndMemberUid(orderId,uid)
         .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID));
 
+        log.info("-----------------123123-------------");
         //이미 리뷰 작성 여부 체크
         Long cakeId = dto.getCakeId();
         if(buyerReviewRepo.findByOrderOrderIdAndCakeItemCakeId(orderId,cakeId).isPresent()){
             throw new BusinessException(ErrorCode.ALREADY_REVIEWED_ORDER);
         }
-
+        log.info("-----------------12314325342523-------------");
         List<CakeOrderItem> orderItems = cakeOrderItemRepository.findByCakeOrder_OrderId(orderId);
         if(orderItems.isEmpty()){
             //에러 새로 추가해야함 INVALID_ORDER_ITEM
             throw new BusinessException(ErrorCode.INVALID_ORDER_ID);
         }
+        log.info("uploadDir = {}", UPLOAD_DIR);
+        // 4) 이미지 파일 저장
+        MultipartFile file = dto.getReviewPictureUrl();
+        log.info("file is empty? {}", file == null || file.isEmpty());
+        String savedName = null;
+        if (file != null && !file.isEmpty()) {
+            savedName = imageUtils.saveImageFile(file, UPLOAD_DIR);
+        }
+        String pictureUrl = (savedName != null)
+                ? "/reviewuploads/" + savedName
+                : null;
 
+        log.info("▶ orderItems 크기 = {}", orderItems.size());
+        orderItems.forEach(item ->
+                log.info("   - item.getCakeItem().getCakeId() = {}", item.getCakeItem().getCakeId())
+        );
+
+        log.info("▶ 요청된 cakeId = {}", cakeId);
+
+        log.info("-----------------zzzzzzzzzzzzzzzzzzzzzz------------");
         CakeOrderItem cakeOrderItem = orderItems.stream()
                 .filter(item -> item.getCakeItem().getCakeId().equals(cakeId))
                 .findFirst()
@@ -75,7 +99,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
                 .cakeItem(cakeItem)
                 .rating(dto.getRating())
                 .content(dto.getContent())
-                .reviewPictureUrl(dto.getReviewPictureUrl())
+                .reviewPictureUrl(pictureUrl)
                 .build();
 
         // 6) 엔티티 저장
@@ -84,17 +108,11 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
 
         Long reviewerUid = order.getMember().getUid();
-        Long amountToEarn;
-        String description;
-        if(dto.getReviewPictureUrl() != null && !dto.getReviewPictureUrl().isBlank()){
-            amountToEarn = 1000L;
-            description = "사진 리뷰 작성 보상";
-        }else{
-            amountToEarn = 500L;
-            description="텍스트 리뷰 작성 보상";
-        }
-
-        pointService.changePoint(reviewerUid,amountToEarn,description);
+        long amount = (pictureUrl != null) ? 1000L : 500L;
+        String desc  = (pictureUrl != null)
+                ? "사진 리뷰 작성 보상"
+                : "텍스트 리뷰 작성 보상";
+        pointService.changePoint(reviewerUid, amount, desc);
 
 
 
@@ -115,6 +133,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
         //pageRequestDTO로 부터 Pageable생성 (regDate 내림차순)
         Pageable pageable = pageRequestDTO.getPageable("regDate");
+
 
         Page<ReviewResponseDTO> page = buyerReviewRepo.listOfUserReviews(userId, pageable);
 
@@ -154,10 +173,16 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
             throw new BusinessException(ErrorCode.NOT_AUTHORIZED_OTHER);
         }
 
+        // 3) 새 파일이 업로드 되었으면 저장하고 URL 갱신
+        MultipartFile file = dto.getReviewPictureUrl();
+        if (file != null && !file.isEmpty()) {
+            String savedName = imageUtils.saveImageFile(file, UPLOAD_DIR);
+            review.setReviewPictureUrl("/reviewuploads/" + savedName);
+        }
+
         //수정 가능한 필드만 수정하기
         review.setRating(dto.getRating());
         review.setContent(dto.getContent());
-        review.setReviewPictureUrl(dto.getReviewPictureUrl());
 
         buyerReviewRepo.save(review);
 
