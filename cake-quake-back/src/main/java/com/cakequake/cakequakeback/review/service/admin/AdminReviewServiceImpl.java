@@ -28,6 +28,11 @@ public class AdminReviewServiceImpl implements AdminReviewService {
     public InfiniteScrollResponseDTO<ReviewDeletionRequest> listRequest(PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("regDate");
         Page<ReviewDeletionRequest> page = reviewDeletionRequestRepo.findAllRequest(pageable);
+
+        log.info(" ● Repo.findAllRequest: 페이지 size={}, totalElements={}",
+                page.getNumberOfElements(), page.getTotalElements());
+
+
         return InfiniteScrollResponseDTO.<ReviewDeletionRequest>builder()
                 .content(page.getContent())
                 .hasNext(page.hasNext())
