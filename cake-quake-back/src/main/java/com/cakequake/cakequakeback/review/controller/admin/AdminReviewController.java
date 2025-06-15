@@ -6,11 +6,13 @@ import com.cakequake.cakequakeback.review.dto.ReviewRequestDTO;
 import com.cakequake.cakequakeback.review.entities.ReviewDeletionRequest;
 import com.cakequake.cakequakeback.review.service.admin.AdminReviewService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/review-deletion-request")
 @RequiredArgsConstructor
+@Log4j2
 public class AdminReviewController {
     private final AdminReviewService adminReviewService;
 
@@ -19,7 +21,13 @@ public class AdminReviewController {
     public InfiniteScrollResponseDTO<ReviewDeletionRequest> getReviews(
             PageRequestDTO pageRequestDTO
     ){
-        return adminReviewService.listRequest(pageRequestDTO);
+        log.info("▶▶ getReviews() 호출, page={}, size={}",
+                pageRequestDTO.getPage(), pageRequestDTO.getSize());
+        var dto = adminReviewService.listRequest(pageRequestDTO);
+        log.info("◀◀ getReviews() 반환, content.size={} hasNext={}",
+                dto.getContent().size(), dto.isHasNext());
+
+        return dto;
     }
 
     //요청 승인
