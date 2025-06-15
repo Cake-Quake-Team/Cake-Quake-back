@@ -29,9 +29,9 @@ public class PaymentController {
     @ResponseStatus(HttpStatus.CREATED)
     public PaymentResponseDTO create(
             @Valid @RequestBody PaymentRequestDTO paymentRequestDTO
-            //,@AuthenticationPrincipal Long uid
+            , @AuthenticationPrincipal(expression = "member.uid") Long uid
             ){
-        Long uid = 1L;
+        //Long uid = 11L;
         return paymentService.createPayment(paymentRequestDTO, uid);
     }
 
@@ -169,19 +169,18 @@ public class PaymentController {
     //단건 조회
     @GetMapping("/{paymentId}")
     public PaymentResponseDTO getPayment(
-        @PathVariable Long paymentId
-        //@AuthenticationPrincipal Long uid
+        @PathVariable Long paymentId,
+        @AuthenticationPrincipal(expression = "member.uid") Long uid
     ){
-        Long uid =1L;
+
         return paymentService.getPayment(paymentId, uid);
     }
 
     //본인 결제 목록 조회
     @GetMapping
     public List<PaymentResponseDTO> listPayments(
-            //@AuthenticationPrincipal Long uid
+            @AuthenticationPrincipal(expression = "member.uid") Long uid
     ){
-        Long uid = 1L;
         return paymentService.listPayments(uid);
     }
 
