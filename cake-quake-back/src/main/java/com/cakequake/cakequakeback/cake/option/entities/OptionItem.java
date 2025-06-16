@@ -45,13 +45,6 @@ public class OptionItem extends BaseEntity {
     @JoinColumn(name = "modifiedBy")
     private Member modifiedBy;
 
-    public void updateFromDTO(UpdateOptionItemDTO dto) {
-        boolean updated = false;
-        if (dto.getOptionName() != null && !dto.getOptionName().equals(this.optionName)) {this.optionName = dto.getOptionName(); updated = true;}
-        if (dto.getPrice() != null && dto.getPrice() != this.price) {this.price = dto.getPrice(); updated = true;}
-        if (updated) this.version += 1;
-    }
-
     public void changeIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
     }

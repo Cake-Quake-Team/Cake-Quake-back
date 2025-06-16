@@ -57,18 +57,22 @@ public class CakeValidator {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_PRODUCT_ID));
     }
 
-    // 썸네일 유효성 검사
+    // 썸네일 유효성 검사 (썸네일이 없으면 null 반환, 여러 개일 경우 첫 번째 반환)
     public String validateThumbnailImageUrl(List<ImageDTO> imageDTOS) {
+        if (imageDTOS == null || imageDTOS.isEmpty()) {
+            return null; // 이미지 자체가 없으면 null 반환
+        }
+
         return imageDTOS.stream()
-                .filter(ImageDTO::getIsThumbnail)  // 썸네일로 지정된 이미지만 필터
-                .findFirst()                    // 하나라도 있으면 반환
+                .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
+                .findFirst()
                 .map(ImageDTO::getImageUrl)
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_THUMBNAIL_COUNT));
+                .orElse(null); // 썸네일 없으면 null 반환
     }
+
 
     // 케이크 등록시 유효성 검사
     public void validateAddCake(AddCakeDTO addCakeDTO) {
-
         if (addCakeDTO.getCname() == null || addCakeDTO.getCname().trim().isEmpty() || addCakeDTO.getCname().length() > 20) {
             throw new BusinessException(ErrorCode.INVALID_LONG_NAME);
         }
@@ -82,7 +86,6 @@ public class CakeValidator {
         }
 
         String description = addCakeDTO.getDescription();
-
         if (description != null) {
             String trimmed = description.trim();
             if (trimmed.isEmpty() || trimmed.length() > 1000) {
@@ -91,18 +94,21 @@ public class CakeValidator {
         }
 
         List<ImageDTO> imageUrls = addCakeDTO.getImageUrls();
-        if (imageUrls == null || imageUrls.isEmpty()) {
-            throw new BusinessException(ErrorCode.MISSING_IMAGE_LIST);
-        }
 
-        List<ImageDTO> thumbnails = imageUrls.stream()
-                .filter(ImageDTO::getIsThumbnail)
-                .toList();
+        // 이미지가 없거나 비어있어도 통과
 
-        if (thumbnails.size() != 1) {
-            throw new BusinessException(ErrorCode.INVALID_THUMBNAIL_COUNT);
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            long thumbnailCount = imageUrls.stream()
+                    .filter(img -> Boolean.TRUE.equals(img.getIsThumbnail()))
+                    .count();
+
+            if (thumbnailCount > 1) {
+                throw new BusinessException(ErrorCode.INVALID_THUMBNAIL_COUNT);
+            }
         }
     }
+
+
 
     // 전체 상품 목록 조회시 유효성 검사
     public void validatePaging(PageRequestDTO pageRequestDTO, CakeCategory category) {
@@ -136,4 +142,15 @@ public class CakeValidator {
             }
         }
     }
+
+    // 썸네일 유효성 검사
+    private void validateThumbnail(List<ImageDTO> imageDTOS) {
+        long thumbnailCount = imageDTOS.stream()
+                .filter(ImageDTO::getIsThumbnail)
+                .count();
+        if (thumbnailCount > 1) {
+            throw new BusinessException(ErrorCode.INVALID_THUMBNAIL_COUNT);
+        }
+    }
+
 }

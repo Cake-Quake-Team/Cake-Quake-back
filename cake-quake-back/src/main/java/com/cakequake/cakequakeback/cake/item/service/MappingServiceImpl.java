@@ -1,8 +1,13 @@
 package com.cakequake.cakequakeback.cake.item.service;
 
+import com.cakequake.cakequakeback.cake.item.dto.CakeDetailDTO;
+import com.cakequake.cakequakeback.cake.item.dto.ImageDTO;
+import com.cakequake.cakequakeback.cake.item.dto.MappingRequestDTO;
+import com.cakequake.cakequakeback.cake.item.dto.MappingResponseDTO;
 import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.cake.item.entities.CakeOptionMapping;
 import com.cakequake.cakequakeback.cake.item.repo.MappingRepository;
+import com.cakequake.cakequakeback.cake.option.dto.CakeOptionItemDTO;
 import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
 import com.cakequake.cakequakeback.cake.option.repo.OptionItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,10 +24,12 @@ import java.util.List;
 public class MappingServiceImpl implements MappingService {
     private final MappingRepository mappingRepository;
     private final OptionItemRepository optionItemRepository;
+    private final CakeImageService cakeImageService;
 
     @Override
-    // 상품-옵션 매핑 등록
-    public void saveCakeOptionMapping(CakeItem cakeItem, List<OptionItem> optionItems) {
+    public MappingResponseDTO saveCakeOptionMapping(MappingRequestDTO requestDTO, CakeItem cakeItem, Long cakeId) {
+        List<OptionItem> optionItems = optionItemRepository.findAllById(requestDTO.getOptionItemIds());
+
         List<CakeOptionMapping> mappings = new ArrayList<>();
         for (OptionItem optionItem : optionItems) {
             CakeOptionMapping mapping = CakeOptionMapping.builder()
@@ -30,10 +38,24 @@ public class MappingServiceImpl implements MappingService {
                     .isUsed(true)
                     .build();
             mappings.add(mapping);
-
-            mappingRepository.saveAll(mappings);
         }
+
+        mappingRepository.saveAll(mappings);
+
+        // DTO 변환
+        List<CakeOptionItemDTO> optionDTOs = optionItems.stream()
+                .map(CakeOptionItemDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        List<ImageDTO> imageDTOs = cakeImageService.findByCakeItem(cakeItem, cakeId);
+        CakeDetailDTO cakeDetailDTO = CakeDetailDTO.from(cakeItem, imageDTOs);
+
+        return MappingResponseDTO.builder()
+                .cakeDetailDTO(cakeDetailDTO)
+                .options(optionDTOs)
+                .build();
     }
+
 
     @Override
     // 상품-옵션 매핑 조회

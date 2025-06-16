@@ -74,5 +74,8 @@ public class CakeItem extends BaseEntity {
         this.isDeleted = isDeleted;
     }
 
+    public void updateThumbnailImageUrl(String thumbnailImageUrl) {
+        this.thumbnailImageUrl = thumbnailImageUrl;
+    }
 
 }

@@ -7,11 +7,14 @@ import com.cakequake.cakequakeback.cake.option.repo.OptionTypeRepository;
 import com.cakequake.cakequakeback.cake.validator.OptionValidator;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,10 @@ public class OptionTypeServiceImpl implements OptionTypeService {
         Shop shop = optionValidator.validateShop(shopId);
         optionValidator.validateAddOptionType(addOptionTypeDTO);
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        Member member = optionValidator.validateMember(userId);
+
         // 삭제된 동일 이름의 OptionType이 존재하는지 확인
         Optional<OptionType> alreadyDeleted = optionTypeRepository.findByOptionTypeAndIsDeletedTrue(addOptionTypeDTO.getOptionType());
 
@@ -53,6 +60,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
                 .maxSelection(addOptionTypeDTO.getMaxSelection())
                 .isUsed(true)
                 .isDeleted(false)
+                .createdBy(member)
                 .build();
 
         OptionType savedOptionType = optionTypeRepository.save(optionType);
@@ -108,7 +116,11 @@ public class OptionTypeServiceImpl implements OptionTypeService {
         OptionType optionType = optionValidator.validateOptionType(optionTypeId);
         optionValidator.validateUpdateOptionType(updateOptionTypeDTO);
 
-        optionType.updateFromDTO(updateOptionTypeDTO);
+        Member member = optionValidator.validateMember(
+                SecurityContextHolder.getContext().getAuthentication().getName()
+        );
+
+        optionType.updateFromDTO(updateOptionTypeDTO, member);
     }
 
     @Override

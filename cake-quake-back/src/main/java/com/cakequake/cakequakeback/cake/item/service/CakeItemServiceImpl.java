@@ -2,24 +2,29 @@ package com.cakequake.cakequakeback.cake.item.service;
 
 import com.cakequake.cakequakeback.cake.item.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.*;
-import com.cakequake.cakequakeback.cake.item.entities.CakeImage;
 import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.cake.item.repo.CakeImageRepository;
 import com.cakequake.cakequakeback.cake.item.repo.CakeItemRepository;
 import com.cakequake.cakequakeback.cake.item.repo.MappingRepository;
 import com.cakequake.cakequakeback.cake.option.dto.CakeOptionItemDTO;
 import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
-import com.cakequake.cakequakeback.cake.option.service.OptionItemService;
 import com.cakequake.cakequakeback.cake.validator.CakeValidator;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,24 +38,21 @@ public class CakeItemServiceImpl implements CakeItemService {
     private final CakeImageRepository cakeImageRepository;
     private final CakeValidator cakeValidator;
     private final CakeImageService cakeImageService;
-    private final OptionItemService optionItemService;
-    private final MappingService cakeOptionMappingService;
+    private final MappingService mappingService;
     private final MappingRepository mappingRepository;
 
     @Override
     // 상품 (옵션 포함) 등록
-    public MappingResponseDTO addCake(AddCakeDTO addCakeDTO, Long shopId) {
+    public MappingResponseDTO addCake(AddCakeDTO addCakeDTO, List<MultipartFile> cakeImages, Long shopId) {
 
         Shop shop = cakeValidator.validateShop(shopId);
         cakeValidator.validateAddCake(addCakeDTO);
-        String thumbnailImageUrl = cakeValidator.validateThumbnailImageUrl(addCakeDTO.getImageUrls());
+        cakeValidator.validateThumbnailImageUrl(addCakeDTO.getImageUrls());
         List<OptionItem> optionItems = cakeValidator.validateOptionItems(addCakeDTO.getMappingRequestDTO().getOptionItemIds());
 
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//        String userId = authentication.getName();
-//
-//        Member member = cakeValidator.validateMember(userId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        Member member = cakeValidator.validateMember(userId);
 
         // 케이크 조회
         CakeItem cake = CakeItem.builder()
@@ -61,21 +63,27 @@ public class CakeItemServiceImpl implements CakeItemService {
                 .category(addCakeDTO.getCategory())
                 .isOnsale(false)
                 .isDeleted(false)
-                .thumbnailImageUrl(thumbnailImageUrl)
                 .viewCount(0)
                 .orderCount(0)
-                //   .createdBy(member)
-                //   .modifiedBy(member)
+                .createdBy(member)
+                .modifiedBy(member)
                 .build();
 
         // 케이크 저장
         CakeItem savedCakeItem = cakeItemRepository.save(cake);
 
         // 이미지 저장
-        cakeImageService.saveCakeImages(savedCakeItem, addCakeDTO.getImageUrls());
+        ImageResponseDTO savedImages = cakeImageService.saveCakeImages(cake, addCakeDTO.getImageUrls() ,cakeImages, addCakeDTO.getThumbnailImageUrl());
 
-        // 옵션 매핑 저장
-        cakeOptionMappingService.saveCakeOptionMapping(savedCakeItem, optionItems);
+        // 썸네일 URL이 있으면 CakeItem 업데이트
+        String thumbnailUrl = savedImages.getThumbnailUrl();
+        if (thumbnailUrl != null) {
+            savedCakeItem.updateThumbnailImageUrl(thumbnailUrl);
+            // JPA 영속성 컨텍스트가 관리 중이면 자동 반영됨
+        }
+
+        // 옵션 매핑 등록
+        mappingService.saveCakeOptionMapping(addCakeDTO.getMappingRequestDTO(), cake, cake.getCakeId());
 
         List<CakeOptionItemDTO> optionItemDTOS = new ArrayList<>();
         for (OptionItem optionItem : optionItems) {
@@ -86,7 +94,7 @@ public class CakeItemServiceImpl implements CakeItemService {
         log.info("상품이 등록되었습니다. cakeId: {}", savedCakeItem.getCakeId());
 
         return MappingResponseDTO.builder()
-                .cakeDetailDTO(CakeDetailDTO.from(savedCakeItem, addCakeDTO.getImageUrls()))
+                .cakeDetailDTO(CakeDetailDTO.from(savedCakeItem, savedImages.getImageDTOs()))
                 .options(optionItemDTOS)
                 .build();
     }
@@ -153,25 +161,37 @@ public class CakeItemServiceImpl implements CakeItemService {
     }
 
     @Override
-    // 상품 수정
-    public void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO) {
+    public void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO, List<MultipartFile> cakeImages) {
+
+        SecurityContextHolder.getContext().getAuthentication();
 
         cakeValidator.validateShop(shopId);
-
         cakeValidator.validateUpdateCake(updateCakeDTO);
-
         CakeItem cakeItem = cakeValidator.validateCake(cakeId);
 
-        log.info("================={}", updateCakeDTO);
-
         cakeItem.updateFromDTO(updateCakeDTO);
+        CakeItem savedCakeItem = cakeItemRepository.save(cakeItem);
 
-        // 이미지 수정
-        cakeImageService.updateCakeImages(cakeItem, updateCakeDTO.getImageUrls());
+        // 이미지 수정 (변경된 반환 타입에 맞춤)
+        ImageResponseDTO savedImage = cakeImageService.updateCakeImages(
+                cakeItem,
+                updateCakeDTO.getImageIds(),
+                cakeImages,
+                updateCakeDTO.getThumbnailImageId(),
+                updateCakeDTO.getThumbnailImageUrl()
+        );
+
+        // 썸네일 URL이 있으면 CakeItem에 업데이트
+        String newThumbnailUrl = savedImage.getThumbnailUrl();
+        if (newThumbnailUrl != null) {
+            savedCakeItem.updateThumbnailImageUrl(newThumbnailUrl);
+            cakeItemRepository.save(savedCakeItem);
+        }
 
         // 옵션 매핑 수정
-        cakeOptionMappingService.updateCakeOptionMappings(cakeItem, updateCakeDTO.getOptionItemIds());
+        mappingService.updateCakeOptionMappings(cakeItem, updateCakeDTO.getOptionItemIds());
     }
+
 
     @Override
     // 상품 삭제
@@ -184,8 +204,7 @@ public class CakeItemServiceImpl implements CakeItemService {
         cakeItem.changeIsDeleted(true);
 
         // 연관 이미지 삭제
-        List<CakeImage> images = cakeImageRepository.findByCakeItem(cakeItem);
-        cakeImageRepository.deleteAll(images);
+        cakeImageRepository.deleteByCakeItem(cakeItem);
 
         // 연관 옵션 매핑 삭제
         mappingRepository.deleteByCakeItem(cakeItem);

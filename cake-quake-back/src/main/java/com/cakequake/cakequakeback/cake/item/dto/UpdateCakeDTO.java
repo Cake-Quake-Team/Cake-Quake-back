@@ -4,6 +4,7 @@ import com.cakequake.cakequakeback.cake.item.CakeCategory;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,7 +26,9 @@ public class UpdateCakeDTO {
 
     private String thumbnailImageUrl;
 
-    private List<ImageDTO> imageUrls;
+    private List<Long> imageIds;
+
+    private Long thumbnailImageId;
 
     private Boolean isOnsale;   // 품절 : TRUE, 판매 중 : FALSE
 
