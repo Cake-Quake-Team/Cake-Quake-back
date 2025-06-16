@@ -3,12 +3,9 @@ package com.cakequake.cakequakeback.review.controller.admin;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.review.dto.ReviewDeletionRequestDTO;
-import com.cakequake.cakequakeback.review.dto.ReviewRequestDTO;
-import com.cakequake.cakequakeback.review.entities.ReviewDeletionRequest;
 import com.cakequake.cakequakeback.review.service.admin.AdminReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,13 +20,8 @@ public class AdminReviewController {
     public InfiniteScrollResponseDTO<ReviewDeletionRequestDTO> getReviews(
             PageRequestDTO pageRequestDTO
     ){
-        log.info("▶▶ getReviews() 호출, page={}, size={}",
-                pageRequestDTO.getPage(), pageRequestDTO.getSize());
-        var dto = adminReviewService.listRequest(pageRequestDTO);
-        log.info("◀◀ getReviews() 반환, content.size={} hasNext={}",
-                dto.getContent().size(), dto.isHasNext());
 
-        return dto;
+        return adminReviewService.listRequest(pageRequestDTO);
     }
 
     //요청 승인

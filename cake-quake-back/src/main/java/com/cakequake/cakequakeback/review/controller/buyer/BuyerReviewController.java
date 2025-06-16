@@ -9,7 +9,6 @@ import com.cakequake.cakequakeback.review.service.buyer.BuyerReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -31,13 +30,10 @@ public class BuyerReviewController {
     @PostMapping("/orders/{orderId}/reviews")
     @ResponseStatus(HttpStatus.CREATED) //성공하면 201 Created 상태 코드가 자동 적용
     public ReviewResponseDTO createReview(
-            @RequestHeader(value="Authorization", required=false) String authHeader,
             @PathVariable Long orderId,
             @ModelAttribute @Valid ReviewRequestDTO dto,
             @AuthenticationPrincipal(expression = "member.uid") Long uid
              ){
-        log.info("▶ Authorization 헤더 = {}", authHeader);
-        log.info("▶ principal uid = {}", uid);
         return buyerReviewService.createReview(orderId, dto, uid);
 
     }
@@ -51,7 +47,6 @@ public class BuyerReviewController {
             @AuthenticationPrincipal(expression = "member.uid") Long uid,
             PageRequestDTO pageRequestDTO
     ){
-
         return buyerReviewService.getMyReviews(pageRequestDTO, uid);
     }
 
@@ -89,8 +84,6 @@ public class BuyerReviewController {
     public void deleteReview(
             @PathVariable Long reviewId,
             @AuthenticationPrincipal(expression = "member.uid") Long uid){
-
-        log.info("▶ principal uid = {}", uid);
         buyerReviewService.deleteReview(reviewId, uid);
     }
 
