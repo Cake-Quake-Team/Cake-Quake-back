@@ -15,12 +15,14 @@ public class CakeOptionItemDTO {
     private Long optionItemId;
     private String optionName;
     private int price;
+    private Long optionTypeId;
 
     public static CakeOptionItemDTO fromEntity(OptionItem optionItem) {
         return CakeOptionItemDTO.builder()
                 .optionItemId(optionItem.getOptionItemId())
                 .optionName(optionItem.getOptionName())
                 .price(optionItem.getPrice())
+                .optionTypeId(optionItem.getOptionType() != null ? optionItem.getOptionType().getOptionTypeId() : null)
                 .build();
     }
 

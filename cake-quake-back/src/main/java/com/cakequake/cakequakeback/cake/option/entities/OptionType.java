@@ -52,7 +52,7 @@ public class OptionType extends BaseEntity {
     @JoinColumn(name = "modifiedBy")
     private Member modifiedBy;
 
-    public void updateFromDTO(UpdateOptionTypeDTO dto) {
+    public void updateFromDTO(UpdateOptionTypeDTO dto, Member modifiedBy) {
         if (dto.getOptionType() != null) this.optionType = dto.getOptionType();
         if (dto.getIsRequired() != null) this.isRequired = dto.getIsRequired();
         if (dto.getIsUsed() != null) this.isUsed = dto.getIsUsed();
@@ -63,6 +63,8 @@ public class OptionType extends BaseEntity {
             }
         }
         if (dto.getMaxSelection() != null) this.maxSelection = dto.getMaxSelection();
+
+        this.modifiedBy = modifiedBy;
     }
 
     public void changeIsDeleted(Boolean isDeleted) {

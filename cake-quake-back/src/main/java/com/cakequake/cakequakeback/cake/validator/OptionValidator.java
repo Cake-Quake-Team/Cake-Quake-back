@@ -10,6 +10,8 @@ import com.cakequake.cakequakeback.cake.option.repo.OptionTypeRepository;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +24,19 @@ public class OptionValidator {
     private final OptionItemRepository optionItemRepository;
     private final ShopRepository shopRepository;
     private final OptionTypeRepository optionTypeRepository;
+    private final MemberRepository memberRepository;
 
 
     // shopId 유효성 검사 (DB 접근)
     public Shop validateShop(Long shopId) {
         return shopRepository.findById(shopId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
+    }
+
+    // member 유효성 검사 (DB 접근)
+    public Member validateMember(String userId) {
+        return memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MISSING_JWT));
     }
 
     // optionItemId가 존재하지 않을 경우

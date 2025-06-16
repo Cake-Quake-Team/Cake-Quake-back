@@ -36,7 +36,19 @@ public class CakeImage extends BaseEntity {
     @JoinColumn(name = "modified_by")
     private Member modifiedBy;
 
-    public void changeThumbnail(Boolean isThumbnail) {
+    public CakeImage(Long imageId, String imageUrl, Boolean isThumbnail) {
+        this.imageId = imageId;
+        this.imageUrl = imageUrl;
         this.isThumbnail = isThumbnail;
+    }
+
+    // 썸네일 지정
+    public void markAsThumbnail() {
+        this.isThumbnail = true;
+    }
+
+    // 썸네일 해제
+    public void unmarkAsThumbnail() {
+        this.isThumbnail = false;
     }
 }
