@@ -4,6 +4,8 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.review.dto.ReviewDeletionRequestDTO;
+import com.cakequake.cakequakeback.review.entities.DeletionRequestStatus;
 import com.cakequake.cakequakeback.review.entities.Review;
 import com.cakequake.cakequakeback.review.entities.ReviewDeletionRequest;
 import com.cakequake.cakequakeback.review.repo.request.ReviewDeletionRequestRepo;
@@ -13,6 +15,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,16 +30,26 @@ public class AdminReviewServiceImpl implements AdminReviewService {
     //삭제 요청 리뷰 전체 조회
     @Override
     @Transactional(readOnly = true)
-    public InfiniteScrollResponseDTO<ReviewDeletionRequest> listRequest(PageRequestDTO pageRequestDTO) {
+    public InfiniteScrollResponseDTO<ReviewDeletionRequestDTO> listRequest(PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("regDate");
         Page<ReviewDeletionRequest> page = reviewDeletionRequestRepo.findAllRequest(pageable);
 
         log.info(" ● Repo.findAllRequest: 페이지 size={}, totalElements={}",
                 page.getNumberOfElements(), page.getTotalElements());
 
+        List<ReviewDeletionRequestDTO> dtos = page.stream()
+                .map(r -> new ReviewDeletionRequestDTO(
+                        r.getRequestId(),
+                        r.getReview().getReviewId(),
+                        r.getStatus().name(),
+                        r.getReason(),
+                        r.getRegDate(),
+                        r.getReview().getContent()
+                ))
+                .collect(Collectors.toList());
 
-        return InfiniteScrollResponseDTO.<ReviewDeletionRequest>builder()
-                .content(page.getContent())
+        return InfiniteScrollResponseDTO.<ReviewDeletionRequestDTO>builder()
+                .content(dtos)
                 .hasNext(page.hasNext())
                 .totalCount((int) page.getTotalElements())
                 .build();
