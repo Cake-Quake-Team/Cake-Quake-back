@@ -4,12 +4,10 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.review.dto.ReplyRequestDTO;
 import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
-import com.cakequake.cakequakeback.review.repo.seller.SellerReviewRepo;
 import com.cakequake.cakequakeback.review.service.seller.SellerReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

@@ -81,6 +81,7 @@ public enum ErrorCode {
     BUSINESS_INVALID_SERVICE_KEY(401, 810, "유효하지 않은 서비스 키입니다."),
 
 
+
     //HTTP 403 Forbidden (code:901~911)
     NOT_SELLER(403, 901, "판매자가 호출했습니다"),
     NOT_BUYER(403, 902, "구매자가 호출했습니다"),
@@ -112,6 +113,7 @@ public enum ErrorCode {
     DELETION_REQUEST_NOT_FOUND(404,1014, "해당 삭제 내역을 찾을 수 없습니다"),
     BUSINESS_NO_DATA(404, 1015, "조회된 사업자 정보가 없습니다."),
     MEMBER_NOT_FOUND(404, 1016, "해당 회원을 찾을 수 없습니다.."),
+    REVIEW_ALREADY_DELETED(404,1017, "해당 리뷰를 찾을 수 없습니다"),
 
     //HTTP 409 Conflict (code: 701~715)
     ALREADY_EXIST_USER_ID      (409, 701, "이미 존재하는 아이디입니다"),

@@ -25,7 +25,7 @@ public class CeoReview extends BaseEntity {
     @Column(name = "reply", nullable = false, length = 200)
     private String reply;
 
-    public void setReply(String reply) {
+    public void updateReply(String reply) {
         this.reply = reply;
     }
 }

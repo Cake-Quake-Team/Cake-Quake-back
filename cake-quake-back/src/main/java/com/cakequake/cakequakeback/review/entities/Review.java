@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.type.descriptor.java.ShortPrimitiveArrayJavaType;
+
 
 @Entity
 @Table(name = "review")
@@ -77,20 +77,23 @@ public class Review extends BaseEntity {
 
 
 
-    //Setter 추가
-    public void setRating(Integer rating) {
+
+    public void updateRating(Integer rating) {
+
         this.rating = rating;
     }
 
-    public void setContent(String content) {
+    public void updateContent(String content) {
+
         this.content = content;
     }
 
-    public void setReviewPictureUrl(String reviewPictureUrl) {
+    public void updateReviewPictureUrl(String reviewPictureUrl) {
+
         this.reviewPictureUrl = reviewPictureUrl;
     }
 
-    public void setCeoReview(CeoReview ceoReview) {
+    public void updateCeoReview(CeoReview ceoReview) {
         this.ceoReview = ceoReview;
     }
 
