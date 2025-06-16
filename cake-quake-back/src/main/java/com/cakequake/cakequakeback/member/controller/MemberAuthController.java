@@ -1,6 +1,10 @@
 package com.cakequake.cakequakeback.member.controller;
 
 import com.cakequake.cakequakeback.member.dto.*;
+import com.cakequake.cakequakeback.member.dto.auth.RefreshTokenRequestDTO;
+import com.cakequake.cakequakeback.member.dto.auth.RefreshTokenResponseDTO;
+import com.cakequake.cakequakeback.member.dto.auth.SigninRequestDTO;
+import com.cakequake.cakequakeback.member.dto.auth.SigninResponseDTO;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
@@ -34,7 +38,7 @@ public class MemberAuthController {
     }
 
     @PostMapping("/signup/buyers")
-    public ResponseEntity<ApiResponseDTO> signupBuyer(@RequestBody @Valid BuyerSignupRequestDTO dto) {
+    public ResponseEntity<ApiResponseDTO> signupBuyer(@RequestBody BuyerSignupRequestDTO dto) {
         log.debug(dto.toString());
         // service에서 joinType에 따라 분기 처리. basic/kakao/google
         ApiResponseDTO response = memberService.signup(dto);

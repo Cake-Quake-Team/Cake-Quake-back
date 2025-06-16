@@ -20,4 +20,10 @@ public class ShopPreviewDTO {
     private BigDecimal rating;
     private String thumbnailUrl;
 
+
+    public ShopPreviewDTO(Long shopId, String shopName, String address) {
+        this.shopId = shopId;
+        this.shopName = shopName;
+        this.address = address;
+    }
 }

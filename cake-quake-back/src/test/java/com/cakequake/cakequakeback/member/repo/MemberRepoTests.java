@@ -1,8 +1,11 @@
 package com.cakequake.cakequakeback.member.repo;
 
+import com.cakequake.cakequakeback.member.dto.seller.SellerResponseDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.entities.MemberRole;
 import com.cakequake.cakequakeback.member.entities.SocialType;
+import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
+import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Slf4j
@@ -28,6 +31,9 @@ public class MemberRepoTests {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ShopRepository shopRepository;
 
     /*
         2025.06.05 수정
@@ -54,7 +60,7 @@ public class MemberRepoTests {
         } // end for
 
         List<Member> allMembers = memberRepository.findAll();
-        Assertions.assertEquals(9, allMembers.size());
+        assertEquals(9, allMembers.size());
 
         log.info("총 {}명의 멤버가 저장되었습니다.", allMembers.size());
     }
@@ -129,5 +135,50 @@ public class MemberRepoTests {
         assertTrue(exists);
     }
 
+    @DisplayName("uid로 판매자 정보를 조회하면 SellerResponseDTO를 반환")
+    @Test
+    public void testSellerGetOne() {
+        // given
+        Long testUid = 39L; // 실제 DB에 존재하는 uid 사용 필요
+        MemberRole seller = MemberRole.SELLER;
+
+        // when
+        Optional<SellerResponseDTO> result = memberRepository.sellerGetOne(testUid);
+
+        // then
+        assertTrue(result.isPresent());
+
+        SellerResponseDTO dto = result.get();
+        log.info("판매자 정보: {}", dto);
+
+        assertEquals(testUid, dto.getUid());
+        assertEquals(seller, dto.getRole());
+        assertNotNull(dto.getUserId());
+        assertNotNull(dto.getUname());
+        assertNotNull(dto.getPhoneNumber());
+    }
+
+    // 판매자 조회 페이지에서 보여줄 매장 요약 정보 조회 테스트
+    @DisplayName("uid로 매장 요약 정보 조회")
+    @Test
+    public void testFindPreviewByUid() {
+        // given
+        Long uid = 39L; // 실제 테스트 DB에 존재하는 uid여야 합니다
+
+        // when
+        Optional<ShopPreviewDTO> optionalPreview = shopRepository.findPreviewByUid(uid);
+
+        // then
+        assertTrue(optionalPreview.isPresent(), "매장 정보가 존재해야 합니다");
+
+        ShopPreviewDTO dto = optionalPreview.get();
+        log.info("shopId={}, shopName={}, address={}",
+                dto.getShopId(), dto.getShopName(), dto.getAddress());
+
+        // 필요 시 추가 검증
+        assertNotNull(dto.getShopId());
+        assertNotNull(dto.getShopName());
+        assertNotNull(dto.getAddress());
+    }
 
 }

@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.member.dto;
+package com.cakequake.cakequakeback.member.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
