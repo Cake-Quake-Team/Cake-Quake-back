@@ -28,11 +28,11 @@ public class Point extends BaseEntity {
     @Column(nullable = false)
     private Long totalPoints = 0L;
 
-    public void setMember(Member member) {
+    public void createMember(Member member) {
         this.member = member;
     }
 
-    public void setTotalPoints(Long totalPoints) {
+    public void updateTotalPoints(Long totalPoints) {
         this.totalPoints = totalPoints;
     }
 
