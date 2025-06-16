@@ -25,6 +25,7 @@ public class PointController {
     @GetMapping("/balance")
     public ResponseEntity<PointResponseDTO> getBalance(
             @AuthenticationPrincipal(expression = "member.uid") Long uid) {
+
         Long balance = pointService.getCurrentBalance(uid);
         return ResponseEntity.ok(new PointResponseDTO(uid, balance));
     }
@@ -34,6 +35,7 @@ public class PointController {
     public ResponseEntity<PointResponseDTO> changePoint(
             @AuthenticationPrincipal(expression = "member.uid") Long uid,
             @RequestBody PointRequestDTO pointRequestDTO) {
+
         Long updateBalance = pointService.changePoint(uid, pointRequestDTO.getAmount(), pointRequestDTO.getDescription());
         return ResponseEntity.ok(new PointResponseDTO(uid,updateBalance));
     }
