@@ -22,6 +22,7 @@ public class SellerSignupStep2RequestDTO {
     private Long tempSellerId;
 
     @NotBlank(message = "매장 주소를 입력해주세요")
+    @Size(min = 10, max = 100, message = "매장 주소는 10자 이상 100자 이하로 입력해주세요.")
     private String shopAddress;
 
     @Nullable

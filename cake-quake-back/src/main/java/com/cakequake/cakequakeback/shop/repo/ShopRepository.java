@@ -32,4 +32,9 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     boolean existsByBusinessNumber(String businessNumber);
 
     boolean existsByPhone(String phone);
+
+    // 매장 요약 정보 가져오기
+    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(" +
+            " s.shopId, s.shopName, s.address) FROM Shop s WHERE s.member.uid = :uid")
+    Optional<ShopPreviewDTO> findPreviewByUid(@Param("uid") Long uid);
 }

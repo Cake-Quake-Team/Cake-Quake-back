@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.member.dto;
+package com.cakequake.cakequakeback.member.dto.auth;
 
 public class RefreshTokenRequestDTO {
     private String refreshToken;
