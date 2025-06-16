@@ -10,6 +10,7 @@ import com.cakequake.cakequakeback.point.entities.Point;
 import com.cakequake.cakequakeback.point.service.PointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,25 +22,26 @@ public class PointController {
     private final PointService pointService;
 
     //현재 잔액 조회
-    @GetMapping("/{uid}/balance")
-    public ResponseEntity<PointResponseDTO> getBalance(@PathVariable Long uid) {
+    @GetMapping("/balance")
+    public ResponseEntity<PointResponseDTO> getBalance(
+            @AuthenticationPrincipal(expression = "member.uid") Long uid) {
         Long balance = pointService.getCurrentBalance(uid);
         return ResponseEntity.ok(new PointResponseDTO(uid, balance));
     }
 
     //포인트 증감 처리
-    @PostMapping("/{uid}/change")
+    @PostMapping("/change")
     public ResponseEntity<PointResponseDTO> changePoint(
-            @PathVariable Long uid,
+            @AuthenticationPrincipal(expression = "member.uid") Long uid,
             @RequestBody PointRequestDTO pointRequestDTO) {
         Long updateBalance = pointService.changePoint(uid, pointRequestDTO.getAmount(), pointRequestDTO.getDescription());
         return ResponseEntity.ok(new PointResponseDTO(uid,updateBalance));
     }
 
-    @GetMapping("{uid}/history")
+    @GetMapping("/history")
     public ResponseEntity<InfiniteScrollResponseDTO<PointHistoryResponseDTO>> getHistory(
             PageRequestDTO pageRequestDTO,
-            @PathVariable Long uid
+            @AuthenticationPrincipal(expression = "member.uid") Long uid
     ) {
 
         InfiniteScrollResponseDTO<PointHistoryResponseDTO> historyList = pointService.getPointHistoryPage(pageRequestDTO,uid);
