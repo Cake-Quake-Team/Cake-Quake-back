@@ -31,12 +31,11 @@ public class CakeItemController {
     }
 
     // 케이크 상세 조회
-    @GetMapping("/shops/{shopId}/cakes/{cakeId}")
+    @GetMapping("/cakes/{cakeId}")
     public MappingResponseDTO getCakeDetail(
-            @PathVariable Long shopId,
             @PathVariable Long cakeId) {
 
-        return cakeItemService.getCakeDetail(shopId, cakeId);
+        return cakeItemService.getCakeDetail(cakeId);
     };
 
     // 케이크 등록
@@ -57,19 +56,19 @@ public class CakeItemController {
             @PathVariable Long cakeId,
             @RequestPart(value = "updateCakeDTO") UpdateCakeDTO updateCakeDTO,
             @RequestPart(value = "newCakeImages", required = false) List<MultipartFile> newCakeImages,
-            @RequestPart(value = "thumbnailImageUrl", required = false) MultipartFile thumbnailImageUrl) {  // 이름 맞춤
+            @RequestPart(value = "thumbnailImageUrl", required = false) MultipartFile thumbnailImageUrl) {
 
         System.out.println("썸네일 URL: " + thumbnailImageUrl);
 
         cakeItemService.updateCake(shopId, cakeId, updateCakeDTO, newCakeImages);
 
-        return cakeItemService.getCakeDetail(shopId, cakeId);
+        return cakeItemService.getCakeDetail(cakeId);
     }
 
     // 케이크 삭제
-    @DeleteMapping("shops/{shopId}/cakes/{cakeId}")
-    public ResponseEntity<Void> deleteCake(@PathVariable Long shopId, @PathVariable Long cakeId) {
-        cakeItemService.deleteCake(shopId, cakeId);
+    @DeleteMapping("/cakes/{cakeId}")
+    public ResponseEntity<Void> deleteCake(@PathVariable Long cakeId) {
+        cakeItemService.deleteCake(cakeId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -52,7 +52,7 @@ public class CakeDetailDTO {
                 .description(cakeItem.getDescription())
                 .price(cakeItem.getPrice())
                 .category(cakeItem.getCategory())
-                .thumbnailImageUrl(actualThumbnailUrl) // 여기서 정확한 URL을 다시 세팅
+                .thumbnailImageUrl(actualThumbnailUrl)
                 .imageUrls(imageUrls)
                 .viewCount(cakeItem.getViewCount())
                 .orderCount(cakeItem.getOrderCount())
