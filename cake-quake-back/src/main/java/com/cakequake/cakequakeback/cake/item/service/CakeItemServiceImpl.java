@@ -8,6 +8,7 @@ import com.cakequake.cakequakeback.cake.item.repo.CakeItemRepository;
 import com.cakequake.cakequakeback.cake.item.repo.MappingRepository;
 import com.cakequake.cakequakeback.cake.option.dto.CakeOptionItemDTO;
 import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
+import com.cakequake.cakequakeback.cake.option.entities.OptionType;
 import com.cakequake.cakequakeback.cake.validator.CakeValidator;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
@@ -27,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -138,9 +140,7 @@ public class CakeItemServiceImpl implements CakeItemService {
     @Override
     @Transactional(readOnly = true)
     // 상품 상세 조회
-    public MappingResponseDTO getCakeDetail(Long shopId, Long cakeId) {
-
-        cakeValidator.validateShop(shopId);
+    public MappingResponseDTO getCakeDetail(Long cakeId) {
 
         CakeItem cakeItem = cakeValidator.validateCake(cakeId);
 
@@ -148,15 +148,13 @@ public class CakeItemServiceImpl implements CakeItemService {
 
         List<OptionItem> optionItems = mappingRepository.findOptionItemsByCakeId(cakeId);
 
-        List<CakeOptionItemDTO> optionItemDTOs = new ArrayList<>();
-        for (OptionItem optionItem : optionItems) {
-            CakeOptionItemDTO dto = CakeOptionItemDTO.fromEntity(optionItem);
-            optionItemDTOs.add(dto);
-        }
+        List<CakeOptionItemDTO> optionsDTOList = optionItems.stream()
+                .map(CakeOptionItemDTO::fromEntity)
+                .collect(Collectors.toList());
 
         return MappingResponseDTO.builder()
                 .cakeDetailDTO(CakeDetailDTO.from(cakeItem, images))
-                .options(optionItemDTOs)
+                .options(optionsDTOList)
                 .build();
     }
 
@@ -195,9 +193,7 @@ public class CakeItemServiceImpl implements CakeItemService {
 
     @Override
     // 상품 삭제
-    public void deleteCake(Long shopId, Long cakeId) {
-
-        cakeValidator.validateShop(shopId);
+    public void deleteCake(Long cakeId) {
 
         CakeItem cakeItem = cakeValidator.validateCake(cakeId);
 
