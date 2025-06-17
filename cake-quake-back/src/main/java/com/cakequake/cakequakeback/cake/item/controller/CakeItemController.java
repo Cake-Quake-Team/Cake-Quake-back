@@ -31,21 +31,21 @@ public class CakeItemController {
     }
 
     // 케이크 상세 조회
-    @GetMapping("/cakes/{cakeId}")
+    @GetMapping("/shops/{shopId}/cakes/{cakeId}")
     public MappingResponseDTO getCakeDetail(
+            @PathVariable Long shopId,
             @PathVariable Long cakeId) {
 
-        return cakeItemService.getCakeDetail(cakeId);
+        return cakeItemService.getCakeDetail(shopId, cakeId);
     };
 
     // 케이크 등록
-    @PostMapping("/shops/{shopId}/cakes")
+    @PostMapping("/cakes")
     public ResponseEntity<MappingResponseDTO> addCake(
-            @PathVariable Long shopId,
             @RequestPart(value = "addCakeDTO") AddCakeDTO addCakeDTO,
             @RequestPart(value = "cakeImages", required = false) List<MultipartFile> cakeImages){
 
-        MappingResponseDTO response = cakeItemService.addCake(addCakeDTO, cakeImages, shopId);
+        MappingResponseDTO response = cakeItemService.addCake(addCakeDTO, cakeImages);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -62,7 +62,7 @@ public class CakeItemController {
 
         cakeItemService.updateCake(shopId, cakeId, updateCakeDTO, newCakeImages);
 
-        return cakeItemService.getCakeDetail(cakeId);
+        return cakeItemService.getCakeDetail(cakeId, shopId);
     }
 
     // 케이크 삭제
