@@ -1,0 +1,86 @@
+package com.cakequake.cakequakeback.procurement.controller;
+
+
+import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
+import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.procurement.dto.ConfirmProcurementDTO;
+import com.cakequake.cakequakeback.procurement.dto.ProcurementRequestDTO;
+import com.cakequake.cakequakeback.procurement.dto.ProcurementResponseDTO;
+import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
+import com.cakequake.cakequakeback.procurement.service.ProcurementService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api")
+@RequiredArgsConstructor
+public class ProcurementController {
+    private final ProcurementService procurementService;
+
+    //매장별 요청 내역 조회
+    // /api/shops/{shopId}/procurements
+    @GetMapping("/shops/{shopId}/procurements")
+    public ResponseEntity<InfiniteScrollResponseDTO<ProcurementResponseDTO>> getProcurementList(
+            @PathVariable Long shopId,
+    @Valid PageRequestDTO pageRequestDTO) {
+        return ResponseEntity.ok(procurementService.getStoreRequests(pageRequestDTO,shopId));
+    }
+
+    //상태별 요청 내역 조회
+    // /api/procurements/status/{status}
+    @GetMapping("/procurements/status/{status}")
+    public ResponseEntity<InfiniteScrollResponseDTO<ProcurementResponseDTO>> getProcurementStatusList(
+            @PathVariable ProcurementStatus status,
+            @Valid PageRequestDTO pageRequestDTO
+    ){
+        return ResponseEntity.ok(procurementService.getRequestsByStatus(pageRequestDTO,status));
+    }
+
+    //매장 + 상태 복합 조건 조회
+    // /api/shops/{shopId}/procurements/status/{status}
+    @GetMapping("/shops/{shopId}/procurements/status/{status}")
+    public ResponseEntity<InfiniteScrollResponseDTO<ProcurementResponseDTO>> getByShopAndStatusList(
+            @PathVariable Long shopId,
+            @PathVariable ProcurementStatus status,
+            @Valid PageRequestDTO pageRequestDTO
+    ){
+        return ResponseEntity.ok(procurementService.getStoreRequestsByStatus(pageRequestDTO,shopId,status));
+    }
+
+    //단건 조회
+    // /api/shops/{shopId}/procurements/{procurementId}
+    @GetMapping("/shops/{shopId}/procurements/{procurementId}")
+    public ResponseEntity<ProcurementResponseDTO> getProcurement(
+            @PathVariable Long shopId,
+            @PathVariable ("procurementId") Long procurementId
+    ){
+        return ResponseEntity.ok(procurementService.getRequest(shopId,procurementId));
+    }
+
+
+    //신규 요청 생성
+    // /api/shops/{shopId}/procurements
+    @PostMapping("/shops/{shopId}/procurements")
+    public ResponseEntity<ProcurementResponseDTO> create(
+            @PathVariable Long shopId,
+            @RequestBody @Valid ProcurementRequestDTO procurementRequestDTO
+    ){
+        procurementRequestDTO.setShopId(shopId);
+        return ResponseEntity.ok(procurementService.createProcurement(procurementRequestDTO));
+    }
+
+    //관리자 확정(일정 지정)
+    // /api/procurements/{procurementId}/confirm
+    @PostMapping("/procurements/{procurementId}/confirm")
+    public ResponseEntity<ProcurementResponseDTO> confirm(
+            @PathVariable("procurementId") Long procurementId,
+            @RequestBody@Valid ConfirmProcurementDTO confirmDTO
+    ){
+        return ResponseEntity.ok(procurementService.confirmProcurement(procurementId,confirmDTO));
+    }
+
+}
