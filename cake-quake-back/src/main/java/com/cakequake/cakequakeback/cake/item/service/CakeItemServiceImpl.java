@@ -8,18 +8,21 @@ import com.cakequake.cakequakeback.cake.item.repo.CakeItemRepository;
 import com.cakequake.cakequakeback.cake.item.repo.MappingRepository;
 import com.cakequake.cakequakeback.cake.option.dto.CakeOptionItemDTO;
 import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
-import com.cakequake.cakequakeback.cake.option.entities.OptionType;
 import com.cakequake.cakequakeback.cake.validator.CakeValidator;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.common.exception.BusinessException;
+import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
+import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.entities.Shop;
+import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,10 +45,38 @@ public class CakeItemServiceImpl implements CakeItemService {
     private final CakeImageService cakeImageService;
     private final MappingService mappingService;
     private final MappingRepository mappingRepository;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final ShopRepository shopRepository;
+
+
+    // 현재 로그인한 사용자의 shopId를 가져오는 메서드
+    private Long getCurrentUserShopId() {
+        Long currentUid = authenticatedUserService.getCurrentMemberId();
+        log.info("현재 로그인된 사용자 UID: {}", currentUid); // 로그 추가
+
+        ShopPreviewDTO shopPreview = shopRepository.findPreviewByUid(currentUid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
+
+        log.info("현재 사용자에게 연결된 Shop ID: {}", shopPreview.getShopId()); // 로그 추가
+        return shopPreview.getShopId();
+    }
+
+
+    // 현재 로그인한 사용자가 해당 shop의 소유자인지 검증하는 메서드
+    private void validateShopOwnership(Long shopId) {
+        Long currentUserShopId = getCurrentUserShopId();
+
+        if (!currentUserShopId.equals(shopId)) {
+            throw new BusinessException(ErrorCode.NOT_AUTHORIZED_OTHER_SELLER);
+        }
+    }
 
     @Override
     // 상품 (옵션 포함) 등록
-    public MappingResponseDTO addCake(AddCakeDTO addCakeDTO, List<MultipartFile> cakeImages, Long shopId) {
+    public MappingResponseDTO addCake(AddCakeDTO addCakeDTO, List<MultipartFile> cakeImages) {
+
+        // 현재 로그인한 사용자의 shopId 가져오기
+        Long shopId = getCurrentUserShopId();
 
         Shop shop = cakeValidator.validateShop(shopId);
         cakeValidator.validateAddCake(addCakeDTO);
@@ -81,11 +112,10 @@ public class CakeItemServiceImpl implements CakeItemService {
         String thumbnailUrl = savedImages.getThumbnailUrl();
         if (thumbnailUrl != null) {
             savedCakeItem.updateThumbnailImageUrl(thumbnailUrl);
-            // JPA 영속성 컨텍스트가 관리 중이면 자동 반영됨
         }
 
         // 옵션 매핑 등록
-        mappingService.saveCakeOptionMapping(addCakeDTO.getMappingRequestDTO(), cake, cake.getCakeId());
+        mappingService.saveCakeOptionMapping(addCakeDTO.getMappingRequestDTO(), cake, cake.getCakeId(), shopId);
 
         List<CakeOptionItemDTO> optionItemDTOS = new ArrayList<>();
         for (OptionItem optionItem : optionItems) {
@@ -140,7 +170,7 @@ public class CakeItemServiceImpl implements CakeItemService {
     @Override
     @Transactional(readOnly = true)
     // 상품 상세 조회
-    public MappingResponseDTO getCakeDetail(Long cakeId) {
+    public MappingResponseDTO getCakeDetail(Long shopId, Long cakeId) {
 
         CakeItem cakeItem = cakeValidator.validateCake(cakeId);
 
@@ -159,9 +189,10 @@ public class CakeItemServiceImpl implements CakeItemService {
     }
 
     @Override
+    // 상품 수정
     public void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO, List<MultipartFile> cakeImages) {
 
-        SecurityContextHolder.getContext().getAuthentication();
+        validateShopOwnership(shopId);
 
         cakeValidator.validateShop(shopId);
         cakeValidator.validateUpdateCake(updateCakeDTO);
@@ -196,6 +227,9 @@ public class CakeItemServiceImpl implements CakeItemService {
     public void deleteCake(Long cakeId) {
 
         CakeItem cakeItem = cakeValidator.validateCake(cakeId);
+
+        // 현재 로그인한 사용자가 해당 케이크의 shop 소유자인지 검증
+        validateShopOwnership(cakeItem.getShop().getShopId());
 
         cakeItem.changeIsDeleted(true);
 

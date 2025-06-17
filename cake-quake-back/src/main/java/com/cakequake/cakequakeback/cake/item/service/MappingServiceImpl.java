@@ -27,7 +27,7 @@ public class MappingServiceImpl implements MappingService {
     private final CakeImageService cakeImageService;
 
     @Override
-    public MappingResponseDTO saveCakeOptionMapping(MappingRequestDTO requestDTO, CakeItem cakeItem, Long cakeId) {
+    public MappingResponseDTO saveCakeOptionMapping(MappingRequestDTO requestDTO, CakeItem cakeItem, Long cakeId, Long shopId) {
         List<OptionItem> optionItems = optionItemRepository.findAllById(requestDTO.getOptionItemIds());
 
         List<CakeOptionMapping> mappings = new ArrayList<>();
