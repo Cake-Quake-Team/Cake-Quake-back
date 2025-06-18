@@ -67,6 +67,7 @@ public enum ErrorCode {
     EXTERNAL_CLIENT_ERROR_ODCLOUD(400, 660, "공공데이터 요청 오류"),
     INVALID_SELECTION_WHEN_REQUIRED(400, 661, "옵션이 필수 선택인 경우 최소 선택 수는 1 이상이어야 합니다."),
     INVALID_SELECTION_RANGE(400, 662, "최소 선택 수는 최대 선택 수보다 클 수 없습니다."),
+    MISSING_PATH_VARIABLE(400, 663, "필수 경로 변수가 누락되었습니다"),
 
     //HTTP 401 Unauthorized (code:801~809)
     INVALID_CREDENTIALS(401, 801, "아이디 또는 패스워드가 일치하지 않습니다."),

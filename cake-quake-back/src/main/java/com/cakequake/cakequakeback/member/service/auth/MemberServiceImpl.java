@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.member.service;
+package com.cakequake.cakequakeback.member.service.auth;
 
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
@@ -104,6 +104,7 @@ public class MemberServiceImpl implements MemberService {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
 
+        Long uid = member.getUid();
         String uname = member.getUname();
         String role = member.getRole().name();
 

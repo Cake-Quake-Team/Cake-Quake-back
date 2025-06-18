@@ -149,12 +149,13 @@ public class MemberValidator {
         }
     }
 
-    public void validateName(String name) {
-        if (!isValidName(name)) {
+    public void validateName(String uname) {
+        if (!isValidName(uname)) {
             throw new BusinessException(ErrorCode.INVALID_NAME_SHORT);
         }
     }
 
+    // 전화번호 형식 + 중복 검사
     public void validatePhoneNumber(String phoneNumber) {
         if (!isValidPhoneNumber(phoneNumber)) {
             throw new BusinessException(ErrorCode.INVALID_PHONE);

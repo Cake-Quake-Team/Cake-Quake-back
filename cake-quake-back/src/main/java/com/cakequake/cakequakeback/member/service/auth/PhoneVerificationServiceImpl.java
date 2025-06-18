@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.member.service;
+package com.cakequake.cakequakeback.member.service.auth;
 
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;

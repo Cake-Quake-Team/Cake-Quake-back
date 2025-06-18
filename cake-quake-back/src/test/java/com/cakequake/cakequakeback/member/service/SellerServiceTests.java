@@ -1,12 +1,14 @@
 package com.cakequake.cakequakeback.member.service;
 
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
+import com.cakequake.cakequakeback.member.dto.seller.SellerModifyDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerResponseDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.entities.MemberRole;
 import com.cakequake.cakequakeback.member.entities.PendingSellerRequest;
+import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.repo.PendingSellerRequestRepository;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
@@ -30,7 +32,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import({BCryptPasswordEncoder.class})
@@ -43,6 +45,9 @@ public class SellerServiceTests {
 
     @Autowired
     private PendingSellerRequestRepository pendingSellerRequestRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -184,6 +189,22 @@ public class SellerServiceTests {
 
         // 더 세부적으로 검증하고 싶다면 아래도 추가 가능
         // assertEquals("테스트가게", sellerDTO.getShopPreview().getShopName());
+    }
+
+    @Test
+    @DisplayName("판매자 프로필 수정 성공 테스트")
+    public void testModifySellerProfile() {
+
+        Long uid = 39L;
+        SellerModifyDTO dto = SellerModifyDTO.builder()
+                .uname("오구름")
+                .phoneNumber("010-3333-3335")
+                .build();
+
+        ApiResponseDTO response = service.modifySellerProfile(uid, dto);
+
+        assertTrue(response.isSuccess());
+        assertEquals("판매자 프로필 수정 성공", response.getMessage());
     }
 
 }
