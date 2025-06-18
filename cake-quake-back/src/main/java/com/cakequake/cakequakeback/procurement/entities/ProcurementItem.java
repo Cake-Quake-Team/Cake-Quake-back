@@ -21,6 +21,10 @@ public class ProcurementItem {
     @JoinColumn(name = "procurementId", nullable = false)
     private Procurement procurement;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ingredient_id", nullable = false)
+    private Ingredient ingredient;
+
     @Column(nullable = false)
     private Long ingredientId;
 
