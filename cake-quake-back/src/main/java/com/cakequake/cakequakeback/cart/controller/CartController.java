@@ -8,6 +8,7 @@ import com.cakequake.cakequakeback.security.domain.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Log4j2
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/buyers/cart")
+@RequestMapping("/api/v1/buyer/cart")
 @Validated
 public class CartController {
 
@@ -24,6 +25,7 @@ public class CartController {
     /** 장바구니에 새 아이템 추가 */
     @PostMapping
     public ResponseEntity<AddCart.Response> addCart(
+
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Validated @RequestBody AddCart.Request requestDto
     ) {
@@ -33,35 +35,40 @@ public class CartController {
     }
 
     /** 현재 사용자의 장바구니 전체 조회 */
+// ✅ 추천 방식: userId, uid 명확히 분리
     @GetMapping
     public ResponseEntity<GetCart.Response> getCart(
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal(expression = "member.userId") String userId
     ) {
-        String userId = userDetails.getMember().getUserId();
-        GetCart.Response responseDto = cartService.getCart(userId);
-        return ResponseEntity.ok(responseDto);
+        log.info("getCart.............");
+        log.info("userId = {}", userId);
+        return ResponseEntity.ok(cartService.getCart(userId));
     }
 
+        //String userId = userD.getMember().getUserId();
+        //GetCart.Response responseDto = cartService.getCart(userId);
+        //log.info("principal userId",userId);
+        //return ResponseEntity.ok(cartService.getCart(userId));
+
+
     /** 장바구니 내 특정 아이템 수량 수정 */
-    @PatchMapping("/{cartItemId}")
-    public ResponseEntity<Void> updateCartItem(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long cartItemId,
-            @Validated @RequestBody UpdateCartItem.Request requestDto
+    @PatchMapping
+    public ResponseEntity<UpdateCartItem.Response> updateCartItem(
+            @AuthenticationPrincipal(expression = "member.userId") String userId,
+            @RequestBody @Validated UpdateCartItem.Request requestDto
     ) {
-        String userId = userDetails.getMember().getUserId();
-        cartService.updateCartItem(userId, requestDto);
-        return ResponseEntity.ok().build();
+        log.info("userId = {}", userId);
+        return ResponseEntity.ok(cartService.updateCartItem(userId, requestDto));
     }
+
 
     /** 장바구니 특정 아이템 삭제 */
     @DeleteMapping("/{cartItemId}")
     public ResponseEntity<Void> deleteCartItem(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal(expression = "member.userId") String userId,
             @PathVariable Long cartItemId
     ) {
-        String userId = userDetails.getMember().getUserId();
-        cartService.deleteCartItem(userId);
-        return ResponseEntity.ok().build();
+        cartService.deleteCartItem(userId, cartItemId);
+        return ResponseEntity.noContent().build();
     }
 }

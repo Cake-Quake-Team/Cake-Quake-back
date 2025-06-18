@@ -44,8 +44,7 @@ public class CreateOrder {
         /** 주문 시 요청사항 (선택) */
         private String orderNote;
 
-        @JsonPOJOBuilder(withPrefix = "")
-        public static class CreateOrderRequestBuilder { }
+
 
     }
     @Getter

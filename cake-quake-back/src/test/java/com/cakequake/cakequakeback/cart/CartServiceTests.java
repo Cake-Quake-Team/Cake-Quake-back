@@ -22,8 +22,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -230,7 +228,7 @@ class CartServiceTests {
                             CartItem.builder().cartItemId(456L).cart(testCart).cakeItem(testCakeItem).productCnt(1).itemTotalPrice((long)testCakeItem.getPrice()).build()
                     ));
 
-            DeletedCartItem.Response res = cartService.deleteCartItem("user123");
+            DeletedCartItem.Response res = cartService.deleteCartItem("user123",123L);
 
             assertEquals(toDelete, res.getDeletedCartItemIds());
             assertThat(res.getMessage()).contains("삭제");
@@ -245,7 +243,7 @@ class CartServiceTests {
             given(cartRepository.findByMember(testMember))
                     .willReturn(Optional.empty());
 
-            DeletedCartItem.Response res = cartService.deleteCartItem("user123");
+            DeletedCartItem.Response res = cartService.deleteCartItem("user123",123L);
 
             assertThat(res.getDeletedCartItemIds()).isEmpty();
             assertThat(res.getMessage()).contains("삭제할 장바구니가 없습니다.");
