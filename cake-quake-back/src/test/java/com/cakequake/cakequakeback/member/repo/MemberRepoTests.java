@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.member.repo;
 
+import com.cakequake.cakequakeback.member.dto.buyer.BuyerProfileResponseDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerResponseDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.entities.MemberRole;
@@ -65,7 +66,7 @@ public class MemberRepoTests {
         log.info("총 {}명의 멤버가 저장되었습니다.", allMembers.size());
     }
 
-//    @Commit
+    //@Commit
     @Test
     public void insertDummyBuyer() {
         Member seller = Member.builder()
@@ -84,7 +85,7 @@ public class MemberRepoTests {
         log.info("유저 저장 완료: {}", result.get());
     }
 
-//    @Commit
+    //@Commit
     @Test
     public void insertDummySeller() {
         Member seller = Member.builder()
@@ -103,7 +104,7 @@ public class MemberRepoTests {
         log.info("판매자 저장 완료: {}", result.get());
     }
 
-//    @Commit
+    //@Commit
     @Test
     public void insertDummyAdmin() {
         Member admin = Member.builder()
@@ -179,6 +180,30 @@ public class MemberRepoTests {
         assertNotNull(dto.getShopId());
         assertNotNull(dto.getShopName());
         assertNotNull(dto.getAddress());
+    }
+
+    @DisplayName("uid로 구매자 정보 조회")
+    @Test
+    public void testBuyerGetOne() {
+        // given
+        Long testUid = 11L; // 실제 DB에 존재하는 uid 사용 필요
+        MemberRole seller = MemberRole.BUYER;
+
+        // when
+        Optional<BuyerProfileResponseDTO> result = memberRepository.buyerGetOne(testUid);
+
+        // then
+        assertTrue(result.isPresent());
+
+        BuyerProfileResponseDTO dto = result.get();
+        log.info("구매자 정보: {}", dto);
+
+        assertEquals(testUid, dto.getUid());
+        assertEquals(seller, dto.getRole());
+        assertNotNull(dto.getUserId());
+        assertNotNull(dto.getUname());
+        assertNotNull(dto.getPhoneNumber());
+        assertNotNull(dto.getAlarm());
     }
 
 }

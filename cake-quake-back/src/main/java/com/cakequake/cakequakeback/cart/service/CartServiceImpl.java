@@ -46,8 +46,10 @@ public class CartServiceImpl implements CartService {
     }
 
     private void recalculateCartTotalPrice(Cart cart) {
-        if (cart == null) {return;}
-        List<CartItem> itemsInCart = cartItemRepository.findByCart(cart);
+        if (cart == null) {
+            return;
+        }
+        List<CartItem> itemsInCart = cartItemRepository.findByCartWithCakeItem(cart);
         int cartTotalPrice = itemsInCart.stream()
                 .mapToInt(item -> item.getItemTotalPrice() != null ? item.getItemTotalPrice().intValue() : 0)
                 .sum();
@@ -64,7 +66,7 @@ public class CartServiceImpl implements CartService {
         CakeItem cakeItem = cakeItemRepository.findById(request.getCakeItemId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.MISSING_CAKE_ITEM_ID));
 
-        Optional<CartItem> existingCartItemOpt = cartItemRepository.findByCart(cart).stream()
+        Optional<CartItem> existingCartItemOpt = cartItemRepository.findByCartWithCakeItem(cart).stream()
                 .filter(ci -> ci.getCakeItem().getCakeId().equals(request.getCakeItemId()))
                 .findFirst();
 
@@ -118,16 +120,17 @@ public class CartServiceImpl implements CartService {
 
         if (cart == null) {
             return GetCart.Response.builder()
-                    .Items(List.of())
+                    .items(List.of())
                     .cartTotalPrice(0L)
                     .build();
         }
-        List<CartItem> cartItemEntities = cartItemRepository.findByCart(cart);
+        List<CartItem> cartItemEntities = cartItemRepository.findByCartWithCakeItem(cart);
         List<GetCart.ItemInfo> cartItemDtos = cartItemEntities.stream()
                 .map(entity -> GetCart.ItemInfo.builder()
                         .cartItemId(entity.getCartItemId())
                         .cakeId(entity.getCakeItem().getCakeId())
                         .cname(entity.getCakeItem().getCname())
+                        .price(entity.getCakeItem().getPrice()) // ✅ 요거 추가
                         .thumbnailImageUrl(entity.getCakeItem().getThumbnailImageUrl())
                         .productCnt(entity.getProductCnt())
                         .itemTotalPrice(entity.getItemTotalPrice())
@@ -135,13 +138,13 @@ public class CartServiceImpl implements CartService {
                 .collect(Collectors.toList());
 
         return GetCart.Response.builder()
-                .Items(cartItemDtos)
+                .items(cartItemDtos)
                 .cartTotalPrice(cart.getCartTotalPrice() != null ? cart.getCartTotalPrice().longValue() : 0L)
                 .build();
     }
 
     @Override
-    public UpdateCartItem.Response updateCartItem(String userId, UpdateCartItem.Request requestDto) {
+    public UpdateCartItem.Response updateCartItem(String userId,UpdateCartItem.Request requestDto) {
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
         Cart cart = cartRepository.findByMember(member)
@@ -180,37 +183,38 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public DeletedCartItem.Response deleteCartItem(String userId) {
-        Member member = memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
-        Cart cart = cartRepository.findByMember(member)
-                .orElse(null);
+    public DeletedCartItem.Response deleteCartItem(String userId, Long cartItemId) {
+            Member member = memberRepository.findByUserId(userId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
+            Cart cart = cartRepository.findByMember(member)
+                    .orElse(null);
 
-        if (cart == null) {
+            if (cart == null) {
+                return DeletedCartItem.Response.builder()
+                        .deletedCartItemIds(List.of())
+                        .message("삭제할 장바구니가 없습니다.")
+                        .build();
+            }
+
+            List<CartItem> itemsToDelete = cartItemRepository.findByCartWithCakeItem(cart);
+            List<Long> deletedIds = new ArrayList<>();
+
+            if (itemsToDelete.isEmpty()) {
+                return DeletedCartItem.Response.builder()
+                        .deletedCartItemIds(List.of())
+                        .message("장바구니에 삭제할 상품이 없습니다.")
+                        .build();
+            }
+            for (CartItem item : itemsToDelete) {
+                deletedIds.add(item.getCartItemId());
+            }
+            cartItemRepository.deleteAllByCart_CartId(cart);
+            cartRepository.save(cart);
+
             return DeletedCartItem.Response.builder()
-                    .deletedCartItemIds(List.of())
-                    .message("삭제할 장바구니가 없습니다.")
+                    .deletedCartItemIds(deletedIds)
+                    .message(userId + " 사용자의 장바구니에 있던 " + deletedIds.size() + "개 상품이 모두 삭제되었습니다.")
                     .build();
         }
 
-        List<CartItem> itemsToDelete = cartItemRepository.findByCart(cart);
-        List<Long> deletedIds = new ArrayList<>();
-
-        if (itemsToDelete.isEmpty()) {
-            return DeletedCartItem.Response.builder()
-                    .deletedCartItemIds(List.of())
-                    .message("장바구니에 삭제할 상품이 없습니다.")
-                    .build();
-        }
-        for (CartItem item : itemsToDelete) {
-            deletedIds.add(item.getCartItemId());
-        }
-        cartItemRepository.deleteAllByCart_CartId(cart);
-        cartRepository.save(cart);
-
-        return DeletedCartItem.Response.builder()
-                .deletedCartItemIds(deletedIds)
-                .message(userId + " 사용자의 장바구니에 있던 " + deletedIds.size() + "개 상품이 모두 삭제되었습니다.")
-                .build();
-    }
 }

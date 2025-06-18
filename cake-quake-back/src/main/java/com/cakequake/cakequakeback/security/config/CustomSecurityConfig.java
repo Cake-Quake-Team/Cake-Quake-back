@@ -9,9 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,6 +21,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+
 
 import java.util.List;
 
@@ -41,6 +45,8 @@ public class CustomSecurityConfig {
         log.info("------------------Security Config-----------------------");
 
         http.authorizeHttpRequests(auth -> {
+            log.info(String.valueOf(SecurityContextHolder.getContext().getAuthentication()));
+
 //            auth.requestMatchers("/**").permitAll(); // 모든 요청 허용
             auth.requestMatchers(
                     "/api/v1/auth/signup/**",
@@ -51,6 +57,11 @@ public class CustomSecurityConfig {
                     "/api/v1/auth/refresh",
                     "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                     .anyRequest().authenticated();
+
+//                    .requestMatchers("/api/v1/buyer/cart").hasRole("BUYER");
+//                    .requestMatchers(HttpMethod.GET, "/api/v1/buyer/cart").hasAnyRole("BUYER")
+//                    .requestMatchers(HttpMethod.PATCH, "/api/v1/buyer/cart").hasAnyRole("BUYER");
+
 
         });
 

@@ -5,11 +5,11 @@ import lombok.Getter;
 
 @Getter
 public enum OrderStatus {
-    RESERVATION_PENDING("예약확인중"),
-    RESERVATION_CONFIRMED("예약확정"),
-    RESERVATION_CANCELLED("예약취소"),
+    RESERVATION_PENDING("예약 확인 중"),
+    RESERVATION_CONFIRMED("예약 확정"),
+    RESERVATION_CANCELLED("예약 취소"),
     NO_SHOW("노쇼"),
-    PICKUP_COMPLETED("픽업완료");
+    PICKUP_COMPLETED("픽업 완료");
 
     /** 한글 라벨 값을 저장하는 필드 */
     private final String kr;

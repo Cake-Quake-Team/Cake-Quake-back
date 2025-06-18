@@ -3,7 +3,7 @@ package com.cakequake.cakequakeback.member.controller;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationCheckDTO;
 import com.cakequake.cakequakeback.member.dto.verification.PhoneVerificationRequestDTO;
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
-import com.cakequake.cakequakeback.member.service.PhoneVerificationService;
+import com.cakequake.cakequakeback.member.service.auth.PhoneVerificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

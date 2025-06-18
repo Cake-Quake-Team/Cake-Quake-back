@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.shop.entities;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.schedule.entities.ShopSchedule;
+import com.cakequake.cakequakeback.shop.dto.ShopUpdateDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -68,7 +69,6 @@ public class Shop extends BaseEntity {
     @Column(nullable = false)
     private LocalTime closeTime;
 
-
     @Column
     private String closeDays;
 
@@ -89,7 +89,39 @@ public class Shop extends BaseEntity {
     private BigDecimal lng;
 
 
+    public void updateShop(ShopUpdateDTO updateDTO){
+        if (updateDTO.getAddress() != null) {
+            this.address = updateDTO.getAddress();
+        }
+        if (updateDTO.getPhone() != null) {
+            this.phone = updateDTO.getPhone();
+        }
+        if (updateDTO.getContent() != null) {
+            this.content = updateDTO.getContent();
+        }
+        if (updateDTO.getOpenTime() != null) {
+            this.openTime = updateDTO.getOpenTime();
+        }
+        if (updateDTO.getCloseTime() != null) {
+            this.closeTime = updateDTO.getCloseTime();
+        }
+        if (updateDTO.getCloseDays() != null) {
+            this.closeDays = updateDTO.getCloseDays();
+        }
+        if (updateDTO.getWebsiteUrl() != null) {
+            this.websiteUrl = updateDTO.getWebsiteUrl();
+        }
+        if (updateDTO.getInstagramUrl() != null) {
+            this.instagramUrl = updateDTO.getInstagramUrl();
+        }
+        if (updateDTO.getStatus() != null) { // Enum 타입도 null 체크 필요
+            this.status = updateDTO.getStatus();
+        }
+        if (updateDTO.getThumbnailImageUrl() != null) {
+            this.thumbnailImageUrl = updateDTO.getThumbnailImageUrl();
+        }
 
+    }
 
 
 

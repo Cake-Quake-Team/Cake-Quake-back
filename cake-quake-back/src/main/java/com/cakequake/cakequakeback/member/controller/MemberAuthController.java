@@ -9,7 +9,7 @@ import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.member.service.MemberService;
+import com.cakequake.cakequakeback.member.service.auth.MemberService;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
 import com.cakequake.cakequakeback.security.domain.CustomUserDetails;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
