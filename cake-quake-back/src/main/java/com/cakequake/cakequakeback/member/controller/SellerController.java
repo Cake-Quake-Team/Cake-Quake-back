@@ -1,17 +1,18 @@
 package com.cakequake.cakequakeback.member.controller;
 
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
+import com.cakequake.cakequakeback.member.dto.seller.SellerModifyDTO;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/sellers")
 @Slf4j
+@PreAuthorize("hasRole('SELLER')")
 public class SellerController {
 
     private final SellerService sellerService;
@@ -29,6 +30,14 @@ public class SellerController {
         log.debug("---SellerController---getSellerProfile---uid: {}", uid);
 
         ApiResponseDTO response = sellerService.getSellerProfile(uid);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/profile/{uid}")
+    public ResponseEntity<ApiResponseDTO> modifySellerProfile(@PathVariable Long uid, @RequestBody SellerModifyDTO dto) {
+        log.debug("---SellerController---modifySellerProfile---uid: {}", uid);
+
+        ApiResponseDTO response = sellerService.modifySellerProfile(uid, dto);
         return ResponseEntity.ok(response);
     }
 }

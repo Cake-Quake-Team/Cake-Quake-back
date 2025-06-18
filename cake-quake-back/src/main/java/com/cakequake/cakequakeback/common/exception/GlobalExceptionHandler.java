@@ -7,6 +7,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
@@ -70,6 +71,14 @@ public class GlobalExceptionHandler {
         }
         log.error(errorCode.getMessage());
 
+        return buildErrorResponse(errorCode);
+    }
+
+    // MissingPathVariableException 처리
+    @ExceptionHandler(MissingPathVariableException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMissingPathVariable(MissingPathVariableException ex) {
+        ErrorCode errorCode = ErrorCode.MISSING_PATH_VARIABLE; // 적절한 ErrorCode를 설정하세요.
+        log.warn("누락된 경로 변수: {}", ex.getVariableName());
         return buildErrorResponse(errorCode);
     }
 

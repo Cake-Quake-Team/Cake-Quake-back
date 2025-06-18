@@ -6,6 +6,7 @@ import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
 import com.cakequake.cakequakeback.member.entities.PhoneVerification;
 import com.cakequake.cakequakeback.member.entities.VerificationType;
 import com.cakequake.cakequakeback.member.repo.PhoneVerificationRepository;
+import com.cakequake.cakequakeback.member.service.auth.PhoneVerificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

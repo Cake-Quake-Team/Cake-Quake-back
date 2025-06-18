@@ -4,13 +4,11 @@ import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.common.utils.CustomImageUtils;
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
+import com.cakequake.cakequakeback.member.dto.seller.SellerModifyDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerResponseDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
-import com.cakequake.cakequakeback.member.entities.MemberRole;
-import com.cakequake.cakequakeback.member.entities.PendingSellerRequest;
-import com.cakequake.cakequakeback.member.entities.SellerRequestStatus;
-import com.cakequake.cakequakeback.member.entities.SocialType;
+import com.cakequake.cakequakeback.member.entities.*;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.repo.PendingSellerRequestRepository;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
@@ -155,7 +153,7 @@ public class SellerServiceImpl implements SellerService{
         // uid가 없는 경우
         if(uid == null) throw new BusinessException(ErrorCode.NOT_FOUND_UID);
 
-        String userId = authenticatedUserService.getCurrentMember().getUserId();
+        String currentUserId = authenticatedUserService.getCurrentMember().getUserId();
 
         SellerResponseDTO sellerDTO = memberRepository.sellerGetOne(uid)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
@@ -164,7 +162,7 @@ public class SellerServiceImpl implements SellerService{
             throw new BusinessException(ErrorCode.NOT_AUTHORIZED_OTHER);
         }
 
-        if (!sellerDTO.getUserId().equals(userId)) {
+        if (!sellerDTO.getUserId().equals(currentUserId)) {
             throw new BusinessException(ErrorCode.NOT_AUTHORIZED_OTHER_SELLER);
         }
 
@@ -183,6 +181,37 @@ public class SellerServiceImpl implements SellerService{
                 .success(true)
                 .message("판매자 프로필 조회 성공")
                 .data(responseDTO)
+                .build();
+    }
+
+    @Override
+    public ApiResponseDTO modifySellerProfile(Long uid, SellerModifyDTO modifyDTO) {
+        // url로 넘어온 uid
+        if(uid == null) throw new BusinessException(ErrorCode.NOT_FOUND_UID);
+
+        String currentUserId = authenticatedUserService.getCurrentMember().getUserId();
+
+        Member seller = memberRepository.findById(uid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 로그인한 유저ID와 조회한 userId가 다를 때
+        if (!seller.getUserId().equals(currentUserId)) {
+            throw new BusinessException(ErrorCode.NOT_AUTHORIZED_OTHER_SELLER);
+        }
+
+        // 전화번호 형식 + 중복 검사
+        memberValidator.validatePhoneNumber(modifyDTO.getPhoneNumber());
+
+        // 휴대폰 인증은 프론트에서 따로 호출
+
+        seller.changeUname(modifyDTO.getUname());
+        seller.changePhoneNumber(modifyDTO.getPhoneNumber());
+
+        memberRepository.save(seller);
+
+        return ApiResponseDTO.builder()
+                .success(true)
+                .message("판매자 프로필 수정 성공")
                 .build();
     }
 
