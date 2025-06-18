@@ -13,4 +13,7 @@ import lombok.NoArgsConstructor;
 public class CakeOptionTypeDTO {
     private Long optionTypeId;
     private String optionType;
+    private Boolean isRequired;
+    private int minSelection;
+    private int maxSelection;
 }
