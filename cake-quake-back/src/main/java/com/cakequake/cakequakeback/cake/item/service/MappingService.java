@@ -11,7 +11,7 @@ import java.util.List;
 public interface MappingService {
 
     // 매핑 옵션 저장
-    MappingResponseDTO saveCakeOptionMapping(MappingRequestDTO requestDTO, CakeItem cakeItem, Long cakeId);
+    MappingResponseDTO saveCakeOptionMapping(MappingRequestDTO requestDTO, CakeItem cakeItem, Long cakeId, Long shopId);
 
     // 매핑 옵션 목록 조회
     List<CakeOptionMapping> getMappings(Long cakeId);

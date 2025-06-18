@@ -15,13 +15,13 @@ import java.util.Optional;
 public interface CakeItemRepository extends JpaRepository<CakeItem, Long> {
 
     // 전체 상품 조회
-    @Query("SELECT new com.cakequake.cakequakeback.cake.item.dto.CakeListDTO(c.cakeId, c.cname, c.price, c.thumbnailImageUrl)" +
+    @Query("SELECT new com.cakequake.cakequakeback.cake.item.dto.CakeListDTO(c.shop.shopId, c.cakeId, c.cname, c.price, c.thumbnailImageUrl, c.isOnsale)" +
             "FROM CakeItem c " +
             "WHERE c.isDeleted = false AND c.category = :keyword")
     Page<CakeListDTO> findAllCakeList(@Param("keyword") CakeCategory category, Pageable pageable);
 
     // 특정 매장의 상품 목록 조회
-    @Query("SELECT new com.cakequake.cakequakeback.cake.item.dto.CakeListDTO(c.cakeId, c.cname, c.price, c.thumbnailImageUrl)" +
+    @Query("SELECT new com.cakequake.cakequakeback.cake.item.dto.CakeListDTO(c.shop.shopId, c.cakeId, c.cname, c.price, c.thumbnailImageUrl, c.isOnsale)" +
             "FROM CakeItem c " +
             "WHERE c.shop.shopId = :shopId AND c.isDeleted = false AND c.category = :category")
     Page<CakeListDTO> findShopCakeList(@Param("shopId") Long shopId, CakeCategory category, Pageable pageable);

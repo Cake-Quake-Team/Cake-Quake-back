@@ -21,7 +21,7 @@ public interface ShopNoticeRepository extends JpaRepository<ShopNotice, Long> {
     ORDER BY sn.regDate DESC""")
     List<ShopNotice> findLatestByShopId(@Param("shopId") Long shopId, Pageable pageable);
 
-    // 공지사항 목록 조회 (isVisible = true)
+    // 공지사항 목록 조회
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopNoticeDetailDTO(sn.shopNoticeId, s.shopId, " +
             "sn.title, sn.content, sn.regDate, sn.modDate) " +
             "FROM ShopNotice sn JOIN sn.shop s " +

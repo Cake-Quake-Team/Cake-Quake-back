@@ -19,7 +19,7 @@ public class TemperatureHistory extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private Long HistoryID;
+    private Long historyId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="uid",nullable = false)

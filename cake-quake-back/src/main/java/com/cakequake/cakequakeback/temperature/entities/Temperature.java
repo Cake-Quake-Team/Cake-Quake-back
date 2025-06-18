@@ -76,4 +76,11 @@ public class Temperature extends BaseEntity {
         this.historyList.add(new TemperatureHistory(this, changeAmount, (float)this.temperature, reason, type, objectId));
 
     }
+
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void setTemperature(double temperature) {this.temperature = temperature;}
+
 }

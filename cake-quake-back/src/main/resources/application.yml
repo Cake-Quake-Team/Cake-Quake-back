@@ -71,4 +71,3 @@ logging:
     com.cakequake.cakequakeback.member: DEBUG
     com.cakequake.cakequakeback.security: DEBUG
     org.springframework.security: TRACE
-

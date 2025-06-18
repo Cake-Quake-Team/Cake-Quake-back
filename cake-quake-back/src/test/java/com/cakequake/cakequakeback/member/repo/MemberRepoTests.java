@@ -66,7 +66,7 @@ public class MemberRepoTests {
         log.info("총 {}명의 멤버가 저장되었습니다.", allMembers.size());
     }
 
-//    @Commit
+    //@Commit
     @Test
     public void insertDummyBuyer() {
         Member seller = Member.builder()
@@ -85,7 +85,7 @@ public class MemberRepoTests {
         log.info("유저 저장 완료: {}", result.get());
     }
 
-//    @Commit
+    //@Commit
     @Test
     public void insertDummySeller() {
         Member seller = Member.builder()
@@ -104,7 +104,7 @@ public class MemberRepoTests {
         log.info("판매자 저장 완료: {}", result.get());
     }
 
-//    @Commit
+    //@Commit
     @Test
     public void insertDummyAdmin() {
         Member admin = Member.builder()
