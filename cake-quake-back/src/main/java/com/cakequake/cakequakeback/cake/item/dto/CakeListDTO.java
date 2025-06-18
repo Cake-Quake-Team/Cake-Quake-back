@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 // 케이크 상품 목록 조회 DTO
 public class CakeListDTO {
+    private Long shopId;
     private Long cakeId;
     private String cname;
     private int price;
