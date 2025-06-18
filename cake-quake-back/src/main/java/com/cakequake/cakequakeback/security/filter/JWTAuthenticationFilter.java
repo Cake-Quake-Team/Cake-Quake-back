@@ -143,7 +143,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-            log.error("++++++++++doFilterInternal++++++++++++++");
+            log.error("++++++++++doFilterInternal++++++++++++++",e);
             String message = e.getMessage();
             if(message.startsWith("JWT signature")){
                 handleException(response, JWTErrorCode.BAD_SIGNATURE);

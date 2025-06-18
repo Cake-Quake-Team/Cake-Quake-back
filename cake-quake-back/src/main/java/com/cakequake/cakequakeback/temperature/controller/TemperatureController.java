@@ -1,5 +1,7 @@
 package com.cakequake.cakequakeback.temperature.controller;
 
+import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
+import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.temperature.dto.TemperatureHistoryResponseDTO;
 import com.cakequake.cakequakeback.temperature.dto.TemperatureRequestDTO;
 import com.cakequake.cakequakeback.temperature.dto.TemperatureResponseDTO;
@@ -21,11 +23,13 @@ public class TemperatureController {
 
     //온도 이력 조회
     @GetMapping("/{uid}/histories")
-    public ResponseEntity<List<TemperatureHistoryResponseDTO>> getHistories(@PathVariable Long uid) {
-        List<TemperatureHistoryResponseDTO> histories = temperatureService.findHistory(uid);
-        return ResponseEntity.ok(histories);
-
+    public ResponseEntity<InfiniteScrollResponseDTO<TemperatureHistoryResponseDTO>> getHistories(
+            PageRequestDTO pageRequestDTO,
+            @PathVariable Long uid) {
+        InfiniteScrollResponseDTO<TemperatureHistoryResponseDTO> historyList=temperatureService.findHistory(pageRequestDTO,uid);
+        return ResponseEntity.ok(historyList);
     }
+
 
     //온도 조회
     @GetMapping("/{uid}")

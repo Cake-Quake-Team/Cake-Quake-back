@@ -1,11 +1,14 @@
 package com.cakequake.cakequakeback.temperature.service;
 
+import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
+import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.repo.BuyerOrderRepository;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemRepository;
+import com.cakequake.cakequakeback.point.dto.PointHistoryResponseDTO;
 import com.cakequake.cakequakeback.review.entities.Review;
 import com.cakequake.cakequakeback.review.repo.common.CommonReviewRepo;
 import com.cakequake.cakequakeback.temperature.dto.TemperatureHistoryResponseDTO;
@@ -22,6 +25,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cglib.core.Local;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -43,6 +49,7 @@ public class TemperatureServiceImpl implements TemperatureService {
     private final CommonReviewRepo commonReviewRepo;
 
     //온도 업데이트
+    @Override
     public void updateTemperature(Long orderId, Long reviewId) {
         Optional<CakeOrder> optionalOrder = buyerOrderRepository.findById(orderId);
 
@@ -77,23 +84,23 @@ public class TemperatureServiceImpl implements TemperatureService {
     }
 
     //특정 회원의 온도 이력 조회
-    public List<TemperatureHistoryResponseDTO> findHistory(Long uid) {
+    @Override
+    public InfiniteScrollResponseDTO<TemperatureHistoryResponseDTO> findHistory(PageRequestDTO pageRequestDTO, Long uid) {
 
         Member member = memberRepository.findById(uid)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사용자입니다."));
 
-        return temperatureHistoryRepository.findByMember(member)
-                .stream()
-                .map(history -> TemperatureHistoryResponseDTO.builder()
-                        // .temperature(history.getTemperature()) // 보통 이건 DTO에 포함 안 시킴
-                        .changeAmount(history.getChangeAmount())
-                        .afterTemperature(history.getAfterTemperature())
-                        .reason(history.getReason())
-                        .relatedObjectType(history.getRelatedObjectType())
-                        .relatedObjectId(history.getRelatedObjectId())
-                        .modDate(history.getModDate())
-                        .build())
-                .collect(Collectors.toList());
+        Pageable pageable = pageRequestDTO.getPageable("regDate");
+
+        // 리포지토리의 @Query가 이미 DTO로 프로젝션하므로, 바로 DTO Page를 받습니다.
+        Page<TemperatureHistoryResponseDTO> dtoPage = temperatureHistoryRepository.findByMember(member, pageable);
+
+        // InfiniteScrollResponseDTO의 제네릭 타입도 올바르게 <TemperatureHistoryResponseDTO>로 지정해야 합니다.
+        return InfiniteScrollResponseDTO.<TemperatureHistoryResponseDTO>builder()
+                .content(dtoPage.getContent())
+                .hasNext(dtoPage.hasNext())
+                .totalCount((int) dtoPage.getTotalElements())
+                .build();
     }
 
     //노쇼 할 경우 온도 변화량 감소
