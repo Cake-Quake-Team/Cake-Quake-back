@@ -56,8 +56,9 @@ public class CustomSecurityConfig {
                     "/api/v1/auth/business/verify", // 사업자 진위 여부
                     "/api/v1/auth/refresh",
                     "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                    .anyRequest().authenticated();
 
-                    .requestMatchers("/api/v1/buyer/cart").hasRole("BUYER");
+//                    .requestMatchers("/api/v1/buyer/cart").hasRole("BUYER");
 //                    .requestMatchers(HttpMethod.GET, "/api/v1/buyer/cart").hasAnyRole("BUYER")
 //                    .requestMatchers(HttpMethod.PATCH, "/api/v1/buyer/cart").hasAnyRole("BUYER");
 
