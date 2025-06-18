@@ -3,6 +3,8 @@ package com.cakequake.cakequakeback.cart.repo;
 import com.cakequake.cakequakeback.cart.entities.Cart;
 import com.cakequake.cakequakeback.cart.entities.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,7 +13,11 @@ import java.util.Optional;
 @Repository
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     // CartItem 엔티티의 'cartId' 필드(Cart 타입)를 기준으로 검색
-    List<CartItem> findByCart(Cart cart);
+    //List<CartItem> findByCart(Cart cart);
+
+    @Query("SELECT ci FROM CartItem ci JOIN FETCH ci.cakeItem WHERE ci.cart = :cart")
+    List<CartItem> findByCartWithCakeItem(@Param("cart") Cart cart);
+
 
     // CartItem 엔티티의 PK('cartItemId')와 'cartId' 필드(Cart 타입)를 기준으로 검색
     Optional<CartItem> findByCartItemIdAndCart_CartId(Long cartItemId, Long cartId);

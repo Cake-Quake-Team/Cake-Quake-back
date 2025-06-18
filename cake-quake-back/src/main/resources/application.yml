@@ -60,8 +60,8 @@ spring:
     base-url: https://my-app.example.com         # 우리 서비스(앱) 기본 URL, ngrok 혹은 실제 도메인
     # 예시: https://abc123.ngrok.io
 
-  jwt:
-    secret: ${JWT_SECRET}
+jwt:
+  secret: ${JWT_SECRET}
 
 #개발용 로그 레벨. 운영 시 변경 필요
 logging:
@@ -71,4 +71,3 @@ logging:
     com.cakequake.cakequakeback.member: DEBUG
     com.cakequake.cakequakeback.security: DEBUG
     org.springframework.security: TRACE
-

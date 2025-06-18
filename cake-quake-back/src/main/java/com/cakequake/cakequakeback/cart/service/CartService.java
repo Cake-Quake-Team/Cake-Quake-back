@@ -18,8 +18,9 @@ public interface CartService {
     //특정 회원의 장바구니 전체 조회
     GetCart.Response getCart(String userId);
 
+
     //장바구니에 있는 상품 수량 변경
-    UpdateCartItem.Response updateCartItem(String userId, UpdateCartItem.Request dto);
+    UpdateCartItem.Response updateCartItem(String userId,UpdateCartItem.Request dto);
 
     //선택된 장바구니 항목들 삭제
     DeletedCartItem.Response deleteCartItem(String userId,Long cartItemId);

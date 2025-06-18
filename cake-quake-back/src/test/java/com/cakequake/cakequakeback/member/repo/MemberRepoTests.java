@@ -97,7 +97,7 @@ public class MemberRepoTests {
         log.info("판매자 저장 완료: {}", result.get());
     }
 
-//    @Commit
+    //@Commit
     @Test
     public void insertDummyAdmin() {
         Member admin = Member.builder()

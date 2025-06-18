@@ -15,7 +15,7 @@ public class GetCart {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Response {
-        private List<ItemInfo> Items;
+        private List<ItemInfo> items;
         private Long cartTotalPrice;
 
     }

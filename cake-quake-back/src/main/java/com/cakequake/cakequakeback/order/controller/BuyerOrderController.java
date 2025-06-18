@@ -13,7 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/buyer/order")
+@RequestMapping("/api/v1/buyer/orders")
 public class BuyerOrderController {
     private final BuyerOrderService buyerOrderService;
 
