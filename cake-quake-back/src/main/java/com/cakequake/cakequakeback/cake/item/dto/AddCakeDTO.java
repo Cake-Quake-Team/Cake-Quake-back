@@ -19,7 +19,7 @@ public class AddCakeDTO {
     private Integer price;
     private CakeCategory category;
     private String description;
-    private String thumbnailImageUrl;   // 대표 이미지
-    private List<ImageDTO> imageUrls;    // 이미지 URL 목록
+    private String thumbnailImageUrl;
+    private List<ImageDTO> imageUrls;    // imageId=null, isThumbnail 플래그만 사용
     private MappingRequestDTO mappingRequestDTO;    // 매핑할 옵션 목록
 }

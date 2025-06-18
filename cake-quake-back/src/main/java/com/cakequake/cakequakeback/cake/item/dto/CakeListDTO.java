@@ -15,4 +15,5 @@ public class CakeListDTO {
     private String cname;
     private int price;
     private String thumbnailImageUrl;
+    private Boolean isOnsale;
 }

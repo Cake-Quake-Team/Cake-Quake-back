@@ -32,6 +32,19 @@ public class CakeDetailDTO {
     private LocalDateTime modDate;
 
     public static CakeDetailDTO from(CakeItem cakeItem, List<ImageDTO> imageUrls) {
+        // isThumbnail == true 인 이미지를 찾아서 thumbnailImageUrl 로 설정합니다.
+        String actualThumbnailUrl = imageUrls.stream()
+                .filter(image -> image.getIsThumbnail() != null && image.getIsThumbnail())
+                .map(ImageDTO::getImageUrl)
+                .findFirst()
+                .orElse(null);
+
+        if (actualThumbnailUrl == null && cakeItem.getThumbnailImageUrl() != null) {
+            actualThumbnailUrl = cakeItem.getThumbnailImageUrl();
+        } else if (actualThumbnailUrl == null && !imageUrls.isEmpty()) {
+            actualThumbnailUrl = imageUrls.get(0).getImageUrl();
+        }
+
         return CakeDetailDTO.builder()
                 .shopId(cakeItem.getShop().getShopId())
                 .cakeId(cakeItem.getCakeId())
@@ -39,14 +52,15 @@ public class CakeDetailDTO {
                 .description(cakeItem.getDescription())
                 .price(cakeItem.getPrice())
                 .category(cakeItem.getCategory())
-                .thumbnailImageUrl(cakeItem.getThumbnailImageUrl())
+                .thumbnailImageUrl(actualThumbnailUrl)
+                .imageUrls(imageUrls)
                 .viewCount(cakeItem.getViewCount())
                 .orderCount(cakeItem.getOrderCount())
                 .isOnsale(cakeItem.getIsOnsale())
                 .isDeleted(cakeItem.getIsDeleted())
-                .imageUrls(imageUrls)
                 .regDate(cakeItem.getRegDate())
                 .modDate(cakeItem.getModDate())
                 .build();
     }
+
 }

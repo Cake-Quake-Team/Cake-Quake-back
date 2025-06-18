@@ -2,17 +2,16 @@ package com.cakequake.cakequakeback.cake.item.service;
 
 import com.cakequake.cakequakeback.cake.item.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.*;
-import com.cakequake.cakequakeback.cake.item.entities.CakeOptionMapping;
-import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface CakeItemService {
 
     // 케이크 등록
-    MappingResponseDTO addCake(AddCakeDTO addCakeDTO, Long shopId);
+    MappingResponseDTO addCake(AddCakeDTO addCakeDTO, List<MultipartFile> cakeImages);
 
     // 케이크 목록 조회
     InfiniteScrollResponseDTO<CakeListDTO> getAllCakeList(PageRequestDTO pageRequestDTO, CakeCategory category);
@@ -24,9 +23,9 @@ public interface CakeItemService {
     MappingResponseDTO getCakeDetail(Long shopId, Long cakeId);
 
     // 케이크 수정
-    void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO);
+    void updateCake(Long shopId, Long cakeId, UpdateCakeDTO updateCakeDTO, List<MultipartFile> cakeImages);
 
     // 케이크 삭제
-    void deleteCake(Long shopId, Long cakeId);
+    void deleteCake(Long cakeId);
 
 }

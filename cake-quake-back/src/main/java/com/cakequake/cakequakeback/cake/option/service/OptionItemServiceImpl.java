@@ -8,15 +8,19 @@ import com.cakequake.cakequakeback.cake.option.repo.OptionTypeRepository;
 import com.cakequake.cakequakeback.cake.validator.OptionValidator;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,6 +43,10 @@ public class OptionItemServiceImpl implements OptionItemService {
         OptionType optionType = optionValidator.validateOptionType(addOptionItemDTO.getOptionTypeId());
         optionValidator.validateAddOptionItem(addOptionItemDTO);
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        Member member = optionValidator.validateMember(userId);
+
         // 삭제된 동일 이름의 OptionName이 존재하는지 확인
         Optional<OptionItem> alreadyDeleted = optionItemRepository.findByOptionNameAndIsDeletedTrue(addOptionItemDTO.getOptionName());
 
@@ -55,6 +63,7 @@ public class OptionItemServiceImpl implements OptionItemService {
                 .price(addOptionItemDTO.getPrice())
                 .version(1)
                 .isDeleted(false)
+                .createdBy(member)
                 .build();
 
         optionItemRepository.save(optionItem);
@@ -74,10 +83,14 @@ public class OptionItemServiceImpl implements OptionItemService {
 
         Pageable pageable = pageRequestDTO.getPageable("regDate");
 
-        Page<CakeOptionItemDTO> itemListPage = optionItemRepository.findOptionItem(shopId, pageable);
+        Page<OptionItem> itemListPage = optionItemRepository.findOptionItem(shopId, pageable);
+
+        List<CakeOptionItemDTO> dtoList = itemListPage.getContent().stream()
+                .map(CakeOptionItemDTO::fromEntity)
+                .toList();
 
         return InfiniteScrollResponseDTO.<CakeOptionItemDTO>builder()
-                .content(itemListPage.getContent())
+                .content(dtoList)
                 .hasNext(itemListPage.hasNext())
                 .totalCount((int) itemListPage.getTotalElements())
                 .build();
@@ -107,7 +120,32 @@ public class OptionItemServiceImpl implements OptionItemService {
         optionValidator.validateShop(shopId);
         OptionItem optionItem = optionValidator.vlidateOptionItem(optionItemId);
 
-        optionItem.updateFromDTO(updateOptionItemDTO);
+        Member member = optionValidator.validateMember(
+                SecurityContextHolder.getContext().getAuthentication().getName()
+        );
+
+        // 원본과 값이 모두 동일하면 패스
+        boolean noChange =
+                (updateOptionItemDTO.getOptionName() == null || updateOptionItemDTO.getOptionName().equals(optionItem.getOptionName())) &&
+                        (updateOptionItemDTO.getPrice() == null || updateOptionItemDTO.getPrice() == optionItem.getPrice());
+
+        if (noChange) return; // 아무 것도 변경된 게 없으면 새로 저장하지 않음
+
+        // 3. 기존 항목은 삭제 처리 (Soft Delete)
+        optionItem.changeIsDeleted(true);
+
+        // 4. 새로운 버전 생성
+        OptionItem newItem = OptionItem.builder()
+                .optionType(optionItem.getOptionType())
+                .optionName(updateOptionItemDTO.getOptionName() != null ? updateOptionItemDTO.getOptionName() : optionItem.getOptionName())
+                .price(updateOptionItemDTO.getPrice() != null ? updateOptionItemDTO.getPrice() : optionItem.getPrice())
+                .version(optionItem.getVersion() + 1)
+                .isDeleted(false)
+                .createdBy(optionItem.getCreatedBy())
+                .modifiedBy(member)
+                .build();
+
+        optionItemRepository.save(newItem);
     }
 
     @Override

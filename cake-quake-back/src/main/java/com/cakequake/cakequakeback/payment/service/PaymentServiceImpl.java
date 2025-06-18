@@ -202,12 +202,9 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentResponseDTO cancelPayment(Long paymentId, Long uid, PaymentCancelRequestDTO paymentCancelRequestDTO) {
 
-        System.out.println(">>> cancelPayment 진입! paymentId=" + paymentId + ", reason=" + paymentCancelRequestDTO.getReason());
-        //본인 결제 엔티티 조회
+
         Payment payment = paymentRepo.findByPaymentIdAndMemberUid(paymentId, uid)
                 .orElseThrow(()-> new IllegalArgumentException("결제를 찾을 수 없습니다"));
-
-        System.out.println(">>> payment.getStatus() = " + payment.getStatus());
 
         //상태 검증
         if(payment.getStatus() != PaymentStatus.APPROVED){
@@ -224,14 +221,6 @@ public class PaymentServiceImpl implements PaymentService{
             //카카오페이 결제 취소 API 호출
             KakaoPayCancelResponseDTO cancelRes = kakaoPayService.cancel(paymentId);
 
-//            //응답 검증
-//            if(cancelRes == null || !"CANCEL".equalsIgnoreCase(cancelRes.getStatus())){
-//                throw new IllegalStateException("카카오페이 결제 취소 실패");
-//            }
-
-            //엔티티 상태 변경 & 저장
-//            payment.cancelByBuyer(paymentCancelRequestDTO.getReason());
-//            paymentRepo.save(payment);
 
             String status = cancelRes != null ? cancelRes.getStatus() : null;
             if (status != null &&
@@ -257,7 +246,7 @@ public class PaymentServiceImpl implements PaymentService{
                     .build();
 
             TossPayCancelResponseDTO tossCancelResponse = tossPayService.cancel(
-                payment.getOrder().getShop().getShopId(), //마찬가지로 shopIㅇ로 바꾸려면 구조 수정 필요
+                payment.getOrder().getShop().getShopId(),
                 payment.getTransactionId(),
                     cancelRequest
             );

@@ -2,9 +2,7 @@ package com.cakequake.cakequakeback.cake.item.controller;
 
 import com.cakequake.cakequakeback.cake.item.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.*;
-import com.cakequake.cakequakeback.cake.item.entities.CakeOptionMapping;
 import com.cakequake.cakequakeback.cake.item.service.CakeItemService;
-import com.cakequake.cakequakeback.cake.option.entities.OptionItem;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -40,29 +39,36 @@ public class CakeItemController {
         return cakeItemService.getCakeDetail(shopId, cakeId);
     };
 
-    @PostMapping("/shops/{shopId}/cakes")
+    // 케이크 등록
+    @PostMapping("/cakes")
     public ResponseEntity<MappingResponseDTO> addCake(
-            @PathVariable Long shopId,
-            @RequestBody AddCakeDTO addCakeDTO){
+            @RequestPart(value = "addCakeDTO") AddCakeDTO addCakeDTO,
+            @RequestPart(value = "cakeImages", required = false) List<MultipartFile> cakeImages){
 
-        MappingResponseDTO response = cakeItemService.addCake(addCakeDTO, shopId);
+        MappingResponseDTO response = cakeItemService.addCake(addCakeDTO, cakeImages);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // 케이크 수정
     @PatchMapping("/shops/{shopId}/cakes/{cakeId}")
     public MappingResponseDTO updateCake(
             @PathVariable Long shopId,
             @PathVariable Long cakeId,
-            @RequestBody UpdateCakeDTO updateCakeDTO) {
+            @RequestPart(value = "updateCakeDTO") UpdateCakeDTO updateCakeDTO,
+            @RequestPart(value = "newCakeImages", required = false) List<MultipartFile> newCakeImages,
+            @RequestPart(value = "thumbnailImageUrl", required = false) MultipartFile thumbnailImageUrl) {
 
-        cakeItemService.updateCake(shopId, cakeId, updateCakeDTO);
+        System.out.println("썸네일 URL: " + thumbnailImageUrl);
 
-        return cakeItemService.getCakeDetail(shopId, cakeId);
+        cakeItemService.updateCake(shopId, cakeId, updateCakeDTO, newCakeImages);
+
+        return cakeItemService.getCakeDetail(cakeId, shopId);
     }
 
-    @DeleteMapping("shops/{shopId}/cakes/{cakeId}")
-    public ResponseEntity<Void> deleteCake(@PathVariable Long shopId, @PathVariable Long cakeId) {
-        cakeItemService.deleteCake(shopId, cakeId);
+    // 케이크 삭제
+    @DeleteMapping("/cakes/{cakeId}")
+    public ResponseEntity<Void> deleteCake(@PathVariable Long cakeId) {
+        cakeItemService.deleteCake(cakeId);
         return ResponseEntity.noContent().build();
     }
 }

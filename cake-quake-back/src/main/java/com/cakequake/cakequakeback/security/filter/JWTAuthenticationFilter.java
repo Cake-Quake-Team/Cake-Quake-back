@@ -151,6 +151,8 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 handleException(response, JWTErrorCode.MALFORMED_TOKEN);
             }else if(message.startsWith("JWT expired")){
                 handleException(response, JWTErrorCode.EXPIRED_TOKEN);
+            }else {
+                log.error("JWT 외의 에러: ", e);
             }
         }
     }

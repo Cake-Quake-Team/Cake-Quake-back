@@ -4,13 +4,19 @@ import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.common.utils.CustomImageUtils;
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
+import com.cakequake.cakequakeback.member.dto.seller.SellerResponseDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
+import com.cakequake.cakequakeback.member.entities.MemberRole;
 import com.cakequake.cakequakeback.member.entities.PendingSellerRequest;
 import com.cakequake.cakequakeback.member.entities.SellerRequestStatus;
 import com.cakequake.cakequakeback.member.entities.SocialType;
+import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.repo.PendingSellerRequestRepository;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
+import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
+import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
+import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,15 +32,22 @@ import java.io.IOException;
 public class SellerServiceImpl implements SellerService{
 
     private final PendingSellerRequestRepository pendingSellerRequestRepository;
+    private final MemberRepository memberRepository;
+    private final ShopRepository shopRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberValidator memberValidator;
     private final CustomImageUtils customImageUtils;
 
-    public SellerServiceImpl(PendingSellerRequestRepository pendingSellerRequestRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, CustomImageUtils customImageUtils) {
+    private final AuthenticatedUserService authenticatedUserService;
+
+    public SellerServiceImpl(PendingSellerRequestRepository pendingSellerRequestRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, CustomImageUtils customImageUtils, MemberRepository memberRepository, ShopRepository shopRepository, AuthenticatedUserService authenticatedUserService) {
         this.pendingSellerRequestRepository = pendingSellerRequestRepository;
         this.passwordEncoder = passwordEncoder;
         this.memberValidator = memberValidator;
         this.customImageUtils = customImageUtils;
+        this.memberRepository = memberRepository;
+        this.shopRepository = shopRepository;
+        this.authenticatedUserService = authenticatedUserService;
     }
 
     @Override
@@ -101,7 +114,7 @@ public class SellerServiceImpl implements SellerService{
 
         // 1단계에서 저장된 임시 판매자 조회
         PendingSellerRequest pendingSeller = pendingSellerRequestRepository.findById(dto.getTempSellerId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TEMP_SELLER_ID));    // 1001
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TEMP_SELLER_ID));
 
         // 이미지 저장 처리
         String shopImageName = null; // 대표 이미지
@@ -134,6 +147,42 @@ public class SellerServiceImpl implements SellerService{
         return ApiResponseDTO.builder()
                 .success(true)
                 .message("판매자 승인 요청이 접수되었습니다. 관리자의 승인을 기다려주세요.")
+                .build();
+    }
+
+    @Override
+    public ApiResponseDTO getSellerProfile(Long uid) {
+        // uid가 없는 경우
+        if(uid == null) throw new BusinessException(ErrorCode.NOT_FOUND_UID);
+
+        String userId = authenticatedUserService.getCurrentMember().getUserId();
+
+        SellerResponseDTO sellerDTO = memberRepository.sellerGetOne(uid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (!sellerDTO.getRole().equals(MemberRole.SELLER)) {
+            throw new BusinessException(ErrorCode.NOT_AUTHORIZED_OTHER);
+        }
+
+        if (!sellerDTO.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NOT_AUTHORIZED_OTHER_SELLER);
+        }
+
+        ShopPreviewDTO shopPreview = shopRepository.findPreviewByUid(uid)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
+
+        SellerResponseDTO responseDTO = SellerResponseDTO.builder()
+                .uid(sellerDTO.getUid())
+                .userId(sellerDTO.getUserId())
+                .uname(sellerDTO.getUname())
+                .phoneNumber(sellerDTO.getPhoneNumber())
+                .shopPreview(shopPreview)
+                .build();
+
+        return ApiResponseDTO.builder()
+                .success(true)
+                .message("판매자 프로필 조회 성공")
+                .data(responseDTO)
                 .build();
     }
 

@@ -1,13 +1,18 @@
 package com.cakequake.cakequakeback.member.service;
 
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
+import com.cakequake.cakequakeback.member.dto.seller.SellerResponseDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
+import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.member.entities.MemberRole;
 import com.cakequake.cakequakeback.member.entities.PendingSellerRequest;
 import com.cakequake.cakequakeback.member.repo.PendingSellerRequestRepository;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
+import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,11 +23,14 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Import({BCryptPasswordEncoder.class})
@@ -44,6 +52,9 @@ public class SellerServiceTests {
 
     @Autowired
     private SellerService service;
+
+    @MockitoBean
+    private AuthenticatedUserService authenticatedUserService;
 
 
     @Disabled
@@ -135,6 +146,44 @@ public class SellerServiceTests {
         assertThat(saved.getSanitationCertificateUrl()).contains(".jpg");
         assertThat(saved.getMainProductDescription()).contains("케이크");
         assertThat(saved.getAddress()).isEqualTo("서울시 강남구 어디동 123");
+    }
+
+    // 가짜 로그인
+    @BeforeEach
+    void setup() {
+        // 로그인된 사용자 역할로 Mock 객체 반환
+        when(authenticatedUserService.getCurrentMember())
+                .thenReturn(Member.builder()
+                        .uid(39L)
+                        .userId("seller1")
+                        .role(MemberRole.SELLER)
+                        .build()
+                );
+    }
+
+    @Test
+    @DisplayName("정상적으로 판매자 프로필을 조회")
+    public void testGetSellerProfileSuccess() {
+        // given
+        Long uid = 39L; // DB에 존재하는 판매자 uid
+
+        // when
+        ApiResponseDTO response = service.getSellerProfile(uid);
+
+        // then
+        assertTrue(response.isSuccess());
+        assertEquals("판매자 프로필 조회 성공", response.getMessage());
+
+        Object data = response.getData();
+        assertNotNull(data);
+        assertTrue(data instanceof SellerResponseDTO);
+
+        SellerResponseDTO sellerDTO = (SellerResponseDTO) data;
+        assertEquals(uid, sellerDTO.getUid());
+        assertNotNull(sellerDTO.getShopPreview());
+
+        // 더 세부적으로 검증하고 싶다면 아래도 추가 가능
+        // assertEquals("테스트가게", sellerDTO.getShopPreview().getShopName());
     }
 
 }

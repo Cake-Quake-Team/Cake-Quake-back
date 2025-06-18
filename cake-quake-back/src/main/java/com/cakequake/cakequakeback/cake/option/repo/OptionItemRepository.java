@@ -16,9 +16,8 @@ import java.util.Optional;
 public interface OptionItemRepository extends JpaRepository<OptionItem, Long> {
 
     // 옵션 값 목록 조회
-    @Query("SELECT new com.cakequake.cakequakeback.cake.option.dto.CakeOptionItemDTO(oi.optionItemId, oi.optionName, oi.price)" +
-            "FROM OptionItem oi WHERE oi.isDeleted = false")
-    Page<CakeOptionItemDTO> findOptionItem(@Param("shopId") Long shopId, Pageable pageable);
+    @Query("SELECT oi FROM OptionItem oi WHERE oi.isDeleted = false")
+    Page<OptionItem> findOptionItem(@Param("shopId") Long shopId, Pageable pageable);
 
     // 옵션 타입에 해당하는 옵션 값들 삭제
     @Modifying

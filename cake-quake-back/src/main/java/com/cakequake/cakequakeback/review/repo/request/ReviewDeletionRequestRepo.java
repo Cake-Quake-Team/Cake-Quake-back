@@ -17,7 +17,9 @@ public interface ReviewDeletionRequestRepo extends JpaRepository<ReviewDeletionR
     Optional<ReviewDeletionRequest> findByReview_ReviewId(Long reviewId);
 
     /** 관리자용: 전체 요청 페이징 조회 */
-    @Query("SELECT rdr FROM ReviewDeletionRequest rdr ORDER BY rdr.regDate DESC")
+    @Query("SELECT rdr FROM ReviewDeletionRequest rdr " +
+            "WHERE rdr.status = com.cakequake.cakequakeback.review.entities.DeletionRequestStatus.PENDING " +
+            "ORDER BY rdr.regDate DESC")
     Page<ReviewDeletionRequest> findAllRequest(Pageable pageable);
 
 }
