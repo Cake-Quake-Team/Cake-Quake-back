@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 
-public class shopImageDTO {
+public class ShopImageDTO {
     private Long shopImageId;
     private String shopImageUrl;
     private Boolean isThumbnail;

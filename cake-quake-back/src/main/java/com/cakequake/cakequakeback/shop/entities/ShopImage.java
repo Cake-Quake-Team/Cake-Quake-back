@@ -29,10 +29,10 @@ public class ShopImage extends BaseEntity {
     @Column(nullable = false)
     private Boolean isThumbnail=false; //대표이미지
 
-    @Column(nullable = false)
+    @Column
     private String createdBy; //생성자
 
-    @Column( nullable = false)
+    @Column
     private String modifiedBy; //수정자
 
     public void changeThumbnail(boolean isThumbnail) {

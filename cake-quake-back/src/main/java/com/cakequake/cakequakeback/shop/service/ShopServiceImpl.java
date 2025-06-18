@@ -5,6 +5,7 @@ import com.cakequake.cakequakeback.cake.item.service.CakeItemService;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.shop.ShopValidator;
 import com.cakequake.cakequakeback.shop.dto.*;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import com.cakequake.cakequakeback.shop.entities.ShopImage;
@@ -13,27 +14,31 @@ import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import com.cakequake.cakequakeback.shop.repo.ShopNoticeRepository;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.Table;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 
 public class ShopServiceImpl implements ShopService {
     private final ShopRepository shopRepository;
     private final ShopNoticeRepository shopNoticeRepository;
     private final CakeItemService cakeItemService;
+    private final ShopValidator shopValidator;
+    private final ShopImageService shopImageService;
 
     //매장 상세 조회 = 공지사항 미리보기 + 매장별 상품 보기
     @Override
@@ -50,7 +55,7 @@ public class ShopServiceImpl implements ShopService {
         Member member = shop.getMember();
 
         // 이미지 정보를 그룹화하고 DTO에 설정
-        List<shopImageDTO> shopImageDTOs = new ArrayList<>();
+        List<ShopImageDTO> ShopImageDTOS = new ArrayList<>();
         String thumbnailUrl = null;
 
         for (Object[] row : results) {
@@ -58,12 +63,12 @@ public class ShopServiceImpl implements ShopService {
 
             //이미지가 없는 경우
             if (shopImage != null) {
-                shopImageDTO imageDTO = shopImageDTO.builder()
+                ShopImageDTO imageDTO = ShopImageDTO.builder()
                         .shopImageId(shopImage.getShopImageId())
                         .shopImageUrl(shopImage.getShopImageUrl())
                         .isThumbnail(shopImage.getIsThumbnail())
                         .build();
-                shopImageDTOs.add(imageDTO);
+                ShopImageDTOS.add(imageDTO);
 
                 //썸네일 URL 설정
                 if (shopImage.getIsThumbnail() && thumbnailUrl == null) {
@@ -115,7 +120,7 @@ public class ShopServiceImpl implements ShopService {
                 .lat(shop.getLat())
                 .lng(shop.getLng())
                 // 이미지 정보 설정
-                .images(shopImageDTOs)
+                .images(ShopImageDTOS)
                 .thumbnailUrl(thumbnailUrl)
                 // 추가 정보 설정
                 .noticePreview(previewDTO)
@@ -124,20 +129,25 @@ public class ShopServiceImpl implements ShopService {
     }
 
 
-
-
-
-    //매장 목록 조회
+    //매장 목록 조회 -> 필터 관련 로직 추가
     @Override
-    public InfiniteScrollResponseDTO<ShopPreviewDTO> getShopsByStatus(PageRequestDTO pageRequestDTO, ShopStatus status) {
-        Pageable pageable = pageRequestDTO.getPageable("shopId"); // 정렬 기준은 필요에 따라 변경
+    public InfiniteScrollResponseDTO<ShopPreviewDTO> getShops(  int page,int size,ShopStatus status,
+                                                                String keyword,String filter, String sort) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort)); // sort 파라미터 사용
 
-        Page<ShopPreviewDTO> page = shopRepository.findAll(status, pageable);
+        // 2. 검색어(keyword) 및 필터(filter) 적용 로직 추가
+        Page<ShopPreviewDTO> resultPage;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            resultPage = shopRepository.findAll(status, pageable);
+        } else {
+            resultPage = shopRepository.findAll(status, pageable);
+        }
 
         return InfiniteScrollResponseDTO.<ShopPreviewDTO>builder()
-                .content(page.getContent())
-                .hasNext(page.hasNext())
-                .totalCount((int) page.getTotalElements())
+                .content(resultPage.getContent())
+                .hasNext(resultPage.hasNext())
+                .totalCount((int) resultPage.getTotalElements())
                 .build();
     }
 
@@ -158,15 +168,13 @@ public class ShopServiceImpl implements ShopService {
     //공지사항 상세 조회
     @Override
     public ShopNoticeDetailDTO getNoticeDetail(Long noticeId) {
-        return shopNoticeRepository.findNoticeDetailById(noticeId)
-                .orElseThrow(() -> new EntityNotFoundException("공지사항을 찾을 수 없습니다."));
+        return shopValidator.validateNotice(noticeId);
     }
 
     //공지사항 추가
     @Override
    public Long createNotice(Long shopId, ShopNoticeDTO noticeDTO){
-        Shop shop =shopRepository.findById(shopId)
-                .orElseThrow(()-> new EntityNotFoundException("매장을 찾을 수 없습니다."));
+        Shop shop =shopValidator.validateShop(shopId);
 
         ShopNotice notice = ShopNotice.builder()
                 .shop(shop)
@@ -181,23 +189,33 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public void updateNotice(Long shopId, Long noticeId, ShopNoticeDTO noticeDTO){
 
-        ShopNotice notice = shopNoticeRepository.findByShopNoticeIdAndShopShopId(noticeId, shopId)
-                .orElseThrow(()-> new EntityNotFoundException("해당 매장의 공지사항을 찾을 수 없습니다."));
+        ShopNotice notice = shopValidator.validateShopNotice(shopId,noticeId);
 
         notice.update(noticeDTO.getTitle(), noticeDTO.getContent());
 
     }
 
+    //공지사항 삭제
     @Override
     public void deleteNotice(Long shopId, Long noticeId){
 
-        ShopNotice notice = shopNoticeRepository.findByShopNoticeIdAndShopShopId(noticeId, shopId)
-                .orElseThrow(()-> new EntityNotFoundException("해당 매장의 공지사항을 찾을 수 없습니다."));
-
+        ShopNotice notice = shopValidator.validateShopNotice(shopId,noticeId);
 
         shopNoticeRepository.delete(notice);
     }
 
+
+    //매장 정보 수정
+    @Override
+    public void updateShop(Long shopId, ShopUpdateDTO updateDTO, List<MultipartFile> files){
+
+        Shop shop = shopValidator.validateShop(shopId);
+        shopValidator.validateUpdateShop(updateDTO);
+
+        shop.updateShop(updateDTO);
+        shopImageService.updateShopImages(shop, updateDTO.getImageUrls(),files);
+
+    }
 
 }
 

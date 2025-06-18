@@ -2,7 +2,6 @@
 package com.cakequake.cakequakeback.shop.dto;
 
 import com.cakequake.cakequakeback.cake.item.dto.CakeListDTO;
-import com.cakequake.cakequakeback.cake.item.dto.ImageDTO;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import lombok.*;
 
@@ -31,7 +30,7 @@ public class ShopDetailResponseDTO {
     private String websiteUrl;
     private String instagramUrl;
     private String thumbnailUrl;
-    private List<shopImageDTO> images;
+    private List<ShopImageDTO> images;
     private ShopStatus status;
     private BigDecimal lat;
     private BigDecimal lng;

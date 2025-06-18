@@ -2,24 +2,23 @@ package com.cakequake.cakequakeback.shop.controller;
 
 import com.cakequake.cakequakeback.cake.item.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.CakeListDTO;
+import com.cakequake.cakequakeback.cake.item.dto.MappingResponseDTO;
 import com.cakequake.cakequakeback.cake.item.service.CakeItemService;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
-import com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO;
-import com.cakequake.cakequakeback.shop.dto.ShopNoticeDTO;
-import com.cakequake.cakequakeback.shop.dto.ShopNoticeDetailDTO;
-import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
+import com.cakequake.cakequakeback.shop.dto.*;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import com.cakequake.cakequakeback.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("api/shops")
+@RequestMapping("api/v1/shops")
 @RequiredArgsConstructor
 
 public class ShopController {
@@ -36,17 +35,13 @@ public class ShopController {
     //매장 목록 조회
     @GetMapping
     @Transactional(readOnly = true)
-    public InfiniteScrollResponseDTO<ShopPreviewDTO> getShopsByStatus(
-            PageRequestDTO pageRequestDTO,  @RequestParam(defaultValue = "ACTIVE") ShopStatus status){
-            return shopService.getShopsByStatus(pageRequestDTO, status);
+    public InfiniteScrollResponseDTO<ShopPreviewDTO> getShops(PageRequestDTO pageRequestDTO, @RequestParam(defaultValue = "ACTIVE") ShopStatus status, @RequestParam(required = false) String keyword, @RequestParam(required = false) String filter, @RequestParam(required = false,defaultValue = "shopId") String sort){
+            return shopService.getShops(pageRequestDTO.getPage(), pageRequestDTO.getSize(), status,keyword,filter,sort);
     }
+
     //매장별 케이크 목록 조회
     @GetMapping("/{shopId}/cakes")
-    public ResponseEntity<InfiniteScrollResponseDTO<CakeListDTO>> getShopCakes(
-            @PathVariable Long shopId,
-            PageRequestDTO pageRequestDTO,
-            @RequestParam(required = false) CakeCategory category) {
-
+    public ResponseEntity<InfiniteScrollResponseDTO<CakeListDTO>> getShopCakes(@PathVariable Long shopId, PageRequestDTO pageRequestDTO, @RequestParam(required = false) CakeCategory category) {
         InfiniteScrollResponseDTO<CakeListDTO> response = cakeItemService.getShopCakeList(shopId, pageRequestDTO, category);
         return ResponseEntity.ok(response);
     }
@@ -76,7 +71,7 @@ public class ShopController {
     }
 
     //공지사항 수정
-    @PutMapping("/{shopId}/notices/{noticeId}")
+    @PatchMapping("/{shopId}/notices/{noticeId}")
     public ResponseEntity<Void> updateNotice(@PathVariable Long shopId, @PathVariable Long noticeId,
                                              @RequestBody ShopNoticeDTO dto) {
         shopService.updateNotice(shopId,noticeId, dto);
@@ -87,6 +82,18 @@ public class ShopController {
     @DeleteMapping("/{shopId}/notices/{noticeId}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long shopId, @PathVariable Long noticeId) {
         shopService.deleteNotice(shopId, noticeId);
+        return ResponseEntity.ok().build();
+    }
+
+    //매장 정보 수정
+    @PatchMapping("/{shopId}/update")
+    public ResponseEntity<Void> updateShop(
+            @PathVariable Long shopId,
+            @RequestPart(value = "dto",required = false) ShopUpdateDTO dto,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files
+
+    ) {
+        shopService.updateShop(shopId, dto, files);
         return ResponseEntity.ok().build();
     }
 
