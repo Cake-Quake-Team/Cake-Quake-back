@@ -10,6 +10,7 @@ import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class OptionItemController {
     private final OptionItemService optionItemService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('BUYER', 'SELLER')")
     public InfiniteScrollResponseDTO<CakeOptionItemDTO> getOptionItemList(
             @PathVariable Long shopId,
             PageRequestDTO pageRequestDTO) {
@@ -28,6 +30,7 @@ public class OptionItemController {
     }
 
     @GetMapping("/{optionItemId}")
+    @PreAuthorize("hasRole('SELLER')")
     public OptionItemDetailDTO getOptionItemDetail(
             @PathVariable Long shopId,
             @PathVariable Long optionItemId) {
@@ -36,6 +39,7 @@ public class OptionItemController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<CakeOptionItemDTO> addOptionItem(
             @PathVariable Long shopId,
             @RequestBody AddOptionItemDTO addOptionItemDTO) {
@@ -52,6 +56,7 @@ public class OptionItemController {
     }
 
     @PatchMapping("/{optionItemId}")
+    @PreAuthorize("hasRole('SELLER')")
     public OptionItemDetailDTO updateOptionItem(
             @PathVariable Long shopId,
             @PathVariable Long optionItemId,
@@ -63,6 +68,7 @@ public class OptionItemController {
     }
 
     @DeleteMapping("/{optionItemId}")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<Void> deleteOptionItem(
             @PathVariable Long shopId,
             @PathVariable Long optionItemId) {

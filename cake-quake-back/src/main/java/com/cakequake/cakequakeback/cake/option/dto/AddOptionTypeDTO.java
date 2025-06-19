@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 // 상품 옵션 타입 등록 DTO
 // 시트모양, 시트 크기, 속크림, 겉크림 등등
 public class AddOptionTypeDTO {
-
+    private Long optionTypeId;
     private String optionType;
     private Boolean isRequired = false;
     private Integer minSelection = 0;

@@ -17,6 +17,9 @@ public class CakeOptionItemDTO {
     private int price;
     private Long optionTypeId;
     private String optionTypeName;
+    private Boolean isRequired;
+    private int minSelection;
+    private int maxSelection;
 
     public static CakeOptionItemDTO fromEntity(OptionItem optionItem) {
         return CakeOptionItemDTO.builder()
@@ -25,6 +28,9 @@ public class CakeOptionItemDTO {
                 .price(optionItem.getPrice())
                 .optionTypeId(optionItem.getOptionType() != null ? optionItem.getOptionType().getOptionTypeId() : null)
                 .optionTypeName(optionItem.getOptionType() != null ? optionItem.getOptionType().getOptionType() : "알 수 없음")
+                .isRequired(optionItem.getOptionType().getIsRequired())
+                .minSelection(optionItem.getOptionType().getMinSelection())
+                .maxSelection(optionItem.getOptionType().getMaxSelection())
                 .build();
     }
 
