@@ -9,7 +9,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "option_item", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"optionTypeId", "optionName"}) // optionTypeId와 optionName 조합이 유일
+        @UniqueConstraint(columnNames = {"optionTypeId", "optionName", "version"}) // optionTypeId와 optionName 조합이 유일
 })
 @AllArgsConstructor
 @NoArgsConstructor

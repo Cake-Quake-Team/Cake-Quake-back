@@ -118,34 +118,38 @@ public class OptionItemServiceImpl implements OptionItemService {
     public void updateOptionItem(Long shopId, Long optionItemId, UpdateOptionItemDTO updateOptionItemDTO) {
 
         optionValidator.validateShop(shopId);
-        OptionItem optionItem = optionValidator.vlidateOptionItem(optionItemId);
+        OptionItem optionItem = optionValidator.vlidateOptionItem(optionItemId); // 기존 옵션 항목 조회
 
         Member member = optionValidator.validateMember(
                 SecurityContextHolder.getContext().getAuthentication().getName()
         );
 
-        // 원본과 값이 모두 동일하면 패스
+        // 원본과 값이 모두 동일하면 패스 (이 로직은 새로운 버전을 생성하는 경우에도 유효성을 검사합니다.)
         boolean noChange =
                 (updateOptionItemDTO.getOptionName() == null || updateOptionItemDTO.getOptionName().equals(optionItem.getOptionName())) &&
                         (updateOptionItemDTO.getPrice() == null || updateOptionItemDTO.getPrice() == optionItem.getPrice());
 
-        if (noChange) return; // 아무 것도 변경된 게 없으면 새로 저장하지 않음
+        // DTO에서 변경하려는 '이름'과 '가격'이 모두 null이거나 기존 값과 동일하다면,
+        // 새로운 버전을 생성할 필요가 없으므로 여기서 종료합니다.
+        if (noChange) return;
 
         // 3. 기존 항목은 삭제 처리 (Soft Delete)
         optionItem.changeIsDeleted(true);
+        // ★★★ 기존 항목의 변경사항을 DB에 명시적으로 반영합니다. ★★★
+        optionItemRepository.save(optionItem); // 이렇게 호출하면 기존 항목의 isDeleted 변경이 즉시 반영됩니다.
 
         // 4. 새로운 버전 생성
         OptionItem newItem = OptionItem.builder()
                 .optionType(optionItem.getOptionType())
                 .optionName(updateOptionItemDTO.getOptionName() != null ? updateOptionItemDTO.getOptionName() : optionItem.getOptionName())
                 .price(updateOptionItemDTO.getPrice() != null ? updateOptionItemDTO.getPrice() : optionItem.getPrice())
-                .version(optionItem.getVersion() + 1)
-                .isDeleted(false)
+                .version(optionItem.getVersion() + 1) // 기존 버전 + 1
+                .isDeleted(false) // 새로운 항목이므로 false
                 .createdBy(optionItem.getCreatedBy())
                 .modifiedBy(member)
                 .build();
 
-        optionItemRepository.save(newItem);
+        optionItemRepository.save(newItem); // 새 항목 저장 (INSERT)
     }
 
     @Override
