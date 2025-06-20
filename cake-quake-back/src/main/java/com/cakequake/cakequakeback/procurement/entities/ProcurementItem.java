@@ -26,9 +26,6 @@ public class ProcurementItem {
     private Ingredient ingredient;
 
     @Column(nullable = false)
-    private Long ingredientId;
-
-    @Column(nullable = false)
     private Integer quantity;
 
 }

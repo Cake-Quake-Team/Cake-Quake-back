@@ -2,7 +2,7 @@ package com.cakequake.cakequakeback.procurement.validator;
 
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
-import com.cakequake.cakequakeback.procurement.dto.ProcurementItemRequestDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementItemRequestDTO;
 import com.cakequake.cakequakeback.procurement.entities.Procurement;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
 import com.cakequake.cakequakeback.procurement.repo.ProcurementRepo;

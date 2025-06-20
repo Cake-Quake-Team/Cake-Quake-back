@@ -119,6 +119,7 @@ public enum ErrorCode {
     NOTICE_NOT_FOUND(404, 1017, "공지사항을 찾을 수 없습니다."),
     SHOPNOTICE_NOT_FOUND(404,1018,"해당 매장의 공지사항을 찾을 수 없습니다."),
     REVIEW_ALREADY_DELETED(404,1019, "해당 리뷰를 찾을 수 없습니다"),
+    NOT_FOUND_INGREDIENT_ID(404,1020, "해당 IngredientId가 존재하지 않습니다"),
 
 
     //HTTP 409 Conflict (code: 701~715)
