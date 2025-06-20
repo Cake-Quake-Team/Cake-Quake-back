@@ -76,6 +76,10 @@ dependencies {
 
 	// oauth
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	// openai
+	implementation "org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M6"
+
 }
 
 tasks.named('test') {

@@ -80,7 +80,6 @@ public class CakeItemServiceImpl implements CakeItemService {
 
         Shop shop = cakeValidator.validateShop(shopId);
         cakeValidator.validateAddCake(addCakeDTO);
-        cakeValidator.validateThumbnailImageUrl(addCakeDTO.getImageUrls());
         List<OptionItem> optionItems = cakeValidator.validateOptionItems(addCakeDTO.getMappingRequestDTO().getOptionItemIds());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
