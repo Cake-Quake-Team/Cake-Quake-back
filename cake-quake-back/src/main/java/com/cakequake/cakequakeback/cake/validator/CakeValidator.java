@@ -73,6 +73,8 @@ public class CakeValidator {
 
     // 케이크 등록시 유효성 검사
     public void validateAddCake(AddCakeDTO addCakeDTO) {
+        validateThumbnailImageUrl(addCakeDTO.getImageUrls());
+
         if (addCakeDTO.getCname() == null || addCakeDTO.getCname().trim().isEmpty() || addCakeDTO.getCname().length() > 20) {
             throw new BusinessException(ErrorCode.INVALID_LONG_NAME);
         }

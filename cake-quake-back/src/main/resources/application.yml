@@ -20,6 +20,14 @@ spring:
       max-lifetime: 1800000
       connection-timeout: 2000
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_MODEL}
+
+
   #JPA Config
   jpa:
     hibernate:
