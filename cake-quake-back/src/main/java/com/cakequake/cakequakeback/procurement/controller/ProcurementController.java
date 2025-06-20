@@ -3,17 +3,15 @@ package com.cakequake.cakequakeback.procurement.controller;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
-import com.cakequake.cakequakeback.procurement.dto.ConfirmProcurementDTO;
-import com.cakequake.cakequakeback.procurement.dto.ProcurementRequestDTO;
-import com.cakequake.cakequakeback.procurement.dto.ProcurementResponseDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ConfirmProcurementDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementRequestDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
 import com.cakequake.cakequakeback.procurement.service.ProcurementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -82,5 +80,6 @@ public class ProcurementController {
     ){
         return ResponseEntity.ok(procurementService.confirmProcurement(procurementId,confirmDTO));
     }
+
 
 }

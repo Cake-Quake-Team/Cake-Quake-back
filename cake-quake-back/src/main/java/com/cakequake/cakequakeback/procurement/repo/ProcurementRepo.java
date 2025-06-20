@@ -1,11 +1,10 @@
 package com.cakequake.cakequakeback.procurement.repo;
 
-import com.cakequake.cakequakeback.procurement.dto.ProcurementResponseDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO;
 import com.cakequake.cakequakeback.procurement.entities.Procurement;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +14,8 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
 
     /** 매장별 요청 내역 조회 (무한 스크롤용) */
     @Query("""
-        SELECT new com.cakequake.cakequakeback.procurement.dto.ProcurementResponseDTO(
+        SELECT new com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO
+            (
             p.procurementId,
             p.shop.shopId,
             p.status,
@@ -35,7 +35,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
 
     /** 상태별 요청 내역 조회 */
     @Query("""
-        SELECT new com.cakequake.cakequakeback.procurement.dto.ProcurementResponseDTO(
+        SELECT new com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO(
             p.procurementId,
             p.shop.shopId,
             p.status,
@@ -55,7 +55,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
 
     /** 매장+상태 복합 조회 */
     @Query("""
-        SELECT new com.cakequake.cakequakeback.procurement.dto.ProcurementResponseDTO(
+        SELECT new com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO(
             p.procurementId,
             p.shop.shopId,
             p.status,
@@ -83,13 +83,12 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
                p.status             AS status,
               p.note               AS note,
                p.scheduledDate      AS scheduledDate,
-               p.regDate          AS redDate,
+               p.regDate          AS regDate,
               pi.procurementItemId AS procurementItemId,
-               pi.ingredientId      AS ingredientId,
+               pi.ingredient.ingredientId      AS ingredientId,
                pi.quantity          AS quantity
           FROM Procurement p
           JOIN ProcurementItem pi
-           ON pi.procurement.procurementId = p.procurementId
         WHERE p.shop.shopId = :shopId
      ORDER BY p.procurementId DESC
     """)

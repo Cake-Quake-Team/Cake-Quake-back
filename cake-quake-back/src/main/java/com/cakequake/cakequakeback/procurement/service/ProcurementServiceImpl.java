@@ -4,13 +4,14 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
-import com.cakequake.cakequakeback.procurement.dto.ConfirmProcurementDTO;
-import com.cakequake.cakequakeback.procurement.dto.ProcurementItemResponseDTO;
-import com.cakequake.cakequakeback.procurement.dto.ProcurementRequestDTO;
-import com.cakequake.cakequakeback.procurement.dto.ProcurementResponseDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ConfirmProcurementDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementItemResponseDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementRequestDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO;
 import com.cakequake.cakequakeback.procurement.entities.Procurement;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementItem;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
+import com.cakequake.cakequakeback.procurement.repo.IngredientRepo;
 import com.cakequake.cakequakeback.procurement.repo.ProcurementItemRepository;
 import com.cakequake.cakequakeback.procurement.repo.ProcurementRepo;
 import com.cakequake.cakequakeback.procurement.validator.ProcurementValidator;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -33,6 +35,7 @@ public class ProcurementServiceImpl implements ProcurementService{
     private final ProcurementItemRepository procurementItemRepository;
     private final ProcurementValidator validator;
     private final ShopRepository shopRepository;
+    private final IngredientRepo ingredientRepo;
 
     //매장별 요청 내역 페이지 조회
     @Override
@@ -111,12 +114,20 @@ public class ProcurementServiceImpl implements ProcurementService{
 
         //각 아이템 생성 후 저장
         List<ProcurementItem> items = request.getItems().stream()
-                .map(i-> ProcurementItem.builder()
-                        .procurement(saved)
-                        .ingredientId(i.getIngredientId())
-                        .quantity(i.getQuantity())
-                        .build())
+                .map(itemDTO -> {
+                    // ① Ingredient 엔티티 조회
+                    var ingredient = ingredientRepo.findById(itemDTO.getIngredientId())
+                            .orElseThrow(() -> new BusinessException(ErrorCode. NOT_FOUND_INGREDIENT_ID));
+
+                    // ② ProcurementItem 생성 (반드시 return)
+                    return ProcurementItem.builder()
+                            .procurement(saved)
+                            .ingredient(ingredient)        // 관계 필드에 엔티티 넣기
+                            .quantity(itemDTO.getQuantity())
+                            .build();
+                })
                 .collect(Collectors.toList());
+
         procurementItemRepository.saveAll(items);
 
         return toResponseDTO(saved,items);
@@ -136,9 +147,8 @@ public class ProcurementServiceImpl implements ProcurementService{
 
         //변경된 엔티티에 매핑된 항목 조회
         List<ProcurementItem> items = procurementItemRepository.findByProcurement_ProcurementId(procurementId);
-        procurementItemRepository.saveAll(items);
 
-        return null;
+        return toResponseDTO(procurement,items);
     }
 
 
@@ -151,24 +161,28 @@ public class ProcurementServiceImpl implements ProcurementService{
                 .build();
     }
 
-    //엔티티 -> DTO변환
-    private ProcurementResponseDTO toResponseDTO(Procurement procurement, List<ProcurementItem> items) {
-        List<ProcurementItemResponseDTO> itemResponseDTO = items.stream()
-                .map( i -> new ProcurementItemResponseDTO(
-                        i.getProcurementItemId(),
-                        i.getIngredientId(),
-                        i.getQuantity()
-                ))
+    //엔티티 +아이템 리스트 -> DTO변환
+    private ProcurementResponseDTO toResponseDTO(Procurement p, List<ProcurementItem> items) {
+        List<ProcurementItemResponseDTO> respItems = items.stream()
+                .map(i -> {
+                    // relation 필드에서 ID 꺼내기
+                    Long ingrId = i.getIngredient().getIngredientId();
+                    return ProcurementItemResponseDTO.builder()
+                            .itemId(i.getProcurementItemId())
+                            .ingredientId(ingrId)
+                            .quantity(i.getQuantity())
+                            .build();
+                })
                 .collect(Collectors.toList());
-        return new ProcurementResponseDTO(
-                procurement.getProcurementId(),
-                procurement.getShop().getShopId(),
-                procurement.getStatus(),
-                procurement.getNote(),
-                procurement.getScheduledDate(),
-                procurement.getRegDate(),
-                itemResponseDTO
-        );
-    }
+        return ProcurementResponseDTO.builder()
+                .procurementId(p.getProcurementId())
+                .shopId(p.getShop().getShopId())
+                .status(p.getStatus())
+                .note(p.getNote())
+                .scheduleDate(p.getScheduledDate())
+                .regDate(p.getRegDate())
+                .items(respItems)
+                .build();
 
+    }
 }

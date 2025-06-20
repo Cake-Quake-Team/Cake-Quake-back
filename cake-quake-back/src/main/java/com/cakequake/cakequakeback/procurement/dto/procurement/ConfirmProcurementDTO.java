@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.procurement.dto;
+package com.cakequake.cakequakeback.procurement.dto.procurement;
 
 
 import jakarta.validation.constraints.Future;
