@@ -26,6 +26,7 @@ public class Temperature extends BaseEntity {
     @Column(nullable = false)
     private Long uid;
 
+
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId           // Member의 PK를 공유
     @JoinColumn(name = "uid", nullable = false)
@@ -73,7 +74,7 @@ public class Temperature extends BaseEntity {
         this.grade =Grade.fromTemperature(this.temperature);
 
         //이력 추가
-        this.historyList.add(new TemperatureHistory(this, changeAmount, (float)this.temperature, reason, type, objectId));
+        this.historyList.add(new TemperatureHistory(member, this, changeAmount, (float)this.temperature, reason, type, objectId));
 
     }
 

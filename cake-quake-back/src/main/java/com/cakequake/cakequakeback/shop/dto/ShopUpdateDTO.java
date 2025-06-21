@@ -26,12 +26,9 @@ public class ShopUpdateDTO {
     private String instagramUrl;
     private ShopStatus status;
     private String thumbnailImageUrl;
-    private List<ShopImageDTO> imageUrls;
-    private List<Long> shopImageIdsToDelete; // 삭제할 기존 이미지 ID 목록 (프론트에서 JSON.stringify로 보낸 것을 받을 것)
-    private List<ShopImageDTO> existingImageDtos; // 기존 이미지들의 ID와 isThumbnail 상태 (프론트에서 JSON.stringify로 보낸 것을 받을 것)
-    private List<MultipartFile> newFiles; // 새로 업로드될 파일들
-    private Long thumbnailImageId; // 기존 이미지 중 썸네일로 지정될 ID
-    private Integer thumbnailNewFileIndex; // 새로 업로드될 파일 중 썸네일로 지정될 파일의 인덱스 (newFiles 리스트의 인덱스)
+    private List<Long> imageIds;
+    private Long thumbnailImageId;
+
 
 
 

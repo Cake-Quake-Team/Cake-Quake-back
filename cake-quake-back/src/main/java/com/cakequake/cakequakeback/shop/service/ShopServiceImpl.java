@@ -11,6 +11,7 @@ import com.cakequake.cakequakeback.shop.entities.Shop;
 import com.cakequake.cakequakeback.shop.entities.ShopImage;
 import com.cakequake.cakequakeback.shop.entities.ShopNotice;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
+import com.cakequake.cakequakeback.shop.repo.ShopImageRepository;
 import com.cakequake.cakequakeback.shop.repo.ShopNoticeRepository;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,43 +40,23 @@ public class ShopServiceImpl implements ShopService {
     private final CakeItemService cakeItemService;
     private final ShopValidator shopValidator;
     private final ShopImageService shopImageService;
+    private final ShopImageRepository shopImageRepository;
 
     //매장 상세 조회 = 공지사항 미리보기 + 매장별 상품 보기
     @Override
     public ShopDetailResponseDTO getShopDetail(Long shopId) {
+
+        log.info("매장 상세 정보 조회 시작. shopId: {}", shopId);
         // 1. 매장 및 이미지 정보 조회
-        List<Object[]> results = shopRepository.SelectDTO(shopId);
+        Shop shop=shopValidator.validateShop(shopId);
+        log.info("매장 기본 정보 조회 완료. shopName: {}", shop.getShopName());
 
-        if (results.isEmpty()) {
-            throw new EntityNotFoundException("매장을 찾을 수 없습니다.");
-        }
+        //매장 이미지 정보 조회
+        List<ShopImageDTO> images  = shopImageRepository.findShopImages(shopId);
+        log.info("매장 이미지 {}개 조회 완료.", images.size());
 
-        // 쿼리 결과의 첫 번째 행에서 Shop 엔티티를 가져와 기본 DTO를 만듭니다.
-        Shop shop = (Shop) results.get(0)[0];
-        Member member = shop.getMember();
-
-        // 이미지 정보를 그룹화하고 DTO에 설정
-        List<ShopImageDTO> ShopImageDTOS = new ArrayList<>();
-        String thumbnailUrl = null;
-
-        for (Object[] row : results) {
-            ShopImage shopImage = (ShopImage) row[1];
-
-            //이미지가 없는 경우
-            if (shopImage != null) {
-                ShopImageDTO imageDTO = ShopImageDTO.builder()
-                        .shopImageId(shopImage.getShopImageId())
-                        .shopImageUrl(shopImage.getShopImageUrl())
-                        .isThumbnail(shopImage.getIsThumbnail())
-                        .build();
-                ShopImageDTOS.add(imageDTO);
-
-                //썸네일 URL 설정
-                if (shopImage.getIsThumbnail() && thumbnailUrl == null) {
-                    thumbnailUrl = shopImage.getShopImageUrl();
-                }
-            }
-        }
+        String thumbnailUrl=images.isEmpty()?null:images.get(0).getShopImageUrl();
+        log.info("썸네일 URL 설정 완료: {}", thumbnailUrl);
 
         // 2. 공지사항 미리보기 생성 (기존 로직 유지)
         Optional<ShopNotice> optionalNotice = shopNoticeRepository
@@ -93,21 +74,23 @@ public class ShopServiceImpl implements ShopService {
                     notice.getRegDate(),
                     notice.getModDate()
             );
-        }).orElse(null);
+        }).orElse(null); //공지사항이 없는 경우 null 반환
+        log.info("공지사항 미리보기 생성 완료. 존재 여부: {}", previewDTO != null);
 
         // 3. 케이크 목록 조회 (기존 로직 유지)
         PageRequestDTO pageRequestDTO = new PageRequestDTO();
         InfiniteScrollResponseDTO<CakeListDTO> cakes =
                 cakeItemService.getShopCakeList(shopId, pageRequestDTO, null);
+        log.info("매장 케이크 목록 {}개 조회 완료.", cakes.getContent().size());
 
         // 모든 정보를 최종 DTO에 빌드하여 반환
-        return ShopDetailResponseDTO.builder()
+        ShopDetailResponseDTO responseDTO= ShopDetailResponseDTO.builder()
                 .shopId(shop.getShopId())
-                .uid(member.getUid())
+                .uid(shop.getMember().getUid())
                 .businessNumber(shop.getBusinessNumber())
                 .shopName(shop.getShopName())
                 .address(shop.getAddress())
-                .phone(shop.getPhone() != null ? shop.getPhone() : member.getPhoneNumber())
+                .phone(shop.getPhone() != null ? shop.getPhone() : shop.getMember().getPhoneNumber())
                 .content(shop.getContent())
                 .rating(shop.getRating())
                 .reviewCount(shop.getReviewCount())
@@ -120,12 +103,14 @@ public class ShopServiceImpl implements ShopService {
                 .lat(shop.getLat())
                 .lng(shop.getLng())
                 // 이미지 정보 설정
-                .images(ShopImageDTOS)
+                .images(images)
                 .thumbnailUrl(thumbnailUrl)
                 // 추가 정보 설정
                 .noticePreview(previewDTO)
                 .cakes(cakes.getContent())
                 .build(); // 최종적으로 build() 호출
+            log.info("ShopDetailResponseDTO: {}",responseDTO);
+            return responseDTO;
     }
 
 
@@ -135,14 +120,23 @@ public class ShopServiceImpl implements ShopService {
                                                                 String keyword,String filter, String sort) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort)); // sort 파라미터 사용
 
+        log.info(">>> [getShops] page: " + page + ", size: " + size + ", status: " + status);
+        log.info(">>> [getShops] keyword: " + keyword + ", filter: " + filter + ", sort: " + sort);
+
         // 2. 검색어(keyword) 및 필터(filter) 적용 로직 추가
         Page<ShopPreviewDTO> resultPage;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
+            log.info(">>> [getShops] Keyword 검색 조건이 있음 → 검색용 쿼리 실행");
             resultPage = shopRepository.findAll(status, pageable);
         } else {
+            log.info(">>> [getShops] Keyword 없음 → 기본 쿼리 실행");
             resultPage = shopRepository.findAll(status, pageable);
         }
+
+        log.info(">>> [getShops] 조회된 매장 수: " + resultPage.getContent().size());
+        log.info(">>> [getShops] hasNext: " + resultPage.hasNext());
+        log.info(">>> [getShops] totalCount: " + resultPage.getTotalElements());
 
         return InfiniteScrollResponseDTO.<ShopPreviewDTO>builder()
                 .content(resultPage.getContent())
@@ -213,7 +207,22 @@ public class ShopServiceImpl implements ShopService {
         shopValidator.validateUpdateShop(updateDTO);
 
         shop.updateShop(updateDTO);
-        shopImageService.updateShopImages(shop, updateDTO.getImageUrls(),files);
+        Shop saveShop=shopRepository.save(shop);
+
+        ImageResponseDTO saveShopImage=shopImageService.updateShopImages(
+                shop,
+                updateDTO.getImageIds(),
+                files,
+                updateDTO.getThumbnailImageId(),
+                updateDTO.getThumbnailImageUrl()
+        );
+
+        String ThumbnailUrl = saveShopImage.getThumbnailUrl();
+        if(ThumbnailUrl!=null){
+            saveShop.updateThumbnailImageUrl(ThumbnailUrl);
+            shopRepository.save(saveShop);
+
+        }
 
     }
 

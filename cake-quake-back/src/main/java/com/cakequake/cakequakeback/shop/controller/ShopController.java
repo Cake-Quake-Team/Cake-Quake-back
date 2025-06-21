@@ -35,8 +35,8 @@ public class ShopController {
     //매장 목록 조회
     @GetMapping
     @Transactional(readOnly = true)
-    public InfiniteScrollResponseDTO<ShopPreviewDTO> getShops(PageRequestDTO pageRequestDTO, @RequestParam(defaultValue = "ACTIVE") ShopStatus status, @RequestParam(required = false) String keyword, @RequestParam(required = false) String filter, @RequestParam(required = false,defaultValue = "shopId") String sort){
-            return shopService.getShops(pageRequestDTO.getPage(), pageRequestDTO.getSize(), status,keyword,filter,sort);
+    public InfiniteScrollResponseDTO<ShopPreviewDTO> getShops(PageRequestDTO pageRequestDTO, @RequestParam(defaultValue = "ACTIVE") ShopStatus status, @RequestParam(required = false) String keyword, @RequestParam(required = false) String filter, @RequestParam(required = false, defaultValue = "shopId") String sort) {
+        return shopService.getShops(pageRequestDTO.getPage(), pageRequestDTO.getSize(), status, keyword, filter, sort);
     }
 
     //매장별 케이크 목록 조회
@@ -45,6 +45,7 @@ public class ShopController {
         InfiniteScrollResponseDTO<CakeListDTO> response = cakeItemService.getShopCakeList(shopId, pageRequestDTO, category);
         return ResponseEntity.ok(response);
     }
+
     // 공지사항 목록 조회 (무한스크롤용)
     @GetMapping("/{shopId}/notices")
     public ResponseEntity<InfiniteScrollResponseDTO<ShopNoticeDetailDTO>> getNotices(
@@ -74,7 +75,7 @@ public class ShopController {
     @PatchMapping("/{shopId}/notices/{noticeId}")
     public ResponseEntity<Void> updateNotice(@PathVariable Long shopId, @PathVariable Long noticeId,
                                              @RequestBody ShopNoticeDTO dto) {
-        shopService.updateNotice(shopId,noticeId, dto);
+        shopService.updateNotice(shopId, noticeId, dto);
         return ResponseEntity.ok().build();
     }
 
@@ -89,16 +90,27 @@ public class ShopController {
     @PatchMapping("/{shopId}/update")
     public ResponseEntity<Void> updateShop(
             @PathVariable Long shopId,
-            @RequestPart(value = "dto",required = false) ShopUpdateDTO dto,
+            @RequestPart(value = "dto", required = false) ShopUpdateDTO dto,
             @RequestPart(value = "files", required = false) List<MultipartFile> files
 
     ) {
+        System.out.println("컨트롤러 updateShop 호출됨. shopId: " + shopId);
+        System.out.println("DTO: " + dto); // dto 객체의 toString()이 호출됩니다.
+        if (files != null && !files.isEmpty()) { // files가 null이 아니고 비어있지 않은지 확인
+            System.out.println("Files 수: " + files.size());
+            files.forEach(file -> System.out.println("파일: " + file.getOriginalFilename() + ", 타입: " + file.getContentType()));
+        } else {
+            System.out.println("Files 없음.");
+        }
+
+        // 서비스 계층 호출
         shopService.updateShop(shopId, dto, files);
+
+        // 성공적으로 처리되었음을 나타내는 200 OK 응답 반환 (바디 없음)
         return ResponseEntity.ok().build();
+
+
     }
-
-
-
 }
 
 
