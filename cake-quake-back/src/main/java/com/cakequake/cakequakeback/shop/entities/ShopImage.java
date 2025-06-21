@@ -35,8 +35,17 @@ public class ShopImage extends BaseEntity {
     @Column
     private String modifiedBy; //수정자
 
-    public void changeThumbnail(boolean isThumbnail) {
+    public ShopImage(Long shopImageId, String shopImageUrl, Boolean isThumbnail) {
+        this.shopImageId = shopImageId;
+        this.shopImageUrl = shopImageUrl;
         this.isThumbnail = isThumbnail;
+    }
+
+    public void changeThumbnail() {
+        this.isThumbnail = true;
+    }
+    public void deleteThumbnail() {
+        this.isThumbnail = false;
     }
 }
 
