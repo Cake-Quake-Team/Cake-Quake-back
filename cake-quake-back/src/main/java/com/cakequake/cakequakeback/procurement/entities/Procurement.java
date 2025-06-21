@@ -26,6 +26,7 @@ public class Procurement extends BaseEntity {
     @JoinColumn(name = "shopId", nullable =false)
     private Shop shop;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProcurementStatus status = ProcurementStatus.REQUESTED;

@@ -170,6 +170,8 @@ public class ProcurementServiceImpl implements ProcurementService{
                     return ProcurementItemResponseDTO.builder()
                             .itemId(i.getProcurementItemId())
                             .ingredientId(ingrId)
+                            .ingredientName(i.getIngredient().getName())
+                            .unit(i.getIngredient().getUnit())
                             .quantity(i.getQuantity())
                             .build();
                 })
