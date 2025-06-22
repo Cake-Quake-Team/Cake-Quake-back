@@ -1,10 +1,7 @@
 package com.cakequake.cakequakeback.member.service.auth;
 
 import com.cakequake.cakequakeback.member.dto.*;
-import com.cakequake.cakequakeback.member.dto.auth.RefreshTokenRequestDTO;
-import com.cakequake.cakequakeback.member.dto.auth.RefreshTokenResponseDTO;
-import com.cakequake.cakequakeback.member.dto.auth.SigninRequestDTO;
-import com.cakequake.cakequakeback.member.dto.auth.SigninResponseDTO;
+import com.cakequake.cakequakeback.member.dto.auth.*;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 
 public interface MemberService {
@@ -14,4 +11,7 @@ public interface MemberService {
     SigninResponseDTO signin(SigninRequestDTO requestDTO);
 
     RefreshTokenResponseDTO refreshTokens(String accessToken, RefreshTokenRequestDTO requestDTO);
+
+    ApiResponseDTO changePassword(PasswordChangeDTO dto);
+
 }

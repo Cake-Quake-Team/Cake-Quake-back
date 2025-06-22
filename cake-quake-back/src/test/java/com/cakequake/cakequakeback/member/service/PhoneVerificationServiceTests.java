@@ -36,7 +36,7 @@ public class PhoneVerificationServiceTests {
     void testSendVerificationCode_success() {
 
         PhoneVerificationRequestDTO dto = new PhoneVerificationRequestDTO();
-        dto.setPhoneNumber("01012345678");
+        dto.setPhoneNumber("010-1234-5678");
         dto.setType(VerificationType.SIGNUP);
 
         ApiResponseDTO response = service.sendVerificationCode(dto);

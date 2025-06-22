@@ -37,4 +37,8 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(" +
             " s.shopId, s.shopName, s.address) FROM Shop s WHERE s.member.uid = :uid")
     Optional<ShopPreviewDTO> findPreviewByUid(@Param("uid") Long uid);
+
+    // 판매자 탈퇴 시 shop status 변경용
+    @Query("SELECT s FROM Shop s WHERE s.member.uid = :uid AND s.status = 'ACTIVE'")
+    Optional<Shop> findActiveShopByUid(@Param("uid") Long uid);
 }

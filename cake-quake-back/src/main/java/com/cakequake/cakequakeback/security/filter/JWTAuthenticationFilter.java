@@ -5,6 +5,7 @@ import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.common.exception.ErrorResponseDTO;
 import com.cakequake.cakequakeback.common.utils.JWTUtil;
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.member.entities.MemberStatus;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.security.domain.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,8 +94,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        log.debug("=============JWT-doFilterInternal======================");
-
+        log.info("=============JWT-doFilterInternal======================");
         log.debug("requestURI: {}", request.getRequestURI());
 
         // 헤더 정보 중에 Authorization 가져옴.
@@ -121,8 +121,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             String userId = (String) tokenMap.get("userId");
             log.debug("userId: {}", userId);
 
-            Member member = memberRepository.findByUserId(userId)
+            /*
+                status = ACTIVE, 탈퇴하지 않은 유저만 조회.
+             */
+            Member member = memberRepository.findByUserIdAndStatus(userId, MemberStatus.ACTIVE)
                     .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+            log.debug("findByUserIdAndStatus 조회 결과: {}", member != null ? "NOT NULL" : "NULL");
 
             // 인증에 사용할 사용자 정보 객체 생성
             CustomUserDetails userDetails = new CustomUserDetails(member);

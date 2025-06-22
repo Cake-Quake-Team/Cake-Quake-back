@@ -41,12 +41,13 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
     @Override
     public ApiResponseDTO sendVerificationCode(PhoneVerificationRequestDTO requestDTO) {
 
-        // 전화번호 정규화 (하이픈 제거)
         String rawPhoneNumber = requestDTO.getPhoneNumber();
+        // 전화번호 정규화 (하이픈 제거)
         String normalized = PhoneNumberUtils.normalize(rawPhoneNumber);
 
         String code = generateRandomCode(CODE_LENGTH);
         VerificationType type = requestDTO.getType();
+        log.debug("VerificationType: {}", type);
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plusMinutes(EXPIRES_MINUTES); // 만료 시간 계산
@@ -56,9 +57,24 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
             throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
         }
 
-        // 전화번호 중복 검사
-        if (type == VerificationType.SIGNUP && memberRepository.existsByPhoneNumber(normalized)) {
-            throw new BusinessException(ErrorCode.ALREADY_EXIST_PHONE); // 702
+        // 타입별 예외 분리
+        switch (type) {
+            case SIGNUP, CHANGE -> {
+                log.debug("SIGNUP, CHANGE");
+                // 전화번호 중복 검사
+                if (memberRepository.existsByPhoneNumber(rawPhoneNumber)) {
+                    throw new BusinessException(ErrorCode.ALREADY_EXIST_PHONE);
+
+                }
+
+            }
+            case RESET -> {
+                // 비밀번호 찾기 시 인증 -> 전화번호를 찾을 수 없음
+                if (!memberRepository.existsByPhoneNumber(rawPhoneNumber)) {
+                    throw new BusinessException(ErrorCode.NOT_FOUND_PHONE);
+                }
+            }
+            default -> throw new BusinessException(ErrorCode.INVALID_TYPE);
         }
 
         Optional<PhoneVerification> verificationOpt = repository.findByPhoneNumberAndType(normalized, type);
@@ -109,8 +125,8 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
     @Override
     public ApiResponseDTO verifyCode(PhoneVerificationCheckDTO checkDTO) {
 
-        // 전화번호 정규화 (하이픈 제거)
         String rawPhoneNumber = checkDTO.getPhoneNumber();
+        // 전화번호 정규화 (하이픈 제거)
         String normalized = PhoneNumberUtils.normalize(rawPhoneNumber);
 
 //        String phoneNumber = checkDTO.getPhoneNumber();

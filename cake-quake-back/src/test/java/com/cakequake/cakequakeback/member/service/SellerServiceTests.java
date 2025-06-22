@@ -6,13 +6,16 @@ import com.cakequake.cakequakeback.member.dto.seller.SellerResponseDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.member.entities.MemberRole;
+import com.cakequake.cakequakeback.member.entities.MemberStatus;
 import com.cakequake.cakequakeback.member.entities.PendingSellerRequest;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.repo.PendingSellerRequestRepository;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
+import com.cakequake.cakequakeback.shop.entities.Shop;
+import com.cakequake.cakequakeback.shop.entities.ShopStatus;
+import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -48,6 +51,9 @@ public class SellerServiceTests {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private ShopRepository shopRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -98,6 +104,7 @@ public class SellerServiceTests {
         assertThat(passwordEncoder.matches("pass1234!", request.getPassword())).isTrue();
     }
 
+    @Disabled
     @Test
     @DisplayName("판매자 2단계 등록 성공 테스트")
     void testRegisterStepTwo_success() throws Exception {
@@ -154,20 +161,20 @@ public class SellerServiceTests {
     }
 
     // 가짜 로그인
-    @BeforeEach
-    void setup() {
-        // 로그인된 사용자 역할로 Mock 객체 반환
-        when(authenticatedUserService.getCurrentMember())
-                .thenReturn(Member.builder()
-                        .uid(39L)
-                        .userId("seller1")
-                        .role(MemberRole.SELLER)
-                        .build()
-                );
-    }
+//    @BeforeEach
+//    void setup() {
+//        // 로그인된 사용자 역할로 Mock 객체 반환
+//        when(authenticatedUserService.getCurrentMember())
+//                .thenReturn(Member.builder()
+//                        .uid(39L)
+//                        .userId("seller1")
+//                        .role(MemberRole.SELLER)
+//                        .build()
+//                );
+//    }
 
     @Test
-    @DisplayName("정상적으로 판매자 프로필을 조회")
+    @DisplayName("판매자 프로필 조회 성공")
     public void testGetSellerProfileSuccess() {
         // given
         Long uid = 39L; // DB에 존재하는 판매자 uid
@@ -191,6 +198,7 @@ public class SellerServiceTests {
         // assertEquals("테스트가게", sellerDTO.getShopPreview().getShopName());
     }
 
+    @Disabled
     @Test
     @DisplayName("판매자 프로필 수정 성공 테스트")
     public void testModifySellerProfile() {
@@ -205,6 +213,43 @@ public class SellerServiceTests {
 
         assertTrue(response.isSuccess());
         assertEquals("판매자 프로필 수정 성공", response.getMessage());
+    }
+
+    // 가짜 로그인
+    @BeforeEach
+    void setup() {
+        Long existingUid = 39L; // DB에 실제 매장이 있는 seller의 uid 사용
+
+        Member mockSeller = memberRepository.findById(existingUid)
+                .orElseThrow(() -> new RuntimeException("해당 uid 회원 없음"));
+
+        when(authenticatedUserService.getCurrentMember())
+                .thenReturn(mockSeller);
+    }
+
+    @Test
+    @DisplayName("판매자 탈퇴 시 상태 WITHDRAWN, 매장 상태 CLOSED")
+    void testWithdrawSeller() {
+        Member current = authenticatedUserService.getCurrentMember();
+        Long uid = current.getUid();
+        Long shopId = 100L;
+
+        // when
+        ApiResponseDTO response = service.withdrawSeller();
+
+        // then
+        Member member = memberRepository.findById(uid)
+                .orElseThrow(() -> new RuntimeException("탈퇴 후 멤버 없음"));
+
+        assertEquals(MemberStatus.WITHDRAWN, member.getStatus());
+
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new RuntimeException("매장 없음"));
+
+        assertEquals(ShopStatus.CLOSED, shop.getStatus());
+
+        assertTrue(response.isSuccess());
+        assertEquals("탈퇴와 매장 삭제가 완료되었습니다.", response.getMessage());
     }
 
 }

@@ -45,7 +45,7 @@ public class CustomSecurityConfig {
         log.info("------------------Security Config-----------------------");
 
         http.authorizeHttpRequests(auth -> {
-            log.info(String.valueOf(SecurityContextHolder.getContext().getAuthentication()));
+            log.debug(String.valueOf(SecurityContextHolder.getContext().getAuthentication()));
 
 //            auth.requestMatchers("/**").permitAll(); // 모든 요청 허용
             auth.requestMatchers(

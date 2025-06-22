@@ -45,7 +45,12 @@ public class BuyerSignupRequestDTO {
     @Override
     public String toString() {
         return String.format("BuyerSignupRequestDTO{userId='%s', uname='%s', phoneNumber='%s', publicInfo='%s', alarm=%s, joinType='%s'}",
-                userId, uname, phoneNumber, publicInfo, alarm, joinType);
+                userId, uname, mask(phoneNumber), publicInfo, alarm, joinType);
+    }
+
+    private String mask(String input) {
+        if (input == null || input.length() < 4) return "***";
+        return input.substring(0, 2) + "***" + input.substring(input.length() - 2);
     }
 
 }
