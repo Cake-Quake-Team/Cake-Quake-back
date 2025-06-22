@@ -24,7 +24,7 @@ public class ProcurementController {
     @GetMapping("/shops/{shopId}/procurements")
     public ResponseEntity<InfiniteScrollResponseDTO<ProcurementResponseDTO>> getProcurementList(
             @PathVariable Long shopId,
-    @Valid PageRequestDTO pageRequestDTO) {
+            @ModelAttribute@Valid PageRequestDTO pageRequestDTO) {
         return ResponseEntity.ok(procurementService.getStoreRequests(pageRequestDTO,shopId));
     }
 
@@ -33,7 +33,7 @@ public class ProcurementController {
     @GetMapping("/procurements/status/{status}")
     public ResponseEntity<InfiniteScrollResponseDTO<ProcurementResponseDTO>> getProcurementStatusList(
             @PathVariable ProcurementStatus status,
-            @Valid PageRequestDTO pageRequestDTO
+            @ModelAttribute@Valid PageRequestDTO pageRequestDTO
     ){
         return ResponseEntity.ok(procurementService.getRequestsByStatus(pageRequestDTO,status));
     }
@@ -44,7 +44,7 @@ public class ProcurementController {
     public ResponseEntity<InfiniteScrollResponseDTO<ProcurementResponseDTO>> getByShopAndStatusList(
             @PathVariable Long shopId,
             @PathVariable ProcurementStatus status,
-            @Valid PageRequestDTO pageRequestDTO
+            @ModelAttribute@Valid PageRequestDTO pageRequestDTO
     ){
         return ResponseEntity.ok(procurementService.getStoreRequestsByStatus(pageRequestDTO,shopId,status));
     }
