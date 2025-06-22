@@ -10,6 +10,7 @@ import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class OptionTypeController {
     private final OptionTypeService optionTypeService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('BUYER', 'SELLER')")
     public InfiniteScrollResponseDTO<CakeOptionTypeDTO> getOptionTypeList(
             @PathVariable Long shopId,
             PageRequestDTO pageRequestDTO) {
@@ -28,6 +30,7 @@ public class OptionTypeController {
     }
 
     @GetMapping("/{optionTypeId}")
+    @PreAuthorize("hasRole('SELLER')")
     public OptionTypeDetailDTO getOptionTypeDetail(
             @PathVariable Long shopId,
             @PathVariable Long optionTypeId) {
@@ -36,6 +39,7 @@ public class OptionTypeController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<CakeOptionTypeDTO> addOptionType(
             @PathVariable Long shopId,
             @RequestBody AddOptionTypeDTO addOptionTypeDTO) {
@@ -51,6 +55,7 @@ public class OptionTypeController {
     }
 
     @PatchMapping("/{optionTypeId}")
+    @PreAuthorize("hasRole('SELLER')")
     public OptionTypeDetailDTO updateOptionType(
             @PathVariable Long shopId,
             @PathVariable Long optionTypeId,
@@ -62,6 +67,7 @@ public class OptionTypeController {
     }
 
     @DeleteMapping("/{optionTypeId}")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<Void> deleteOptionType(
             @PathVariable Long shopId,
             @PathVariable Long optionTypeId) {

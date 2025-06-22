@@ -54,6 +54,7 @@ public class OptionTypeServiceImpl implements OptionTypeService {
 
         OptionType optionType = OptionType.builder()
                 .shop(shop)
+                .optionTypeId(addOptionTypeDTO.getOptionTypeId())
                 .optionType(addOptionTypeDTO.getOptionType())
                 .isRequired(addOptionTypeDTO.getIsRequired())
                 .minSelection(addOptionTypeDTO.getMinSelection())

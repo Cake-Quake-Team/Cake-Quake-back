@@ -70,6 +70,8 @@ public enum ErrorCode {
     MISSING_PATH_VARIABLE(400, 665, "필수 경로 변수가 누락되었습니다"),
     INVALID_REQUEST(400,663,"잘못된 파라미터입니다"),
     INVALID_ORDER_STATUS(400,664,"상태 전환이 불가능합니다."),
+    INVALID_AI_REQUEST(400, 665, "AI 요청이 잘못되었습니다"),
+
 
     //HTTP 401 Unauthorized (code:801~809)
     INVALID_CREDENTIALS(401, 801, "아이디 또는 패스워드가 일치하지 않습니다."),
@@ -120,7 +122,8 @@ public enum ErrorCode {
     NOTICE_NOT_FOUND(404, 1017, "공지사항을 찾을 수 없습니다."),
     SHOPNOTICE_NOT_FOUND(404,1018,"해당 매장의 공지사항을 찾을 수 없습니다."),
     REVIEW_ALREADY_DELETED(404,1019, "해당 리뷰를 찾을 수 없습니다"),
-    NOT_FOUND_PHONE(404,1020, "찾을 수 없는 전화번호 입니다."),
+    NOT_FOUND_INGREDIENT_ID(404,1020, "해당 IngredientId가 존재하지 않습니다"),
+    NOT_FOUND_PHONE(404, 1021, "찾을 수 없는 전화번호 입니다."),
 
 
     //HTTP 409 Conflict (code: 701~715)
@@ -155,7 +158,11 @@ public enum ErrorCode {
     EXTERNAL_SERVER_ERROR(502, 1506, "외부 API 서버 오류"),
     EXTERNAL_SERVER_ERROR_KAKAO(502, 1507, "카카오 API 서버 오류"),
     EXTERNAL_SERVER_ERROR_GOOGLE(502, 1508, "구글 API 서버 오류"),
-    EXTERNAL_SERVER_ERROR_ODCLOUD(502, 1509, "공공데이터 서버 오류");
+    EXTERNAL_SERVER_ERROR_ODCLOUD(502, 1509, "공공데이터 서버 오류"),
+    AI_PROCESSING_FAILED(500, 1510, "AI 응답 처리 중 오류가 발생했습니다"),
+    PROMPT_TEMPLATE_ERROR(500, 1511, "프롬프트 템플릿 처리 중 오류가 발생했습니다"),
+    OPENAI_API_ERROR(502, 1512, "OpenAI API 호출에 실패했습니다"),
+    IMAGE_GENERATION_FAILED(502, 1513, "AI 이미지 생성 중 오류가 발생했습니다");
 
 
     private final int httpStatus;

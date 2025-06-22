@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,7 @@ public class CakeItemController {
 
     // 케이크 전체 목록 조회
     @GetMapping("/cakes")
+    @PreAuthorize("hasAnyRole('BUYER', 'SELLER')")
     public InfiniteScrollResponseDTO<CakeListDTO> getAllCakeList(
             @RequestParam(defaultValue = "LETTERING") CakeCategory keyword,     // 레터링 케이크
             PageRequestDTO pageRequestDTO) {
@@ -41,6 +43,7 @@ public class CakeItemController {
 
     // 케이크 등록
     @PostMapping("/cakes")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<MappingResponseDTO> addCake(
             @RequestPart(value = "addCakeDTO") AddCakeDTO addCakeDTO,
             @RequestPart(value = "cakeImages", required = false) List<MultipartFile> cakeImages){
@@ -51,6 +54,7 @@ public class CakeItemController {
 
     // 케이크 수정
     @PatchMapping("/shops/{shopId}/cakes/{cakeId}")
+    @PreAuthorize("hasRole('SELLER')")
     public MappingResponseDTO updateCake(
             @PathVariable Long shopId,
             @PathVariable Long cakeId,
@@ -67,6 +71,7 @@ public class CakeItemController {
 
     // 케이크 삭제
     @DeleteMapping("/cakes/{cakeId}")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<Void> deleteCake(@PathVariable Long cakeId) {
         cakeItemService.deleteCake(cakeId);
         return ResponseEntity.noContent().build();

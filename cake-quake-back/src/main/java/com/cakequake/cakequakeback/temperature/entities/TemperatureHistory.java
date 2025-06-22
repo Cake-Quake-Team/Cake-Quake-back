@@ -21,12 +21,12 @@ public class TemperatureHistory extends BaseEntity {
     @Column(nullable = false)
     private Long historyId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="uid",nullable = false)
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "temperature_id", nullable = false)
+    @JoinColumn(name = "temperature_uid", nullable = false)
     private Temperature temperature;
 
     @Column(nullable = false)
@@ -46,8 +46,9 @@ public class TemperatureHistory extends BaseEntity {
     @Column(nullable = false)
     private String relatedObjectId; //객체와 연결된 객체 id(출처 추적)
 
-    public TemperatureHistory(Temperature temperature, float changeAmount, float afterTemperature,
+    public TemperatureHistory(Member member, Temperature temperature, float changeAmount, float afterTemperature,
                               ChangeReason reason, RelatedObjectType relatedObjectType, String relatedObjectId) {
+        this.member = member;
         this.temperature = temperature;
         this.changeAmount = changeAmount;
         this.afterTemperature = afterTemperature;
