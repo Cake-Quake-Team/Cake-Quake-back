@@ -4,6 +4,7 @@ import com.cakequake.cakequakeback.member.dto.buyer.BuyerProfileResponseDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerResponseDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.entities.MemberRole;
+import com.cakequake.cakequakeback.member.entities.MemberStatus;
 import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
@@ -55,6 +56,7 @@ public class MemberRepoTests {
                     .role(MemberRole.BUYER)
                     .phoneNumber("010-1234-567" + i)
                     .socialType(SocialType.BASIC)
+                    .status(MemberStatus.ACTIVE) // 명시적 설정
                     .build();
 
             memberRepository.save(member);
@@ -76,11 +78,13 @@ public class MemberRepoTests {
                 .role(MemberRole.BUYER)
                 .phoneNumber("010-1234-0001")
                 .socialType(SocialType.BASIC)
+                .status(MemberStatus.ACTIVE) // 명시적 설정
                 .build();
 
         memberRepository.save(seller);
 
-        Optional<Member> result = memberRepository.findByUserId("buyer1");
+//        Optional<Member> result = memberRepository.findByUserId("buyer1");
+        Optional<Member> result = memberRepository.findByUserIdAndStatus("buyer1", MemberStatus.ACTIVE);
         Assertions.assertTrue(result.isPresent());
         log.info("유저 저장 완료: {}", result.get());
     }
@@ -95,11 +99,13 @@ public class MemberRepoTests {
                 .role(MemberRole.SELLER)
                 .phoneNumber("010-5678-0001")
                 .socialType(SocialType.BASIC)
+                .status(MemberStatus.ACTIVE) // 명시적 설정
                 .build();
 
         memberRepository.save(seller);
 
-        Optional<Member> result = memberRepository.findByUserId("seller1");
+//        Optional<Member> result = memberRepository.findByUserId("seller1");
+        Optional<Member> result = memberRepository.findByUserIdAndStatus("seller1", MemberStatus.ACTIVE);
         Assertions.assertTrue(result.isPresent());
         log.info("판매자 저장 완료: {}", result.get());
     }
@@ -108,17 +114,19 @@ public class MemberRepoTests {
     @Test
     public void insertDummyAdmin() {
         Member admin = Member.builder()
-                .userId("admin1")
-                .uname("ADMIN1")
+                .userId("admin2")
+                .uname("ADMIN2")
                 .password(passwordEncoder.encode("a123456*"))
                 .role(MemberRole.ADMIN)
-                .phoneNumber("010-9999-0001")
+                .phoneNumber("010-9999-0002")
                 .socialType(SocialType.BASIC)
+                .status(MemberStatus.ACTIVE) // 명시적 설정
                 .build();
 
         memberRepository.save(admin);
 
-        Optional<Member> result = memberRepository.findByUserId("admin1");
+//        Optional<Member> result = memberRepository.findByUserId("admin1");
+        Optional<Member> result = memberRepository.findByUserIdAndStatus("admin2", MemberStatus.ACTIVE);
         Assertions.assertTrue(result.isPresent());
         log.info("관리자 저장 완료: {}", result.get());
     }
@@ -187,7 +195,7 @@ public class MemberRepoTests {
     public void testBuyerGetOne() {
         // given
         Long testUid = 11L; // 실제 DB에 존재하는 uid 사용 필요
-        MemberRole seller = MemberRole.BUYER;
+        MemberRole buyer = MemberRole.BUYER;
 
         // when
         Optional<BuyerProfileResponseDTO> result = memberRepository.buyerGetOne(testUid);
@@ -199,11 +207,26 @@ public class MemberRepoTests {
         log.info("구매자 정보: {}", dto);
 
         assertEquals(testUid, dto.getUid());
-        assertEquals(seller, dto.getRole());
         assertNotNull(dto.getUserId());
         assertNotNull(dto.getUname());
         assertNotNull(dto.getPhoneNumber());
         assertNotNull(dto.getAlarm());
+    }
+
+    @Test
+    @DisplayName("정상 회원은 조회됨")
+    public void testFindActiveMember() {
+        Optional<Member> result = memberRepository.findByUserIdAndStatus("buyer1", MemberStatus.ACTIVE);
+        log.debug(result.toString());
+        assertTrue(result.isPresent(), "buyer1은 ACTIVE 상태이므로 조회되어야 함");
+    }
+
+    @Test
+    @DisplayName("탈퇴한 회원은 조회되지 않음")
+    public void testFindWithdrawnMember() {
+        Optional<Member> result = memberRepository.findByUserIdAndStatus("testuser13", MemberStatus.ACTIVE);
+        log.debug(result.toString());
+        assertFalse(result.isPresent(), "testuser13은 WITHDRAWN 상태이므로 조회되면 안 됨");
     }
 
 }

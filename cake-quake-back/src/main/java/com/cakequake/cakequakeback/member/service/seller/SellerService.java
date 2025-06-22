@@ -15,4 +15,6 @@ public interface SellerService {
     ApiResponseDTO getSellerProfile(Long uid);
 
     ApiResponseDTO modifySellerProfile(Long uid, SellerModifyDTO dto);
+
+    ApiResponseDTO withdrawSeller(); // 탈퇴
 }

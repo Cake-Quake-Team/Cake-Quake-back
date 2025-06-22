@@ -2,6 +2,7 @@ package com.cakequake.cakequakeback.member.entities;
 
 
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
+import com.cakequake.cakequakeback.member.dto.AlarmSettingsDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,6 +48,12 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true, length = 20)
     private String phoneNumber;
 
+    // 탈퇴 여부
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MemberStatus status = MemberStatus.ACTIVE;
+
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private MemberDetail memberDetail;
 
@@ -71,8 +78,22 @@ public class Member extends BaseEntity {
         this.socialType = socialType;
     }
 
-    public void changeAlarm(Boolean alarm) {
-        this.alarm = alarm;
+    public Boolean changeAlarm(AlarmSettingsDTO alarmSettings) {
+        // 알람 설정을 변경
+        if (alarmSettings != null) {
+            this.alarm = alarmSettings.isAllAlarm(); // 전체 알람 설정 변경
+            return true; // 성공적으로 변경됨
+        }
+        return false; // 변경 실패
+    }
+
+    // 탈퇴 시
+    public void withdraw() {
+        this.status = MemberStatus.WITHDRAWN;
+    }
+    // 관리자 기능 용
+    public void changeStatus(MemberStatus status) {
+        this.status = status;
     }
 
     public void changeMemberDetail(MemberDetail memberDetail) {

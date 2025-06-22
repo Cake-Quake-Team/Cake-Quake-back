@@ -30,8 +30,8 @@ public class BuyerProfileResponseDTO {
 
     @Override
     public String toString() {
-        return String.format("SellerResponseDTO{uid=%d, uname=%s, role=%s}",
-                uid, uname, role);
+        return String.format("BuyerResponseDTO{uid=%d, uname=%s, role=%s, alarm=%s}",
+                uid, uname, role, alarm);
     }
 
 }

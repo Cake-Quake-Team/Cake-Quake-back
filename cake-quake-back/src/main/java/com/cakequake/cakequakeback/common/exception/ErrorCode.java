@@ -97,6 +97,7 @@ public enum ErrorCode {
     NOT_OWN_SHOP_REVIEW(403, 909, "본인 매장의 리뷰가 아닙니다"),
     NOT_AUTHORIZED_OTHER_SELLER(403, 910, "다른 판매자가 호출했습니다"),
     NOT_OWN_COUPON(403, 911, "본인의 쿠폰이 아닙니다"),
+    MEMBER_WITHDRAWN(403, 912,"탈퇴한 회원입니다."),
 
 
     //HTTP 404 Not Found (code:1001 ~1003)
@@ -115,10 +116,11 @@ public enum ErrorCode {
     NOT_FOUND_PAYMENT_ID       (404, 1013, "해당 결제 ID가 존재하지 않습니다"),
     DELETION_REQUEST_NOT_FOUND(404,1014, "해당 삭제 내역을 찾을 수 없습니다"),
     BUSINESS_NO_DATA(404, 1015, "조회된 사업자 정보가 없습니다."),
-    MEMBER_NOT_FOUND(404, 1016, "해당 회원을 찾을 수 없습니다.."),
+    MEMBER_NOT_FOUND(404, 1016, "해당 회원을 찾을 수 없습니다."),
     NOTICE_NOT_FOUND(404, 1017, "공지사항을 찾을 수 없습니다."),
     SHOPNOTICE_NOT_FOUND(404,1018,"해당 매장의 공지사항을 찾을 수 없습니다."),
     REVIEW_ALREADY_DELETED(404,1019, "해당 리뷰를 찾을 수 없습니다"),
+    NOT_FOUND_PHONE(404,1020, "찾을 수 없는 전화번호 입니다."),
 
 
     //HTTP 409 Conflict (code: 701~715)

@@ -1,10 +1,9 @@
 package com.cakequake.cakequakeback.member.controller;
 
+import com.cakequake.cakequakeback.common.exception.BusinessException;
+import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.dto.*;
-import com.cakequake.cakequakeback.member.dto.auth.RefreshTokenRequestDTO;
-import com.cakequake.cakequakeback.member.dto.auth.RefreshTokenResponseDTO;
-import com.cakequake.cakequakeback.member.dto.auth.SigninRequestDTO;
-import com.cakequake.cakequakeback.member.dto.auth.SigninResponseDTO;
+import com.cakequake.cakequakeback.member.dto.auth.*;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
@@ -19,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -30,11 +30,13 @@ public class MemberAuthController {
     private final MemberService memberService;
     private final SellerService sellerService;
     private final AuthenticatedUserService authenticatedUserService;
+    private final PasswordEncoder passwordEncoder;
 
-    public MemberAuthController(MemberService memberService, SellerService sellerService, AuthenticatedUserService authenticatedUserService) {
+    public MemberAuthController(MemberService memberService, SellerService sellerService, AuthenticatedUserService authenticatedUserService, PasswordEncoder passwordEncoder) {
         this.memberService = memberService;
         this.sellerService = sellerService;
         this.authenticatedUserService = authenticatedUserService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/signup/buyers")
@@ -80,6 +82,27 @@ public class MemberAuthController {
         log.debug("---MemberAuthController---signout()");
 
         return ResponseEntity.ok().build();
+    }
+
+    // 탈퇴 전 비밀번호 확인
+    @PostMapping("/password/verify")
+    public ApiResponseDTO verifyPassword(@RequestBody PasswordCheckDTO dto) {
+        Member member = authenticatedUserService.getCurrentMember();
+
+        if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        return ApiResponseDTO.builder()
+                .success(true)
+                .message("비밀번호 확인 완료")
+                .build();
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<ApiResponseDTO> changePassword(@RequestBody PasswordChangeDTO dto) {
+        ApiResponseDTO response = memberService.changePassword(dto);
+        return ResponseEntity.ok(response);
     }
 
     /*

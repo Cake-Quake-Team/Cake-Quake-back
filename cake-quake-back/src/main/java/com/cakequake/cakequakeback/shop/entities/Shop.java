@@ -123,6 +123,11 @@ public class Shop extends BaseEntity {
 
     }
 
+    // 판매자 탈퇴 시 변경용
+    public void changeStatus(ShopStatus status) {
+        this.status = status;
+    }
+
 
 
 

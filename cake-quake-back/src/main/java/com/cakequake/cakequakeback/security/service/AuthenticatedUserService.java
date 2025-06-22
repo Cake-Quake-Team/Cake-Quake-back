@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class AuthenticatedUserService {
 
     public Member getCurrentMember() {
-        log.debug("---AuthenticatedUserService---getCurrentMember()---");
+//        log.debug("---AuthenticatedUserService---getCurrentMember()---");
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -25,7 +25,7 @@ public class AuthenticatedUserService {
     }
 
     public Long getCurrentMemberId() {
-        log.debug("---AuthenticatedUserService---getCurrentMemberId()---");
+//        log.debug("---AuthenticatedUserService---getCurrentMemberId()---");
         return getCurrentMember().getUid();
     }
 }

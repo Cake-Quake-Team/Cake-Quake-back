@@ -14,15 +14,14 @@ import com.cakequake.cakequakeback.member.repo.PendingSellerRequestRepository;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
+import com.cakequake.cakequakeback.shop.entities.Shop;
+import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.IOException;
 
 @Service
 @Transactional
@@ -212,6 +211,29 @@ public class SellerServiceImpl implements SellerService{
         return ApiResponseDTO.builder()
                 .success(true)
                 .message("판매자 프로필 수정 성공")
+                .build();
+    }
+
+    // 판매자 탈퇴 시 상태 변경과 매장 상태도 함께 변경
+    @Override
+    public ApiResponseDTO withdrawSeller() {
+        Member member = authenticatedUserService.getCurrentMember();
+
+        member.withdraw(); // Repository에서 탈퇴 status 세팅(status ACTIVE -> WITHDRAWN)
+        memberRepository.save(member);
+
+        if (member.getRole() == MemberRole.SELLER) {
+            Shop shop = shopRepository.findActiveShopByUid(member.getUid())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
+
+            shop.changeStatus(ShopStatus.CLOSED);
+            log.debug("ShopStatus: {}", shop.getStatus());
+            shopRepository.save(shop); // 상태 저장
+        } // end if
+
+        return ApiResponseDTO.builder()
+                .success(true)
+                .message("탈퇴와 매장 삭제가 완료되었습니다.")
                 .build();
     }
 

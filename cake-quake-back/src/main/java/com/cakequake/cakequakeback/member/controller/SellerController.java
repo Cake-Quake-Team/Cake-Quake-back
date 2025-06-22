@@ -40,4 +40,13 @@ public class SellerController {
         ApiResponseDTO response = sellerService.modifySellerProfile(uid, dto);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/withdraw")
+    public ResponseEntity<ApiResponseDTO> withdrawSeller() {
+        log.debug("---SellerController---withdrawSeller---");
+
+        ApiResponseDTO response = sellerService.withdrawSeller();
+        return ResponseEntity.ok(response);
+    }
+
 }
