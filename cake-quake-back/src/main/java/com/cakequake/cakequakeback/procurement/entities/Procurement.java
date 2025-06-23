@@ -37,6 +37,8 @@ public class Procurement extends BaseEntity {
 
     private LocalDate scheduledDate;
 
+    @Column
+    private String cancelReason;
 
     public void updateScheduledDate(LocalDate scheduledDate) {
         this.scheduledDate = scheduledDate;
@@ -44,5 +46,11 @@ public class Procurement extends BaseEntity {
 
     public void updateStatus(ProcurementStatus status) {
         this.status = status;
+    }
+
+    //취소사유를 저장하는 매서드
+    public void cancel(String cancelReason) {
+        this.status = ProcurementStatus.CANCELLED;
+        this.cancelReason = cancelReason;
     }
 }

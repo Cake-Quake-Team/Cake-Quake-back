@@ -4,10 +4,7 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
-import com.cakequake.cakequakeback.procurement.dto.procurement.ConfirmProcurementDTO;
-import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementItemResponseDTO;
-import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementRequestDTO;
-import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.*;
 import com.cakequake.cakequakeback.procurement.entities.Procurement;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementItem;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
@@ -178,6 +175,39 @@ public class ProcurementServiceImpl implements ProcurementService{
         return toResponseDTO(procurement,items);
     }
 
+    @Override
+    public ProcurementResponseDTO cancelProcurement(Procurement procurement, CancelProcurementDTO cancelDTO) {
+
+        if(procurement.getStatus().compareTo(ProcurementStatus.SHIPPED) >=0 ){
+            throw new BusinessException(
+                    ErrorCode.INVALID_ORDER_STATUS
+            );
+        }
+
+        procurement.cancel(cancelDTO.getReason());
+
+        List<ProcurementItem> items = procurementItemRepository.findByProcurement_ProcurementId(procurement.getProcurementId());
+
+        return toResponseDTO(procurement,items);
+    }
+
+    @Override
+    public ProcurementResponseDTO cancelBySeller(Long shopId, Long procurementId, CancelProcurementDTO cancelDTO) {
+        validator.validateShopExists(shopId);
+        Procurement procurement = validator.findProcurementOrThrow(procurementId);
+        validator.validateShopOwner(procurement,shopId);
+
+
+        return cancelProcurement(procurement, cancelDTO);
+    }
+
+    @Override
+    public ProcurementResponseDTO cancelByAdmin(Long procurementId, CancelProcurementDTO cancelDTO) {
+       Procurement procurement =validator.findProcurementOrThrow(procurementId);
+
+        return cancelProcurement(procurement, cancelDTO);
+    }
+
 
     //Page -> InfiniteScrollResponseDTO 변환
     private InfiniteScrollResponseDTO<ProcurementResponseDTO> buildResponseDTO(Page<ProcurementResponseDTO> page) {
@@ -211,6 +241,7 @@ public class ProcurementServiceImpl implements ProcurementService{
                 .note(p.getNote())
                 .scheduleDate(p.getScheduledDate())
                 .regDate(p.getRegDate())
+                .cancelReason(p.getCancelReason())
                 .items(respItems)
                 .build();
 

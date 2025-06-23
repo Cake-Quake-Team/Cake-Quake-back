@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.procurement.controller;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.CancelProcurementDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.ConfirmProcurementDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementRequestDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO;
@@ -70,7 +71,18 @@ public class ProcurementController {
         procurementRequestDTO.setShopId(shopId);
         return ResponseEntity.ok(procurementService.createProcurement(procurementRequestDTO));
     }
+    @PostMapping("/shops/{shopId}/procurements/{procurementId}/cancel")
+    public ResponseEntity<ProcurementResponseDTO> cancelBySeller(
+            @PathVariable Long shopId,
+            @PathVariable Long procurementId,
+            @RequestBody @Valid CancelProcurementDTO cancelDto
+    ) {
+        ProcurementResponseDTO response = procurementService.cancelBySeller(shopId, procurementId, cancelDto);
+        return ResponseEntity.ok(response);
+    }
 
+
+    //-------------------관리자-----------------
     //관리자 확정(일정 지정)
     // /api/procurements/{procurementId}/confirm
     @PostMapping("/procurements/{procurementId}/confirm")
@@ -97,4 +109,16 @@ public class ProcurementController {
         ProcurementResponseDTO dto = procurementService.getRequestById(procurementId);
         return ResponseEntity.ok(dto);
     }
+
+    // 2) 관리자: 전체 발주를 (권한만료전까지) 취소
+    //    POST /api/procurements/{procurementId}/cancel
+    @PostMapping("/procurements/{procurementId}/cancel")
+    public ResponseEntity<ProcurementResponseDTO> cancelByAdmin(
+            @PathVariable Long procurementId,
+            @RequestBody @Valid CancelProcurementDTO cancelDto
+    ) {
+        ProcurementResponseDTO response = procurementService.cancelByAdmin(procurementId, cancelDto);
+        return ResponseEntity.ok(response);
+    }
+
 }
