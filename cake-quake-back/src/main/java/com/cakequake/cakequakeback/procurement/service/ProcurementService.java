@@ -2,9 +2,12 @@ package com.cakequake.cakequakeback.procurement.service;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.procurement.dto.procurement.CancelProcurementDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.ConfirmProcurementDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementRequestDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO;
+import com.cakequake.cakequakeback.procurement.entities.Procurement;
+import com.cakequake.cakequakeback.procurement.entities.ProcurementItem;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
 
 public interface ProcurementService {
@@ -45,4 +48,20 @@ public interface ProcurementService {
 
     //관리자 발주 단건 조회
     ProcurementResponseDTO getRequestById(Long procurementId);
+
+    //발주 취소 공통 로직
+    ProcurementResponseDTO cancelProcurement(Procurement procurement, CancelProcurementDTO cancelDTO);
+
+    //판매자 발주 취소 검증
+    ProcurementResponseDTO cancelBySeller(Long shopId, Long procurementId, CancelProcurementDTO cancelDTO);
+
+    //관리자 발주 취소 검증
+    ProcurementResponseDTO cancelByAdmin(Long procurementId, CancelProcurementDTO cancelDTO);
+
+
+
+
+
+
+
 }

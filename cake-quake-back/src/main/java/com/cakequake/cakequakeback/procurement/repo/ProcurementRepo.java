@@ -23,6 +23,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
             p.note,
             p.scheduledDate,
             p.regDate,
+                p.cancelReason,
             null
         )
         FROM Procurement p
@@ -44,6 +45,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
             p.note,
             p.scheduledDate,
             p.regDate,
+                p.cancelReason,
             null
         )
         FROM Procurement p
@@ -65,6 +67,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
             p.note,
             p.scheduledDate,
             p.regDate,
+                p.cancelReason,
             null
         )
         FROM Procurement p
@@ -88,6 +91,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
               p.note               AS note,
                p.scheduledDate      AS scheduledDate,
                p.regDate          AS regDate,
+                   p.cancelReason,
               pi.procurementItemId AS procurementItemId,
                pi.ingredient.ingredientId      AS ingredientId,
                pi.quantity          AS quantity

@@ -22,5 +22,6 @@ public class ProcurementResponseDTO{
     private String note;
     private LocalDate scheduleDate;
     private LocalDateTime regDate;
+    private String cancelReason;
     private List<ProcurementItemResponseDTO> items;
 }

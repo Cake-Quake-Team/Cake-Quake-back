@@ -5,4 +5,5 @@ public enum ProcurementStatus {
     SCHEDULED, //어드민이 일정 지정 완료
     SHIPPED,  //물류로 발송된 상태
     DELIVERED, //매장에 도착 완료된 상태
+    CANCELLED, //발주 취소 상태
 }
