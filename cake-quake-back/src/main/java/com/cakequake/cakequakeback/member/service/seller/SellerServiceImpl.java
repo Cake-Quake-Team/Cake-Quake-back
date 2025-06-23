@@ -97,7 +97,7 @@ public class SellerServiceImpl implements SellerService{
         return ApiResponseDTO.builder()
                 .success(true)
                 .message("1단계 저장 성공하였습니다. 다음 매장 정보 입력 단계로 진행해 주세요.")
-                .data(pendingSeller.getTemp_seller_id())
+                .data(pendingSeller.getTempSellerId())
                 .build();
     }
 

@@ -13,6 +13,8 @@ import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
+import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
+import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,13 +33,15 @@ import java.util.Optional;
 @Slf4j
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
+    private final ShopRepository shopRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberValidator memberValidator;
     private final JWTUtil jwtUtil;
     private final AuthenticatedUserService authenticatedUserService;
 
-    public MemberServiceImpl(MemberRepository memberRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, JWTUtil jwtUtil, AuthenticatedUserService authenticatedUserService) {
+    public MemberServiceImpl(MemberRepository memberRepository, ShopRepository shopRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, JWTUtil jwtUtil, AuthenticatedUserService authenticatedUserService) {
         this.memberRepository = memberRepository;
+        this.shopRepository = shopRepository;
         this.passwordEncoder = passwordEncoder;
         this.memberValidator = memberValidator;
         this.jwtUtil = jwtUtil;
@@ -120,10 +125,29 @@ public class MemberServiceImpl implements MemberService {
         String uname = member.getUname();
         String role = member.getRole().name();
 
+        // 유저 역할이 SELLER일 경우 uid를 이용해서 shop의 shopId를 가져와야 해
+        Long shopId = null;
+        // 유저 역할이 SELLER일 경우 shopId를 가져옴
+        if (role.equals("SELLER")) {
+            Optional<ShopPreviewDTO> shopPreview = shopRepository.findPreviewByUid(uid);
+            if (shopPreview.isPresent()) {
+                shopId = shopPreview.get().getShopId();
+            }
+            log.debug(shopId.toString());
+        }
+        // 토큰에 정보 추가
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("uname", uname);
+        claims.put("role", role);
+        if (shopId != null) {
+            claims.put("shopId", shopId); // shopId 추가
+        }
+
         // 액세스 토큰 생성 (유효기간: 5분)
-        String accessToken = jwtUtil.createToken(Map.of("userId", userId, "uname", uname, "role", role), 5);
+        String accessToken = jwtUtil.createToken(claims, 5);
         // 리프레시 토큰 생성 (유효기간: 7일)
-        String refreshToken = jwtUtil.createToken(Map.of("userId", userId, "uname", uname, "role", role), 60 * 24 * 7);
+        String refreshToken = jwtUtil.createToken(claims, 60 * 24 * 7);
 
         return SigninResponseDTO.builder()
                 .accessToken(accessToken)
@@ -146,12 +170,24 @@ public class MemberServiceImpl implements MemberService {
             String userId = claims.get("userId", String.class);
             String uname = claims.get("uname", String.class);
             String role = claims.get("role", String.class);
+            String shopId = claims.get("shopId", String.class);
             log.debug("userId: {}", userId);
 
+            // 토큰에 정보 추가
+            Map<String, Object> tokenClaims = new HashMap<>();
+            tokenClaims.put("userId", userId);
+            tokenClaims.put("uname", uname);
+            tokenClaims.put("role", role);
+
+            // shopId가 있는 경우에만 추가
+            if (shopId != null && !shopId.isEmpty()) {
+                tokenClaims.put("shopId", shopId);
+            }
+
             // 추출한 사용자 정보로 새로운 액세스 토큰 생성 (유효기간: 5분)
-            String newAccessToken = jwtUtil.createToken(Map.of("userId", userId, "uname", uname, "role", role), 5);
+            String newAccessToken = jwtUtil.createToken(tokenClaims, 5);
             // 새로운 리프레시 토큰 생성 (유효기간: 7일
-            String newRefreshToken = jwtUtil.createToken(Map.of("userId", userId, "uname", uname, "role", role), 60 * 24 * 7);
+            String newRefreshToken = jwtUtil.createToken(tokenClaims, 60 * 24 * 7);
 
             return new RefreshTokenResponseDTO(newAccessToken, newRefreshToken);
         } catch (Exception e) {
