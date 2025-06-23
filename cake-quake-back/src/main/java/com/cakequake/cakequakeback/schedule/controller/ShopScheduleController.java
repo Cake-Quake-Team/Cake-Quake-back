@@ -21,6 +21,14 @@ public class ShopScheduleController{
 
     private final ShopScheduleService shopScheduleService;
 
+     // 1. 특정 날짜에 예약 가능한 매장 목록을 조회
+     @GetMapping("/available-shops-by-date")
+     public ResponseEntity<List<Shop>> getAvailableShopsByDate(
+             @RequestParam LocalDate date) {
+         List<Shop> availableShops = shopScheduleService.getAvailableShopsByDate(date);
+         return ResponseEntity.ok(availableShops);
+        }
+
     //특정 매장과 날짜에 대해 예약 가능한 픽업 시간 목록을 조회
     @GetMapping("/available-times")
     public ResponseEntity<List<LocalTime>> getAvailableTimesForShop(
@@ -30,14 +38,6 @@ public class ShopScheduleController{
         return ResponseEntity.ok(availableTimes);
     }
 
-    //특정 날짜와 시간에 예약 가능한 매장 목록을 조회
-    @GetMapping("/available-shops")
-    public ResponseEntity<List<Shop>> getAvailableShopsForTimeSlot(
-            @RequestParam LocalDate date,
-            @RequestParam LocalTime time) {
-        List<Shop> availableShops = shopScheduleService.getAvailableShops(date, time);
-        return ResponseEntity.ok(availableShops);
-    }
 
 
 }
