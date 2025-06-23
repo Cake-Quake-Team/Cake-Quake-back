@@ -18,6 +18,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
             (
             p.procurementId,
             p.shop.shopId,
+            p.shop.shopName,
             p.status,
             p.note,
             p.scheduledDate,
@@ -38,6 +39,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
         SELECT new com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO(
             p.procurementId,
             p.shop.shopId,
+            p.shop.shopName,
             p.status,
             p.note,
             p.scheduledDate,
@@ -58,6 +60,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
         SELECT new com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO(
             p.procurementId,
             p.shop.shopId,
+            p.shop.shopName,
             p.status,
             p.note,
             p.scheduledDate,
@@ -80,6 +83,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
     @Query("""
         SELECT p.procurementId       AS procurementId,
              p.shop.shopId        AS shopId,
+                 p.shop.shopName,
                p.status             AS status,
               p.note               AS note,
                p.scheduledDate      AS scheduledDate,

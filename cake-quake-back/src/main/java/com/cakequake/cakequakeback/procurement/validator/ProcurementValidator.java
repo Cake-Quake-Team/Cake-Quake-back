@@ -11,6 +11,7 @@ import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -66,13 +67,19 @@ public class ProcurementValidator {
         }
     }
 
-    //관리자 확정 전 상태 및 일정 검증
-    public void validateConfirm (Procurement procurement, LocalDateTime scheduledDate) {
-        if(scheduledDate == null || scheduledDate.isAfter(LocalDateTime.now())){
+    public void validateConfirm(Procurement procurement, LocalDate scheduledDate) {
+        // 1) null 체크
+        if (scheduledDate == null) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST,
+                    "Scheduled date must be provided");
+        }
+        // 2) 오늘 이후인지 (strictly future)
+        if (!scheduledDate.isAfter(LocalDate.now())) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST,
                     "Scheduled date must be in the future: " + scheduledDate);
         }
-        if(procurement.getStatus() != ProcurementStatus.REQUESTED){
+        // 3) 상태가 REQUESTED(요청 중) 여야만 확정 가능
+        if (procurement.getStatus() != ProcurementStatus.REQUESTED) {
             throw new BusinessException(ErrorCode.INVALID_ORDER_STATUS,
                     "Cannot confirm procurement in status: " + procurement.getStatus());
         }

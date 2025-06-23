@@ -18,6 +18,7 @@ import com.cakequake.cakequakeback.procurement.validator.ProcurementValidator;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -139,15 +140,41 @@ public class ProcurementServiceImpl implements ProcurementService{
 
         //요청 존재 및 상태 유효성 검증
         Procurement procurement = validator.findProcurementOrThrow(procurementId);
-        validator.validateConfirm(procurement, confirmDTO.getConfirmDate() );
+        validator.validateConfirm(procurement, confirmDTO.getScheduledDate() );
 
         //일정 및 상태 업데이트
-        procurement.updateScheduledDate(confirmDTO.getConfirmDate());
+        procurement.updateScheduledDate(confirmDTO.getScheduledDate());
         procurement.updateStatus(ProcurementStatus.SCHEDULED);
 
         //변경된 엔티티에 매핑된 항목 조회
         List<ProcurementItem> items = procurementItemRepository.findByProcurement_ProcurementId(procurementId);
 
+        //재고 차감 로직, 알림 발송 등 추가 예정
+
+        return toResponseDTO(procurement,items);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InfiniteScrollResponseDTO<ProcurementResponseDTO> getAllRequests(PageRequestDTO pageRequestDTO) {
+        Pageable pageable = pageRequestDTO.getPageable("procurementId");
+        Page<Procurement> page = procurementRepo.findAll(pageable);
+        List<ProcurementResponseDTO> dtos = page.stream()
+                .map(p->{
+                    List<ProcurementItem> items = procurementItemRepository.findByProcurement_ProcurementId(p.getProcurementId());
+                    return toResponseDTO(p,items);
+                })
+                .collect(Collectors.toList());
+        Page<ProcurementResponseDTO> dtoPage = new PageImpl<>(dtos,pageable,page.getTotalElements());
+        return buildResponseDTO(dtoPage);
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProcurementResponseDTO getRequestById(Long procurementId) {
+        Procurement procurement = validator.findProcurementOrThrow(procurementId);
+        List<ProcurementItem> items = procurementItemRepository.findByProcurement_ProcurementId(procurementId);
         return toResponseDTO(procurement,items);
     }
 
@@ -179,6 +206,7 @@ public class ProcurementServiceImpl implements ProcurementService{
         return ProcurementResponseDTO.builder()
                 .procurementId(p.getProcurementId())
                 .shopId(p.getShop().getShopId())
+                .shopName(p.getShop().getShopName())
                 .status(p.getStatus())
                 .note(p.getNote())
                 .scheduleDate(p.getScheduledDate())

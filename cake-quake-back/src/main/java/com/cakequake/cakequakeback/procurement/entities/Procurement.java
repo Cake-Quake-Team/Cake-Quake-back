@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,10 +35,10 @@ public class Procurement extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
 
-    private LocalDateTime scheduledDate;
+    private LocalDate scheduledDate;
 
 
-    public void updateScheduledDate(LocalDateTime scheduledDate) {
+    public void updateScheduledDate(LocalDate scheduledDate) {
         this.scheduledDate = scheduledDate;
     }
 

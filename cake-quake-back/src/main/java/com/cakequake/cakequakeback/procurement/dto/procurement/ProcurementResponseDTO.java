@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.procurement.dto.procurement;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,9 +17,10 @@ public class ProcurementResponseDTO{
 
     private Long procurementId;
     private Long shopId;
+    private String shopName;
     private ProcurementStatus status;
     private String note;
-    private LocalDateTime scheduleDate;
+    private LocalDate scheduleDate;
     private LocalDateTime regDate;
     private List<ProcurementItemResponseDTO> items;
 }

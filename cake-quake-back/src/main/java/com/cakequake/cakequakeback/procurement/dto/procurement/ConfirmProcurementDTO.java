@@ -5,7 +5,8 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+
 
 @Data
 @Builder
@@ -17,5 +18,6 @@ public class ConfirmProcurementDTO {
 
     @NotNull(message = "일정일자는 필수입니다.")
     @Future(message = "일정일자는 미래여야 합니다.")
-    private LocalDateTime confirmDate;
+    private LocalDate scheduledDate;
+
 }
