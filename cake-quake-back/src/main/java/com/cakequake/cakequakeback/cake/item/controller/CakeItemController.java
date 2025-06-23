@@ -25,12 +25,12 @@ public class CakeItemController {
 
     // 케이크 전체 목록 조회
     @GetMapping("/cakes")
-    @PreAuthorize("hasAnyRole('BUYER', 'SELLER')")
     public InfiniteScrollResponseDTO<CakeListDTO> getAllCakeList(
-            @RequestParam(defaultValue = "LETTERING") CakeCategory keyword,     // 레터링 케이크
+            @RequestParam(required = false) CakeCategory keyword,
             PageRequestDTO pageRequestDTO) {
         return cakeItemService.getAllCakeList(pageRequestDTO, keyword);
     }
+
 
     // 케이크 상세 조회
     @GetMapping("/shops/{shopId}/cakes/{cakeId}")
