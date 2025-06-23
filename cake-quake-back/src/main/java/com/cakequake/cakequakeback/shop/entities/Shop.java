@@ -45,6 +45,12 @@ public class Shop extends BaseEntity {
     @Column(nullable = false)
     private String address;
 
+    @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
+
     @Column(nullable = false, length=50)
     private String bossName; // 대표자명
 

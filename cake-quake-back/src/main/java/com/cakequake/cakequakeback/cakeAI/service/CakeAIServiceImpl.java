@@ -26,8 +26,10 @@ public class CakeAIServiceImpl implements CakeAIService {
     ImageModel imageModel;
     CakeAIValidator cakeAIValidator;
 
+    @Value("classpath:/prompts/cake-chat.st")
+    private Resource cakeChatResource;
     @Value("classpath:/prompts/cake-options.st")
-    private Resource cakePromptResource;
+    private Resource cakeOptionResource;
     @Value("classpath:/prompts/cake-lettering.st")
     private Resource cakeLetteringPromptResource;
 
@@ -48,9 +50,12 @@ public class CakeAIServiceImpl implements CakeAIService {
 
         cakeAIValidator.validateCommonAI(new AIRequestDTO(question));
 
-        return handleAIProcessing(() ->
-                chatClient.prompt(question).call().content()
-        );
+        return handleAIProcessing(() -> {
+            PromptTemplate template = new PromptTemplate(cakeChatResource);
+            Prompt prompt = template.create(Map.of("question", question));
+
+            return chatClient.prompt(prompt).call().content();
+        });
     }
 
     @Override
@@ -60,7 +65,7 @@ public class CakeAIServiceImpl implements CakeAIService {
         cakeAIValidator.validateCommonAI(new AIRequestDTO(question));
 
         return handleAIProcessing(() -> {
-            PromptTemplate template = new PromptTemplate(cakePromptResource);
+            PromptTemplate template = new PromptTemplate(cakeOptionResource);
             Prompt prompt = template.create(Map.of("question", question));
 
             return chatClient.prompt(prompt).call().content();
