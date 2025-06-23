@@ -5,6 +5,7 @@ import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
+import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.member.entities.VerificationType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
@@ -169,6 +170,12 @@ public class MemberValidator {
         if (!isValidJoinType(joinType)) {
             throw new BusinessException(ErrorCode.INVALID_SIGNUP_TYPE);
         }
+    }
+
+    // member 유효성 검사
+    public Member validateMemberByUid(Long uid) {
+        return memberRepository.findById(uid)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
     }
 
 
