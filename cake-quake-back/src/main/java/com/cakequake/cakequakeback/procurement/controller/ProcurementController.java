@@ -81,5 +81,20 @@ public class ProcurementController {
         return ResponseEntity.ok(procurementService.confirmProcurement(procurementId,confirmDTO));
     }
 
+    //관리자용 발주 전체 조회
+    @GetMapping("/procurements")
+    public ResponseEntity<InfiniteScrollResponseDTO<ProcurementResponseDTO>>getAllProcurements(
+            @ModelAttribute@Valid PageRequestDTO pageRequestDTO
+    ){
+        return ResponseEntity.ok(procurementService.getAllRequests(pageRequestDTO));
+    }
 
+    //관리자용 발주 단건 조회
+    @GetMapping("/procurements/{procurementId}")
+    public ResponseEntity<ProcurementResponseDTO>getProcurementById(
+            @PathVariable Long procurementId
+    ){
+        ProcurementResponseDTO dto = procurementService.getRequestById(procurementId);
+        return ResponseEntity.ok(dto);
+    }
 }
