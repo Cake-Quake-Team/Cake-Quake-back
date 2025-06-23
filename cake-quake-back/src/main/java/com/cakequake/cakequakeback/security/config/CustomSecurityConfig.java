@@ -55,7 +55,7 @@ public class CustomSecurityConfig {
                     "/api/v1/auth/otp/verify",
                     "/api/v1/auth/business/verify", // 사업자 진위 여부
                     "/api/v1/auth/refresh",
-                    "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                    "/css/**", "/js/**", "/images/**", "/favicon.ico","/s3/upload", "/error").permitAll()
                     .anyRequest().authenticated();
 
 //                    .requestMatchers("/api/v1/buyer/cart").hasRole("BUYER");

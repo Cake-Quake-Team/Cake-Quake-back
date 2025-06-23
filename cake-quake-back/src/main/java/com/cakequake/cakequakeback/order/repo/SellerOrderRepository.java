@@ -63,4 +63,23 @@ public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
             @Param("pickupDate") LocalDate pickupDate,
             @Param("pickupTime") LocalTime pickupTime,
             @Param("statusesToExclude") List<OrderStatus> statuses); // <-- 여기를 수정!
+
+    @Query("SELECT COUNT(co) FROM CakeOrder co " +
+            "WHERE co.shop.shopId = :shopId AND " +
+            "co.pickupDate = :pickupDate AND " +
+            "co.pickupTime = :pickupTime AND " +
+            "co.status NOT IN :excludedStatuses")
+    long countActiveOrdersForPickupTime(
+            @Param("shopId") Long shopId,
+            @Param("pickupDate") LocalDate pickupDate,
+            @Param("pickupTime") LocalTime pickupTime,
+            @Param("excludedStatuses") List<OrderStatus> excludedStatuses);
+
+    // ⭐️ [새로 추가] 특정 날짜에 유효한 주문이 있는 매장 목록 조회 (Shop 엔티티를 직접 반환)
+    @Query("SELECT DISTINCT co.shop FROM CakeOrder co " +
+            "WHERE co.pickupDate = :pickupDate AND " +
+            "co.status NOT IN :excludedStatuses")
+    List<Shop> findDistinctShopsWithActiveOrdersOnDate(
+            @Param("pickupDate") LocalDate pickupDate,
+            @Param("excludedStatuses") List<OrderStatus> excludedStatuses);
 }

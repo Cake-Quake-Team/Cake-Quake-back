@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,4 +42,5 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     // 판매자 탈퇴 시 shop status 변경용
     @Query("SELECT s FROM Shop s WHERE s.member.uid = :uid AND s.status = 'ACTIVE'")
     Optional<Shop> findActiveShopByUid(@Param("uid") Long uid);
+
 }
