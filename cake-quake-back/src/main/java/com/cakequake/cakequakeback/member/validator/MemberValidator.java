@@ -112,6 +112,11 @@ public class MemberValidator {
             throw new BusinessException(ErrorCode.INVALID_SHOP_ADDRESS); // 613
         }
 
+        // 매장 전화번호가 공백으로 넘어왔을 때
+        if (dto.getShopPhoneNumber() != null && dto.getShopPhoneNumber().isBlank()) {
+            dto.setShopPhoneNumber(null);
+        }
+
         if (dto.getShopPhoneNumber() != null && !dto.getShopPhoneNumber().matches("^\\d{2,4}-\\d{3,4}-\\d{4}$")) {
             throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
         }

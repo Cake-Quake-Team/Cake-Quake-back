@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface PendingSellerRequestRepository extends JpaRepository<PendingSellerRequest, Long> {
+public interface PendingSellerRequestRepository extends JpaRepository<PendingSellerRequest, Long>, PendingSellerRequestCustomRepository {
 
     Optional<Object> findByUserId(String userId);
 }

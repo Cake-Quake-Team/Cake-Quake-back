@@ -20,7 +20,7 @@ public class PendingSellerRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long temp_seller_id;
+    private Long tempSellerId;
 
     @Column(nullable = false)
     private String userId;
