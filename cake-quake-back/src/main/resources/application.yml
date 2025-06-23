@@ -60,6 +60,7 @@ spring:
       base-url: https://kapi.kakao.com
       admin-key: ${KAKAO_ADMIN_KEY}   # 환경 변수에서 읽어오는 카카오 Admin Key
       cid:       ${KAKAO_CID}         # 환경 변수에서 읽어오는 카카오 CID
+      map-key: ${KAKAO_MAP_REST_API_KEY}  # 카카오맵 REST_API_KEY
     toss:
       base-url: https://api.tosspayments.com
       secret-key: ${TOSS_SECRET_KEY}   # 환경 변수에서 읽어오는 토스페이 Secret Key
