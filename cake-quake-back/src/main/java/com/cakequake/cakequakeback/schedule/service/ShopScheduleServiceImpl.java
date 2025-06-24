@@ -1,22 +1,23 @@
 package com.cakequake.cakequakeback.schedule.service;
 
-import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.repo.SellerOrderRepository;
-import com.cakequake.cakequakeback.schedule.entities.ReservationStatus;
 import com.cakequake.cakequakeback.schedule.entities.ShopSchedule;
 import com.cakequake.cakequakeback.schedule.repo.ShopScheduleRepository;
+import com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO;
 import com.cakequake.cakequakeback.shop.entities.Shop;
+import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,15 +30,53 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
     private final SellerOrderRepository sellerOrderRepository;
     private final ShopScheduleRepository shopScheduleRepository;
 
-
-    // ⭐️ 픽업 시간대별 최대 슬롯 수를 고정값으로 정의 (방법 1)
     private static final int DEFAULT_MAX_SLOTS_PER_TIME = 10;
+    private static final int TEMP_LARGE_PAGE_SIZE = 1000;
 
-    // 제외할 주문 상태 목록 (이전과 동일)
     private static final List<OrderStatus> EXCLUDED_STATUSES = Arrays.asList(
             OrderStatus.RESERVATION_CANCELLED,
             OrderStatus.NO_SHOW
     );
+
+    private static final Map<String, Integer> KOREAN_DAY_OF_WEEK_MAP = new HashMap<>();
+    static {
+        KOREAN_DAY_OF_WEEK_MAP.put("월요일", DayOfWeek.MONDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("화요일", DayOfWeek.TUESDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("수요일", DayOfWeek.WEDNESDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("목요일", DayOfWeek.THURSDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("금요일", DayOfWeek.FRIDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("토요일", DayOfWeek.SATURDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("일요일", DayOfWeek.SUNDAY.getValue());
+        // 필요하다면 "월", "화" 등 약어도 추가할 수 있습니다.
+        KOREAN_DAY_OF_WEEK_MAP.put("월", DayOfWeek.MONDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("화", DayOfWeek.TUESDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("수", DayOfWeek.WEDNESDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("목", DayOfWeek.THURSDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("금", DayOfWeek.FRIDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("토", DayOfWeek.SATURDAY.getValue());
+        KOREAN_DAY_OF_WEEK_MAP.put("일", DayOfWeek.SUNDAY.getValue());
+    }
+
+
+    private List<Integer> parseCloseDays(String closeDaysString) {
+        if (closeDaysString == null || closeDaysString.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 콤마(,)로 구분된 문자열을 분리
+        return Arrays.stream(closeDaysString.split(","))
+                .map(String::trim) // 각 요일 문자열의 앞뒤 공백 제거
+                .map(dayName -> {
+                    // 한글 요일 이름을 정수 값으로 매핑
+                    Integer dayValue = KOREAN_DAY_OF_WEEK_MAP.get(dayName);
+                    if (dayValue == null) {
+                        log.warn("⚠️ 알 수 없는 휴무 요일 이름입니다: '{}'. 이 요일은 무시됩니다.", dayName);
+                    }
+                    return dayValue; // 매핑된 정수 값, 없으면 null
+                })
+                .filter(Objects::nonNull) // null 값(매핑되지 않은 요일) 필터링
+                .collect(Collectors.toList());
+    }
 
     // 가능한 모든 픽업 시간 -> 매장 운영 시간 기반 (변경 없음)
     @Override
@@ -71,11 +110,20 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
     public List<LocalTime> getAvailablePickupTimes(Long shopId, LocalDate date) {
         log.info("📅 getAvailablePickupTimes 호출 (Shop 엔티티 필드 없이). (shopId: {}, date: {})", shopId, date);
 
-        // ⭐️ 여기서 DEFAULT_MAX_SLOTS_PER_TIME 또는 this.defaultMaxSlotsPerTime (주입받은 값)을 사용합니다.
-        int maxSlotsPerTime = DEFAULT_MAX_SLOTS_PER_TIME; // 또는 this.defaultMaxSlotsPerTime
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new IllegalArgumentException("Shop not found with ID: " + shopId));
+
+        // 여기서 parseCloseDays 헬퍼 메서드를 사용
+        List<Integer> parsedCloseDays = parseCloseDays(shop.getCloseDays());
+
+        if (parsedCloseDays.contains(date.getDayOfWeek().getValue())) { // 이제 List<Integer>에 contains 사용
+            log.info("📅 매장 {} (ID: {})은 {}에 휴무일입니다. 이용 가능한 픽업 시간이 없습니다.", shop.getShopName(), shopId, date);
+            return Collections.emptyList();
+        }
+
+        int maxSlotsPerTime = DEFAULT_MAX_SLOTS_PER_TIME;
         log.debug("📅 모든 매장의 픽업 시간대별 기본 최대 슬롯: {}개", maxSlotsPerTime);
 
-        // 해당 매장의 가능한 모든 픽업 시간을 가져옵니다.
         List<LocalTime> possiblePickupTimes = getPossiblePickupTime(shopId);
         List<LocalTime> availableTimes = new ArrayList<>();
 
@@ -99,16 +147,53 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
         return availableTimes;
     }
 
-    // getAvailableShopsByDate 메서드는 이전과 동일하게 동작합니다.
-    // Shop 엔티티에서 maxSlotsPerTime을 사용하지 않았으므로, 이 메서드에는 영향을 주지 않습니다.
     @Override
-    public List<Shop> getAvailableShopsByDate(LocalDate date) {
-        log.info("🏢 getAvailableShopsByDate 호출 (CakeOrder 기반). (date: {})", date);
-        List<Shop> shopsWithActiveOrders = sellerOrderRepository.findDistinctShopsWithActiveOrdersOnDate(date, EXCLUDED_STATUSES);
-        log.info("✅ getAvailableShopsByDate 완료 (CakeOrder 기반). 최종 사용 가능한 매장 수: {}", shopsWithActiveOrders.size());
-        log.debug("✅ 최종 사용 가능한 매장 목록: {}", shopsWithActiveOrders);
-        return shopsWithActiveOrders;
+    public List<ShopScheduleDTO> getAvailableShopsByDate(LocalDate date) {
+        log.info("🏢 getAvailableShopsByDate 호출 (시나리오 2: DTO Projection 사용). (date: {})", date);
+
+        List<ShopScheduleDTO> activeShops = shopRepository.findShopPreviewDTOByStatus(ShopStatus.ACTIVE);
+        List<ShopScheduleDTO> availableShops = new ArrayList<>();
+
+        for (ShopScheduleDTO shopDto : activeShops) { // DTO 객체를 순회
+            try {
+                // 2. 휴무일 확인 (DTO에서 필드 사용)
+                List<Integer> closeDays = parseCloseDays(shopDto.getCloseDays());
+                int dayOfWeekValue = date.getDayOfWeek().getValue();
+
+                if (closeDays.contains(dayOfWeekValue)) {
+                    continue;
+                }
+
+                // 3. 영업 시간 확인 (DTO에서 필드 사용)
+                LocalTime requestTime = LocalTime.now();
+                LocalTime openTime = LocalTime.parse(shopDto.getOpenTime());
+                LocalTime closeTime = LocalTime.parse(shopDto.getCloseTime());
+
+                if (openTime.isBefore(closeTime)) {
+                    if (requestTime.isBefore(openTime) || requestTime.isAfter(closeTime)) {
+                        continue;
+                    }
+                } else {
+                    if (!(requestTime.isAfter(openTime) || requestTime.isBefore(closeTime))) {
+                        continue;
+                    }
+                }
+
+                // 모든 조건을 통과하면 사용 가능한 매장에 추가
+                availableShops.add(shopDto); // 이미 DTO이므로 추가 변환 불필요
+
+            } catch (DateTimeParseException e) {
+                log.error("❌ 영업 시간 또는 휴무일 파싱 오류: Shop ID {}, OpenTime: {}, CloseTime: {}, CloseDays: {}. 오류: {}",
+                        shopDto.getShopId(), shopDto.getOpenTime(), shopDto.getCloseTime(), shopDto.getCloseDays(), e.getMessage());
+            } catch (Exception e) {
+                log.error("❌ Shop ID {} 처리 중 알 수 없는 오류 발생: {}", shopDto.getShopId(), e.getMessage(), e);
+            }
+        }
+
+        log.info("✅ getAvailableShopsByDate 완료. 최종 사용 가능한 매장 수: {}", availableShops.size());
+        return availableShops;
     }
+
 
     @Override
     public ShopSchedule decreaseSlotsForOrderCreation(CakeOrder order) {
@@ -119,9 +204,19 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
         LocalDate pickupDate = order.getPickupDate();
         LocalTime pickupTime = order.getPickupTime();
 
-        // ⭐️ 여기서 DEFAULT_MAX_SLOTS_PER_TIME 또는 this.defaultMaxSlotsPerTime (주입받은 값)을 사용합니다.
-        int maxSlotsPerTime = DEFAULT_MAX_SLOTS_PER_TIME; // 또는 this.defaultMaxSlotsPerTime
+        int maxSlotsPerTime = DEFAULT_MAX_SLOTS_PER_TIME;
         log.debug("[ShopScheduleService] 모든 매장의 픽업 시간대별 기본 최대 슬롯: {}개", maxSlotsPerTime);
+
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new IllegalArgumentException("Shop not found with ID: " + shopId));
+
+        // 여기서도 parseCloseDays 헬퍼 메서드를 사용
+        List<Integer> parsedCloseDays = parseCloseDays(shop.getCloseDays());
+
+        if (parsedCloseDays.contains(pickupDate.getDayOfWeek().getValue())) {
+            log.error("[ShopScheduleService] ❌ 픽업일 {}이 매장 휴무일입니다. 주문을 생성할 수 없습니다. 매장ID: {}", pickupDate, shopId);
+            throw new RuntimeException("선택하신 픽업일은 매장의 휴무일입니다. 다른 날짜를 선택해주세요.");
+        }
 
         long currentActiveOrders = sellerOrderRepository.countActiveOrdersForPickupTime(
                 shopId, pickupDate, pickupTime, EXCLUDED_STATUSES);

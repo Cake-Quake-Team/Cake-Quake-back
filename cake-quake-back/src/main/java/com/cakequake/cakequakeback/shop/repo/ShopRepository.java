@@ -1,9 +1,8 @@
 package com.cakequake.cakequakeback.shop.repo;
 
-import com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
+import com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO;
 import com.cakequake.cakequakeback.shop.entities.Shop;
-import com.cakequake.cakequakeback.shop.entities.ShopNotice;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +10,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +26,12 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating,s.thumbnailImageUrl) " +
             "FROM Shop s WHERE s.status = :status")
     Page<ShopPreviewDTO> findAll(@Param("status") ShopStatus status, Pageable pageable);
+
+    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopScheduleDTO(" +
+            "s.shopId, s.shopName, s.address, s.rating, s.thumbnailImageUrl, " + // 기존 필드
+            "s.openTime, s.closeTime, s.closeDays) " + // <<-- 이 필드들을 추가해야 합니다.
+            "FROM Shop s WHERE s.status = :status")
+    List<ShopScheduleDTO> findShopPreviewDTOByStatus(@Param("status") ShopStatus status);
 
     //검색어, 필터, 상태 모두 고려
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating, s.thumbnailImageUrl) " +
