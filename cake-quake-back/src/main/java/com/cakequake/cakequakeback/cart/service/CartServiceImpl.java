@@ -1,4 +1,3 @@
-// src/main/java/com/cakequake/cakequakeback/cart/service/CartServiceImpl.java
 package com.cakequake.cakequakeback.cart.service;
 
 import com.cakequake.cakequakeback.cart.dto.AddCart;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -124,16 +122,18 @@ public class CartServiceImpl implements CartService {
                     .cartTotalPrice(0L)
                     .build();
         }
-        List<CartItem> cartItemEntities = cartItemRepository.findByCartWithCakeItem(cart);
+        List<CartItem> cartItemEntities = cartItemRepository.findByCart(cart); // ✅ findByCartWithCakeItem 대신 findByCart 사용
+
         List<GetCart.ItemInfo> cartItemDtos = cartItemEntities.stream()
                 .map(entity -> GetCart.ItemInfo.builder()
                         .cartItemId(entity.getCartItemId())
                         .cakeId(entity.getCakeItem().getCakeId())
                         .cname(entity.getCakeItem().getCname())
-                        .price(entity.getCakeItem().getPrice()) // ✅ 요거 추가
+                        .price(entity.getCakeItem().getPrice())
                         .thumbnailImageUrl(entity.getCakeItem().getThumbnailImageUrl())
                         .productCnt(entity.getProductCnt())
                         .itemTotalPrice(entity.getItemTotalPrice())
+                        .shopId(entity.getCakeItem().getShop().getShopId()) // ✅ shopId 필드를 추가합니다!
                         .build())
                 .collect(Collectors.toList());
 
@@ -184,37 +184,51 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public DeletedCartItem.Response deleteCartItem(String userId, Long cartItemId) {
-            Member member = memberRepository.findByUserId(userId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
-            Cart cart = cartRepository.findByMember(member)
-                    .orElse(null);
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
+        Cart cart = cartRepository.findByMember(member)
+                .orElse(null); // 사용자의 장바구니가 없을 수도 있음
 
-            if (cart == null) {
-                return DeletedCartItem.Response.builder()
-                        .deletedCartItemIds(List.of())
-                        .message("삭제할 장바구니가 없습니다.")
-                        .build();
-            }
-
-            List<CartItem> itemsToDelete = cartItemRepository.findByCartWithCakeItem(cart);
-            List<Long> deletedIds = new ArrayList<>();
-
-            if (itemsToDelete.isEmpty()) {
-                return DeletedCartItem.Response.builder()
-                        .deletedCartItemIds(List.of())
-                        .message("장바구니에 삭제할 상품이 없습니다.")
-                        .build();
-            }
-            for (CartItem item : itemsToDelete) {
-                deletedIds.add(item.getCartItemId());
-            }
-            cartItemRepository.deleteAllByCart_CartId(cart);
-            cartRepository.save(cart);
-
+        if (cart == null) {
             return DeletedCartItem.Response.builder()
-                    .deletedCartItemIds(deletedIds)
-                    .message(userId + " 사용자의 장바구니에 있던 " + deletedIds.size() + "개 상품이 모두 삭제되었습니다.")
+                    .deletedCartItemIds(List.of())
+                    .message("삭제할 장바구니가 없습니다.")
                     .build();
         }
+
+        CartItem itemToDelete = cartItemRepository.findByCartAndCartItemId(cart, cartItemId)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.INVALID_CART_ITEMS,
+                        "ID " + cartItemId + "에 해당하는 장바구니 아이템을 찾을 수 없거나, 사용자 소유가 아닙니다."
+                ));
+
+        cartItemRepository.delete(itemToDelete); // ⭐ 특정 아이템 삭제 ⭐
+        recalculateCartTotalPrice(cart); // 장바구니 총 가격 재계산
+
+        return DeletedCartItem.Response.builder()
+                .deletedCartItemIds(List.of(cartItemId)) // 삭제된 ID 목록에 해당 아이템만 포함
+                .message(userId + " 사용자의 장바구니에 있던 상품 ID " + cartItemId + "가 삭제되었습니다.")
+                .build();
+    }
+
+    // ⭐⭐ 모든 장바구니 아이템 삭제 메서드 (새로 추가하거나, 기존 deleteCartItem 오버로드) ⭐⭐
+    // CartService 인터페이스에도 이 메서드를 추가해야 합니다.
+    @Override
+    public void deleteAllCartItems(String userId) { // CartService 인터페이스에 이 메서드 추가 필요
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
+
+        Cart cart = cartRepository.findByMember(member)
+                .orElse(null); // 사용자의 장바구니가 없을 수도 있음
+
+        if (cart == null) {
+            // 삭제할 장바구니가 없으므로 특별한 처리 없이 리턴 (또는 BusinessException)
+            return; // 또는 throw new BusinessException(ErrorCode.NOT_FOUND_CART_ID, "삭제할 장바구니를 찾을 수 없습니다.");
+        }
+
+        // ⭐ 핵심: deleteAllByCart_CartId에 Cart 객체 대신 cartId를 전달 ⭐
+        cartItemRepository.deleteAllByCart_CartId(cart.getCartId()); // ✅ 이제 Long 타입의 cartId를 넘김
+        recalculateCartTotalPrice(cart); // 장바구니 총 가격 재계산 (0이 될 것임)
+    }
 
 }

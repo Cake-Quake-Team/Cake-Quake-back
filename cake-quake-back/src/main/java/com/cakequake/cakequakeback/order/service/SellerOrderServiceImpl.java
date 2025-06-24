@@ -4,6 +4,7 @@ import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderDetail;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderList;
+import com.cakequake.cakequakeback.order.dto.seller.SellerStatistics;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.order.entities.CakeOrderItem;
 import com.cakequake.cakequakeback.order.entities.CakeOrderItemOption;
@@ -171,6 +172,11 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         }
 
         // 5) Dirty checking 으로 트랜잭션 커밋 시점에 자동 반영됩니다.
+    }
+
+    @Override
+    public SellerStatistics.Response getSellerStatistics(Long shopId, LocalDate startDate, LocalDate endDate) {
+        return null;
     }
 
 }

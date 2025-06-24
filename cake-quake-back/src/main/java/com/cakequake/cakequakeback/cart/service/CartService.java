@@ -24,4 +24,8 @@ public interface CartService {
 
     //선택된 장바구니 항목들 삭제
     DeletedCartItem.Response deleteCartItem(String userId,Long cartItemId);
+
+    // ⭐⭐ 모든 장바구니 아이템 삭제 메서드 (새로 추가하거나, 기존 deleteCartItem 오버로드) ⭐⭐
+    // CartService 인터페이스에도 이 메서드를 추가해야 합니다.
+    void deleteAllCartItems(String userId);
 }

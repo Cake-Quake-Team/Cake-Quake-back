@@ -54,7 +54,7 @@ public class SellerOrderDetail {
         private Integer unitPrice;
 
         /** CakeOrderItem 엔티티의 subTotalPrice 필드 (소계 금액) */
-        private BigDecimal subTotalPrice;
+        private Integer subTotalPrice;
 
         /** CakeItem 엔티티의 thumbnailImageUrl 필드 (썸네일 URL) */
         private String thumbnailImageUrl;

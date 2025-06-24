@@ -2,12 +2,16 @@ package com.cakequake.cakequakeback.order.controller;
 
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderDetail;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderList;
+import com.cakequake.cakequakeback.order.dto.seller.SellerStatistics;
 import com.cakequake.cakequakeback.order.service.SellerOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -57,5 +61,28 @@ public class SellerOrderController {
         }
         sellerOrderService.updateOrderStatus(shopId, orderId, status);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/statistics") // 기존 경로에 /statistics 추가
+    public ResponseEntity<SellerStatistics.Response> getSellerOrderStatistics(
+            @PathVariable Long shopId, // URL 경로에서 shopId를 가져옴
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        // 날짜 파라미터가 없으면 기본값 설정 (예: 최근 30일)
+        if (startDate == null) {
+            startDate = LocalDate.now().minusMonths(1);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+
+        // startDate가 endDate보다 늦을 경우의 유효성 검사
+        if (startDate.isAfter(endDate)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        SellerStatistics.Response statistics = sellerOrderService.getSellerStatistics(shopId, startDate, endDate);
+        return ResponseEntity.ok(statistics);
     }
 }

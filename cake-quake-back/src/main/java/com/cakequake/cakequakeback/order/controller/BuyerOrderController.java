@@ -21,9 +21,9 @@ public class BuyerOrderController {
         this.buyerOrderService = buyerOrderService;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<CreateOrder.Response> createOrder(
-            @AuthenticationPrincipal String userId,
+            @AuthenticationPrincipal(expression = "member.userId") String userId,
             @Valid @RequestBody CreateOrder.Request createRequest
     ) {
         CreateOrder.Response response = buyerOrderService.createOrder(userId, createRequest);
@@ -32,7 +32,7 @@ public class BuyerOrderController {
 
     @GetMapping
     public ResponseEntity<OrderList.Response> getOrderList(
-            @AuthenticationPrincipal String userId,
+            @AuthenticationPrincipal(expression = "member.userId") String userId,
             @PageableDefault(size = 20) Pageable pageable
     ) {
         OrderList.Response response = buyerOrderService.getOrderList(userId, pageable);
@@ -41,7 +41,7 @@ public class BuyerOrderController {
 
     @GetMapping("/{orderId}") // 경로 명확화
     public ResponseEntity<OrderDetail.Response> getOrderDetail(
-            @AuthenticationPrincipal String userId,
+            @AuthenticationPrincipal(expression = "member.userId") String userId,
             @PathVariable Long orderId
     ) {
         OrderDetail.Response response = buyerOrderService.getOrderDetail(userId, orderId);
@@ -49,9 +49,9 @@ public class BuyerOrderController {
 
     }
 
-    @DeleteMapping("/{orderId}")
+    @PatchMapping("/{orderId}")
     public ResponseEntity<Void> cancelOrder(
-            @AuthenticationPrincipal String userId,
+            @AuthenticationPrincipal(expression = "member.userId") String userId,
             @PathVariable Long orderId
     ) {
         buyerOrderService.cancelOrder(userId, orderId);

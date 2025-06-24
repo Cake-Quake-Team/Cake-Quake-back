@@ -53,6 +53,8 @@ public class CakeOrderItem extends BaseEntity {
 
     // 주문 아이템 소계 금액 (unitPrice * quantity)
     @Column(nullable = false)
-    private BigDecimal subTotalPrice;
-    
+    private Integer subTotalPrice;
+
+
+
 }

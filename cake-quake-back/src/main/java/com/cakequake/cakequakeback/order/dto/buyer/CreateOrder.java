@@ -2,8 +2,8 @@ package com.cakequake.cakequakeback.order.dto.buyer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,14 +23,14 @@ public class CreateOrder {
     @NoArgsConstructor
     @JsonDeserialize(builder = CreateOrder.Request.RequestBuilder.class)
     public static class Request{
+
+        @NotNull(message = "shopId는 필수입니다.")
+        private Long shopId;
+
         //cart로 통해서 주문
-        @NotNull(message = "cartItemIds는 필수입니다.")
-        @NotEmpty(message = "최소 1개 이상의 CartItem ID가 필요합니다.")
         private List<@Min(value = 1, message = "유효한 CartItem ID를 입력하시요")Long> cartItemIds;
 
         //직접 주문
-        @NotNull(message = "")
-        @NotEmpty(message = "최소 1개 이상의 DirectItem이 필요합니다.")
         private List<DirectItem> directItems;
 
         /** 픽업 날짜 (예: "2025-08-23") */
@@ -44,9 +44,20 @@ public class CreateOrder {
         /** 주문 시 요청사항 (선택) */
         private String orderNote;
 
+        // 🔽 조건 유효성 검사
+        @AssertTrue(message = "cartItemIds 또는 directItems 중 하나만 제공되어야 합니다.")
+        public boolean isEitherCartOrDirectProvided() {
+            boolean cartProvided = cartItemIds != null && !cartItemIds.isEmpty();
+            boolean directProvided = directItems != null && !directItems.isEmpty();
+            return cartProvided ^ directProvided;
+        }
 
 
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class RequestBuilder { }
     }
+
+
     @Getter
     @Builder
     @NoArgsConstructor
@@ -55,7 +66,7 @@ public class CreateOrder {
     public static class DirectItem {
         @NotNull(message = "productId는 필수입니다.")
         @Min(value = 1, message = "유효한 productId를 입력하세요.")
-        private Long productId;
+        private Long cakeItemId;
 
         @NotNull(message = "quantity는 필수입니다.")
         @Min(value = 1, message = "수량은 1 이상이어야 합니다.")
@@ -65,7 +76,7 @@ public class CreateOrder {
          * 커스텀 옵션이 있을 경우 key-value 형태(JSON으로 넘어옴)
          * 예: {"size":"2호","design":"심플","lettering":"Happy"} 등
          */
-        private Map<String, String> options;
+        private Map<Long,Integer> options;
 
         @JsonPOJOBuilder(withPrefix = "")
         public static class DirectItemBuilder { }
@@ -82,5 +93,7 @@ public class CreateOrder {
         private Integer orderTotalPrice;
         private LocalDate pickupDate;
         private LocalTime pickupTime;
+        private String orderNote;
+        private Long shopId;
     }
 }
