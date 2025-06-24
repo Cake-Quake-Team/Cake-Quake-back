@@ -31,6 +31,7 @@ public class OrderDetail {
     @AllArgsConstructor
     public static class OrderDetailItem {
         private Long orderItemId;
+        private Long cakeId;
         private String cname;             // 상품명
         private Integer productCnt;       // 수량
         private Long price;               // 단가
