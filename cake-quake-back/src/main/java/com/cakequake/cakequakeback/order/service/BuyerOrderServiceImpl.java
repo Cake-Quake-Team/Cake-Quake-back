@@ -268,6 +268,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                         .toString())
                 .uname(order.getMember().getUname())
                 .phone(order.getMember().getPhoneNumber())
+                .shopId(order.getShop().getShopId())
                 .items(itemDtos)
                 .totalPrice(order.getOrderTotalPrice().longValue())
                 .build();
