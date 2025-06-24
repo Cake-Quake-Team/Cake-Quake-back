@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface ShopRepository extends JpaRepository<Shop, Long> {
     //매장 정보 상세 조회
     @Query("SELECT s, si FROM Shop s " +
-            "JOIN s.member m " + // 멤버는 항상 존재한다고 가정
+            "JOIN s.member m " +
             "LEFT JOIN ShopImage si ON si.shop.shopId = s.shopId " + // ShopImage 엔티티를 직접 조인
             "WHERE s.shopId = :shopId")
     List<Object[]> SelectDTO(@Param("shopId") Long shopId);
@@ -28,6 +28,17 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating,s.thumbnailImageUrl) " +
             "FROM Shop s WHERE s.status = :status")
     Page<ShopPreviewDTO> findAll(@Param("status") ShopStatus status, Pageable pageable);
+
+    //검색어, 필터, 상태 모두 고려
+    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating, s.thumbnailImageUrl) " +
+            "FROM Shop s " +
+            "WHERE (CASE WHEN :filterStatus IS NOT NULL THEN s.status = :filterStatus ELSE s.status = :baseStatus END) " +
+            "AND (:keyword IS NULL OR s.shopName LIKE %:keyword% OR s.address LIKE %:keyword%) ")
+    Page<ShopPreviewDTO> findShopPreviewsByStatusAndKeywordAndFilter(
+            @Param("baseStatus") ShopStatus baseStatus,
+            @Param("keyword") String keyword,
+            @Param("filterStatus") ShopStatus filterStatus,
+            Pageable pageable);
 
     // 중복 검사용
     boolean existsByBusinessNumber(String businessNumber);
