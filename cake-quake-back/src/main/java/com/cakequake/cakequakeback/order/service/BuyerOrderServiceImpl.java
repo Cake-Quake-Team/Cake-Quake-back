@@ -1,8 +1,10 @@
 package com.cakequake.cakequakeback.order.service;
 
+import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.cake.item.entities.CakeOptionMapping;
-import com.cakequake.cakequakeback.cart.entities.Cart;
+import com.cakequake.cakequakeback.cake.item.repo.CakeItemRepository;
 import com.cakequake.cakequakeback.cart.entities.CartItem;
+// import com.cakequake.cakequakeback.cart.entities.CartItemOption; // ⭐ CartItemOption 제거 ⭐
 import com.cakequake.cakequakeback.cart.repo.CartItemRepository;
 import com.cakequake.cakequakeback.cart.repo.CartRepository;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
@@ -17,14 +19,20 @@ import com.cakequake.cakequakeback.order.entities.CakeOrderItem;
 import com.cakequake.cakequakeback.order.entities.CakeOrderItemOption;
 import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.repo.*;
+import com.cakequake.cakequakeback.shop.entities.Shop;
+import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ValidationException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,7 +45,8 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     private final CakeOptionMappingRepository cakeOptionMappingRepository;
     private final CakeOrderItemOptionRepository cakeOrderItemOptionRepository;
     private final MemberRepository memberRepository;
-
+    private final ShopRepository shopRepository;
+    private final CakeItemRepository cakeItemRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
@@ -46,131 +55,166 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     public CreateOrder.Response createOrder(String userId, CreateOrder.Request request) {
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
-        // (1) cartItemIds와 directItems 중 하나만 제공되어야 함
+
+        Shop shop = shopRepository.findById(request.getShopId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
+
+
         boolean hasCart = request.getCartItemIds() != null && !request.getCartItemIds().isEmpty();
         boolean hasDirect = request.getDirectItems() != null && !request.getDirectItems().isEmpty();
-        if (hasCart == hasDirect) { // 둘 다 존재하거나 둘 다 비어있으면 잘못된 요청
-            throw new BusinessException(ErrorCode.INVALID_CART_ITEMS);
+
+        if (hasCart == hasDirect) {
+            throw new BusinessException(ErrorCode.INVALID_CART_ITEMS, "주문은 장바구니 또는 바로구매 중 한 가지 방식만 가능합니다.");
         }
-        // (2) CakeOrder 생성
+
         CakeOrder order = CakeOrder.builder()
                 .member(member)
                 .pickupDate(request.getPickupDate())
                 .pickupTime(request.getPickupTime())
+                .orderNote(request.getOrderNote())
+                .orderNumber(generateOrderNumber(userId))
                 .status(OrderStatus.RESERVATION_PENDING)
-                //.orderNumber(generateOrderNumber(memberUid))
+                .shop(shop)
                 .build();
-        CakeOrder savedOrder = buyerOrderRepository.save(order);
 
-        long OrderToTalPrice = 0L;
+        long calculatedTotalPrice = 0L;
+        int totalItemCount = 0;
+        List<CakeOrderItem> tempOrderItems = new ArrayList<>();
 
-        if (hasDirect) {
-
+        if (hasDirect) { // 바로구매 상품 처리
             for (CreateOrder.DirectItem directItem : request.getDirectItems()) {
+                int quantity = directItem.getQuantity();
+                if (quantity <= 0) {
+                    throw new BusinessException(ErrorCode.INVALID_QUANTITY, "바로구매 아이템 수량은 1개 이상이어야 합니다.");
+                }
+                totalItemCount += quantity;
+
+                CakeItem cakeItem = cakeItemRepository.findById(directItem.getCakeItemId())
+                        .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_CAKE_ITEM, "케이크 상품을 찾을 수 없습니다: " + directItem.getCakeItemId()));
+
+                int itemUnitPrice = cakeItem.getPrice();
+                int itemSubTotal = itemUnitPrice * quantity;
+                calculatedTotalPrice += itemSubTotal;
+
                 CakeOrderItem item = CakeOrderItem.builder()
                         .cakeOrder(order)
-                        //.cakeItem(CakeOrderItem(direct.getProductId())) // 실제 CakeItem 조회 로직 필요
-                        .quantity(directItem.getQuantity())
-                        //.unitPrice(fetchUnitPrice(direct.getProductId()))    // 실제 단가 조회 로직 필요
-                        //.subTotalPrice(fetchUnitPrice(direct.getProductId()) * direct.getQuantity()) //이것도
+                        .quantity(quantity)
+                        .unitPrice(itemUnitPrice)
+                        .subTotalPrice(itemSubTotal)
+                        .cakeItem(cakeItem)
                         .build();
-                cakeOrderItemRepository.save(item);
+                tempOrderItems.add(item);
 
-                OrderToTalPrice += item.getQuantity(); // totalPrice += item.getSubTotalPrice();
+                // 옵션 처리
+                Map<Long, Integer> optionsMap = directItem.getOptions();
+                if (optionsMap != null && !optionsMap.isEmpty()) {
+                    for (Map.Entry<Long, Integer> entry : optionsMap.entrySet()) {
+                        Long mappingId = entry.getKey();
+                        Integer optionQuantity = entry.getValue();
 
-                Map<String, String> optionsMap = directItem.getOptions();
-                if (optionsMap != null && optionsMap.containsKey("mappingId")) {
-                    Long mappingId;
-                    try {
-                        mappingId = Long.valueOf(optionsMap.get("mappingId"));
-                    } catch (NumberFormatException exception) {
-                        throw new BusinessException(ErrorCode.NOT_FOUND_OPTION_ID);
+                        CakeOptionMapping mapping = cakeOptionMappingRepository.findById(mappingId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_OPTION_ID, "케이크 옵션 매핑을 찾을 수 없습니다: " + mappingId));
+
+                        // CakeOrderItemOption 생성 및 저장
+                        CakeOrderItemOption orderItemOption = CakeOrderItemOption.builder()
+                                .cakeOrderItem(item)
+                                .cakeOptionMapping(mapping)
+                                .optionCnt(optionQuantity)
+                                .build();
+                        cakeOrderItemOptionRepository.save(orderItemOption);
+
+                        calculatedTotalPrice += (long) mapping.getOptionItem().getPrice() * optionQuantity;
                     }
-                    CakeOptionMapping mapping = cakeOptionMappingRepository
-                            .findById(mappingId)                                      // Optional<CakeOptionMapping> 반환
-                            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_OPTION_ID));
-
-                    CakeOrderItemOption itemOption = CakeOrderItemOption.builder()
-                            .cakeOrderItem(item)
-                            .cakeOptionMapping(mapping)
-                            .optionCnt(1) // 옵션 개수(예시)
-                            .build();
-                    cakeOrderItemOptionRepository.save(itemOption);
-
-                    OrderToTalPrice += mapping.getOptionItem().getPrice();
                 }
             }
-        }
-        /* 장바구니 주문할 때 //생각을 해보니 장바구니에도 mapping옵션을 넣어야하네..
-        else {
-            // --- CartItemIds 기반 주문 처리 ---
-            // (1) 회원의 장바구니 조회
-            Cart cart = cartRepository.findByMember(member)
-                    .orElseThrow(() -> new NoSuchElementException("장바구니가 존재하지 않습니다."));
+        } else if (hasCart) { // 장바구니 상품 처리
+            List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());
 
-            // (2) 요청된 cartItemIds 순회하며, CartItem → CakeOrderItem 생성
-            for (Long cartItemId : request.getCartItemIds()) {
-                CartItem cartItem = cartItemRepository.findById(cartItemId)
-                        .orElseThrow(() -> new NoSuchElementException("유효하지 않은 CartItem ID: " + cartItemId));
+            if (cartItems.isEmpty() || cartItems.size() != request.getCartItemIds().size()) {
+                throw new BusinessException(ErrorCode.NOT_FOUND_CAKE_ITEM, "유효하지 않거나 찾을 수 없는 장바구니 아이템이 포함되어 있습니다.");
+            }
 
-                // 해당 CartItem이 실제로 현재 회원의 Cart에 속했는지 검증
-                if (!Objects.equals(cartItem.getCart().getCartId(), cart.getCartId())) {
-                    throw new IllegalArgumentException("본인의 장바구니 아이템이 아닙니다: ID=" + cartItemId);
+            for (CartItem cartItem : cartItems) {
+                int quantity = cartItem.getQuantity();
+                if (quantity <= 0) {
+                    throw new BusinessException(ErrorCode.INVALID_QUANTITY, "장바구니 아이템 수량은 1개 이상이어야 합니다.");
+                }
+                totalItemCount += quantity;
+
+                CakeItem cakeItem = cartItem.getCakeItem();
+                if (cakeItem == null) {
+                    throw new BusinessException(ErrorCode.NOT_FOUND_CAKE_ITEM, "장바구니 아이템에 연결된 케이크 상품을 찾을 수 없습니다.");
                 }
 
-                // (3) CakeOrderItem 생성 및 저장
-                CakeOrderItem orderItem = CakeOrderItem.builder()
+                int itemUnitPrice = cartItem.getUnitPrice();
+                int itemSubTotal = itemUnitPrice * quantity;
+                calculatedTotalPrice += itemSubTotal;
+
+                CakeOrderItem item = CakeOrderItem.builder()
                         .cakeOrder(order)
-                        .cakeItem(cartItem.getCakeItem())
-                        .unitPrice(cartItem.getCakeItem().getPrice())
-                        .subTotalPrice(cartItem.getCakeItem().getPrice() * cartItem.getQuantity())
+                        .quantity(quantity)
+                        .unitPrice(itemUnitPrice)
+                        .subTotalPrice(itemSubTotal)
+                        .cakeItem(cakeItem)
                         .build();
-                cakeOrderItemRepository.save(orderItem);
+                tempOrderItems.add(item); // 임시 리스트에 추가
 
-                // (4) 주문 총액에 소계 반영
-                totalPrice += orderItem.getSubTotalPrice();
+                // ⭐⭐ CartItemOption이 없으므로, CartItem의 options 맵을 직접 참조하여 CakeOrderItemOption 생성 ⭐⭐
+                // CartItem 엔티티에 Map<Long, Integer> options 필드가 있다고 가정
+                Map<Long, Integer> optionsMap = cartItem.getOptions(); // CartItem.getOptions()가 Map<Long, Integer>를 반환한다고 가정
+                if (optionsMap != null && !optionsMap.isEmpty()) {
+                    for (Map.Entry<Long, Integer> entry : optionsMap.entrySet()) {
+                        Long mappingId = entry.getKey();
+                        Integer optionQuantity = entry.getValue();
 
-                // (5) CartItemOption이 존재하면, CakeOrderItemOption으로 변환해 저장
-                List<CartItem> cartOptions = cartItem.getCartItemId();
-                for (CartItemOption cartOpt : cartOptions) {
-                    // CartItemOption에는 CakeOptionMapping ID와 optionCnt 정보가 있어야 함
-                    CakeOptionMapping mapping = cakeOptionMappingRepository
-                            .findById(cartOpt.getMappingOId())
-                            .orElseThrow(() -> new NoSuchElementException(
-                                    "유효하지 않은 옵션 매핑입니다: " + cartOpt.getMappingId()
-                            ));
+                        CakeOptionMapping mapping = cakeOptionMappingRepository.findById(mappingId)
+                                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_OPTION_ID, "장바구니 아이템 옵션 매핑을 찾을 수 없습니다: " + mappingId));
 
-                    CakeOrderItemOption orderItemOption = CakeOrderItemOption.builder()
-                            .cakeOrderItem(orderItem)
-                            .cakeOptionMapping(mapping)
-                            .optionCnt(cartOpt.getOptionCnt())
-                            .build();
-                    cakeOrderItemOptionRepository.save(orderItemOption);
+                        CakeOrderItemOption orderItemOption = CakeOrderItemOption.builder()
+                                .cakeOrderItem(item)
+                                .cakeOptionMapping(mapping)
+                                .optionCnt(optionQuantity)
+                                .build();
+                        cakeOrderItemOptionRepository.save(orderItemOption);
 
-                    // 옵션 가격 반영
-                    totalPrice += mapping.getOptionItem().getPrice() * cartOpt.getOptionCnt();
+                        calculatedTotalPrice += (long) mapping.getOptionItem().getPrice() * optionQuantity;
+                    }
                 }
-
-                // (6) CartItem을 주문으로 이동했으므로, 장바구니에서는 삭제
-                cartItemRepository.delete(cartItem);
             }
-
-            // (7) 장바구니 총액 재계산 (삭제된 항목 반영)
-            recalculateCartTotalPrice(cart);
+            cartItemRepository.deleteAllById(request.getCartItemIds());
         }
-*/
-        // (3) 주문 총액 업데이트
-        //orderTotalPrice(order.getOrderTotalPrice());
-        buyerOrderRepository.save(order);
 
-        // (4) 응답 DTO 반환
+        order.applyOrderTotalPrice(calculatedTotalPrice);
+        order.applyTotalNumber(totalItemCount);
+
+        CakeOrder savedOrder = buyerOrderRepository.save(order);
+
+        for (CakeOrderItem item : tempOrderItems) {
+            CakeOrderItem finalItem = CakeOrderItem.builder()
+                    .cakeItem(item.getCakeItem())
+                    .quantity(item.getQuantity())
+                    .unitPrice(item.getUnitPrice())
+                    .subTotalPrice(item.getSubTotalPrice())
+                    .cakeOrder(savedOrder)
+                    .build();
+            cakeOrderItemRepository.save(finalItem);
+        }
+
         return CreateOrder.Response.builder()
                 .orderId(savedOrder.getOrderId())
                 .orderNumber(savedOrder.getOrderNumber())
                 .orderTotalPrice(savedOrder.getOrderTotalPrice())
                 .pickupDate(savedOrder.getPickupDate())
                 .pickupTime(savedOrder.getPickupTime())
+                .orderNote(savedOrder.getOrderNote())
+                .shopId(savedOrder.getShop().getShopId())
                 .build();
+    }
+
+    private String generateOrderNumber(String userId) {
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        int random = (int) (Math.random() * 100000);
+        return "ORD-" + date + "-" + userId + "-" + String.format("%05d", random);
     }
 
     @Override
@@ -195,18 +239,17 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     @Override
     public OrderDetail.Response getOrderDetail(String userId, Long orderId) {
         CakeOrder order = buyerOrderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID, "해당 주문 정보를 찾을 수 없습니다."));
 
-        // 2) 소유자 검증: 내 주문이 아니면 BusinessException(NOT_OWN_ORDER)
-        if (!order.getMember().getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.NOT_OWN_ORDER);
-
+        if (!Objects.equals(order.getMember().getUserId(), userId)) {
+            throw new BusinessException(ErrorCode.NOT_OWN_ORDER, "주문 번호가 본인의 것이 아닙니다.");
         }
 
         List<CakeOrderItem> items = cakeOrderItemRepository.findByCakeOrder_OrderId(orderId);
 
         List<OrderDetail.OrderDetailItem> itemDtos = items.stream()
                 .map(item -> OrderDetail.OrderDetailItem.builder()
+                        .orderItemId(item.getOrderItemId())
                         .cname(item.getCakeItem().getCname())
                         .productCnt(item.getQuantity())
                         .price(item.getUnitPrice().longValue())
@@ -229,24 +272,22 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .build();
     }
 
-
     @Override
     public void cancelOrder(String userId, Long orderId) {
         CakeOrder order = buyerOrderRepository
                 .findById(orderId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID, "해당 주문 정보를 찾을 수 없습니다."));
 
-        if (!Objects.equals(order.getMember().getUid(), userId)) {
-            throw new BusinessException(ErrorCode.NOT_OWN_ORDER);
+        if (!Objects.equals(order.getMember().getUserId().trim(), userId.trim())) { // .trim() 추가
+            throw new BusinessException(ErrorCode.NOT_OWN_ORDER, "주문 번호가 본인의 것이 아닙니다.");
         }
         if (order.getStatus() != OrderStatus.RESERVATION_PENDING) {
-            throw new BusinessException(ErrorCode.INVALID_TIME_RANGE);
+            throw new BusinessException(ErrorCode.INVALID_TIME_RANGE, "현재 주문 상태에서는 취소할 수 없습니다.");
         }
 
-        //order.getStatus(OrderStatus.RESERVATION_CANCELLED);
+        order.updateStatus(OrderStatus.RESERVATION_CANCELLED);
+        buyerOrderRepository.save(order);
     }
-
-    //---헬퍼---//
 
     private OrderList.OrderListItem mapToOrderListItem(CakeOrder order) {
         List<CakeOrderItem> items = this.cakeOrderItemRepository.findByCakeOrder_OrderId(order.getOrderId());
@@ -265,7 +306,6 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .shopName(shopName)
                 .orderTotalPrice(order.getOrderTotalPrice())
                 .status(order.getStatus().name())
-                //.orderType(order.isCustom() ? "CUSTOM" : "GENERAL")
                 .pickupDate(order.getPickupDate())
                 .pickupTime(order.getPickupTime())
                 .items(itemDtos)
@@ -285,7 +325,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         for (CakeOrderItemOption oio : opts) {
             if (oio.getCakeOptionMapping() != null && oio.getCakeOptionMapping().getMappingId() != null) {
                 options.put(
-                        oio.getCakeOptionMapping().getMappingId().toString(),
+                        String.valueOf(oio.getCakeOptionMapping().getMappingId()),
                         String.valueOf(oio.getOptionCnt())
                 );
             }

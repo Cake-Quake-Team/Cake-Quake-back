@@ -26,10 +26,9 @@ public class CartController {
     @PostMapping
     public ResponseEntity<AddCart.Response> addCart(
 
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal(expression = "member.userId") String userId,
             @Validated @RequestBody AddCart.Request requestDto
     ) {
-        String userId = userDetails.getMember().getUserId();
         AddCart.Response responseDto = cartService.addCart(userId, requestDto);
         return ResponseEntity.ok(responseDto);
     }
@@ -45,14 +44,14 @@ public class CartController {
         return ResponseEntity.ok(cartService.getCart(userId));
     }
 
-        //String userId = userD.getMember().getUserId();
-        //GetCart.Response responseDto = cartService.getCart(userId);
-        //log.info("principal userId",userId);
-        //return ResponseEntity.ok(cartService.getCart(userId));
+    //String userId = userD.getMember().getUserId();
+    //GetCart.Response responseDto = cartService.getCart(userId);
+    //log.info("principal userId",userId);
+    //return ResponseEntity.ok(cartService.getCart(userId));
 
 
     /** 장바구니 내 특정 아이템 수량 수정 */
-    @PatchMapping
+    @PatchMapping()
     public ResponseEntity<UpdateCartItem.Response> updateCartItem(
             @AuthenticationPrincipal(expression = "member.userId") String userId,
             @RequestBody @Validated UpdateCartItem.Request requestDto

@@ -26,6 +26,7 @@ public class GetCart {
     @NoArgsConstructor
     public static class ItemInfo {
         private Long cartItemId;
+        private Long shopId;
         private Long cakeId;
         private String cname;
         private int price;

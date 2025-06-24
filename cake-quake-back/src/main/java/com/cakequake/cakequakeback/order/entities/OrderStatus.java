@@ -7,9 +7,11 @@ import lombok.Getter;
 public enum OrderStatus {
     RESERVATION_PENDING("예약 확인 중"),
     RESERVATION_CONFIRMED("예약 확정"),
+    PREPARING("준비 중"),
+    READY_FOR_PICKUP("픽업 준비 완료"),
+    PICKUP_COMPLETED("픽업 완료"),
     RESERVATION_CANCELLED("예약 취소"),
-    NO_SHOW("노쇼"),
-    PICKUP_COMPLETED("픽업 완료");
+    NO_SHOW("노쇼");
 
     /** 한글 라벨 값을 저장하는 필드 */
     private final String kr;
@@ -27,6 +29,15 @@ public enum OrderStatus {
     @JsonValue
     public String getKr() {
         return kr;
+    }
+
+    public static OrderStatus fromKorean(String krLabel) {
+        for (OrderStatus status : OrderStatus.values()) {
+            if (status.kr.equals(krLabel)) {
+                return status;
+            }
+        }
+        throw new IllegalArgumentException("Unknown OrderStatus korean label: " + krLabel);
     }
 
 }

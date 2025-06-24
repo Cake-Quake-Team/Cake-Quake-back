@@ -22,6 +22,7 @@ public class OrderDetail {
 
         private List<OrderDetailItem> items;
         private Long totalPrice;
+        private String orderNote;
     }
 
     @Getter
@@ -29,9 +30,11 @@ public class OrderDetail {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class OrderDetailItem {
+        private Long orderItemId;
         private String cname;             // 상품명
         private Integer productCnt;       // 수량
         private Long price;               // 단가
         private String thumbnailImageUrl; // 썸네일 URL
+        private List<String> options;
     }
 }

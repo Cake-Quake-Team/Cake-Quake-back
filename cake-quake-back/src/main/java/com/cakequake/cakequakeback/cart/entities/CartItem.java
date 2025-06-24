@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Min;
 import lombok.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "cart_item")
@@ -41,5 +42,26 @@ public class CartItem extends BaseEntity {
     //장바구니에 담긴 상품 총 가격
     @Column(name = "itemTotalPrice", nullable = false)
     private Long itemTotalPrice;
+
+    public Integer getUnitPrice() { // int 대신 Integer 반환 타입 사용
+        // 단가는 CakeItem에서 가져오는 것이 일반적입니다.
+        if (this.cakeItem != null) {
+            return this.cakeItem.getPrice(); // CakeItem.getPrice()가 Integer를 반환한다고 가정
+        }
+        // cakeItem이 null이거나 가격 정보가 없다면 0 또는 예외 처리
+        return 0; // 또는 throw new IllegalStateException("CakeItem이 연결되어 있지 않습니다.");
+    }
+
+    public Integer getQuantity() { // int 대신 Integer 반환 타입 사용
+        return this.productCnt;
+    }
+
+
+    // 만약 CartItem에 options 필드가 있다면
+    // 없다면 비어있는 Map을 반환하거나, CakeItem에서 가져와야 할 수 있습니다.
+    // return Collections.emptyMap();
+    @Getter
+    @Transient // DB에 매핑되지 않는 임시 필드 또는 실제 매핑된 필드 추가
+    private Map<Long, Integer> options; // ⭐ CartItem이 직접 옵션 맵을 가지고 있다면 이 필드 추가 ⭐
 
 }

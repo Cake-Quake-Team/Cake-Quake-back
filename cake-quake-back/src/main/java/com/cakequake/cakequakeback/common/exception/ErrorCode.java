@@ -71,7 +71,7 @@ public enum ErrorCode {
     INVALID_REQUEST(400,663,"잘못된 파라미터입니다"),
     INVALID_ORDER_STATUS(400,664,"상태 전환이 불가능합니다."),
     INVALID_AI_REQUEST(400, 665, "AI 요청이 잘못되었습니다"),
-
+    INVALID_QUANTITY(400, 666, "수량은 1개 이상이어야 합니다."),
 
     //HTTP 401 Unauthorized (code:801~809)
     INVALID_CREDENTIALS(401, 801, "아이디 또는 패스워드가 일치하지 않습니다."),
@@ -124,6 +124,8 @@ public enum ErrorCode {
     REVIEW_ALREADY_DELETED(404,1019, "해당 리뷰를 찾을 수 없습니다"),
     NOT_FOUND_INGREDIENT_ID(404,1020, "해당 IngredientId가 존재하지 않습니다"),
     NOT_FOUND_PHONE(404, 1021, "찾을 수 없는 전화번호 입니다."),
+    NOT_FOUND_CAKE_ITEM(404, 1020, "케이크 상품을 찾을 수 없습니다."),
+    NOT_FOUND_CART_ITEM(404, 1023, "장바구니 아이템을 찾을 수 없습니다."),
 
 
     //HTTP 409 Conflict (code: 701~715)

@@ -54,6 +54,7 @@ public class CakeOrder extends BaseEntity {
     @Column(name = "orderTotalPrice", nullable = false)
     private Integer orderTotalPrice;
 
+
     //픽업 날짜
     @Column(name = "pickupDate", nullable = false)
     private LocalDate pickupDate;
@@ -64,7 +65,24 @@ public class CakeOrder extends BaseEntity {
 
     /** 주문 상태 : 주문확인중, 주문확정, 주문취소, 노쇼, 픽업완료 */
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 30)
     private OrderStatus status;
 
+    // 주문 총 금액 설정
+    public void applyOrderTotalPrice(long price) {
+        if (price < 0) throw new IllegalArgumentException("총액은 0 이상이어야 합니다.");
+        this.orderTotalPrice = (int) price;
+    }
+
+    // 총 상품 수량 설정
+    public void applyTotalNumber(int totalCount) {
+        if (totalCount < 1) throw new IllegalArgumentException("총 수량은 1개 이상이어야 합니다.");
+        this.totalNumber = totalCount;
+    }
+
+    public void updateStatus(OrderStatus newStatus) {
+        // 필요하다면 여기서 상태 전환에 대한 추가 검증 로직을 넣을 수 있습니다.
+        // 예를 들어, 이미 취소된 주문은 다시 상태 변경 불가 등
+        this.status = newStatus;
+    }
 }
