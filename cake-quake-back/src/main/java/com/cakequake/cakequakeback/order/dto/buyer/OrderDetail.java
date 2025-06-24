@@ -20,6 +20,7 @@ public class OrderDetail {
         private String uname;         // 구매자 이름
         private String phone;         // 구매자 전화번호
 
+        private Long shopId;
         private List<OrderDetailItem> items;
         private Long totalPrice;
         private String orderNote;
