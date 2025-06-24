@@ -132,10 +132,10 @@ public class CakeItemServiceImpl implements CakeItemService {
 
     @Override
     @Transactional(readOnly = true)
-    // 상품 전체 목록 조회
+    // 상품 카테고리별 목록 조회
     public InfiniteScrollResponseDTO<CakeListDTO> getAllCakeList(PageRequestDTO pageRequestDTO, CakeCategory category) {
 
-        cakeValidator.validatePaging(pageRequestDTO, category);
+        cakeValidator.validatePaging(pageRequestDTO);
 
         Pageable pageable = pageRequestDTO.getPageable("regDate");  // 최신순 정렬 등
 

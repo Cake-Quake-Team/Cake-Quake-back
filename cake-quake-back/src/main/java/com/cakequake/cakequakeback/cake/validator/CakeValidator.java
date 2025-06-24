@@ -113,14 +113,10 @@ public class CakeValidator {
 
 
     // 전체 상품 목록 조회시 유효성 검사
-    public void validatePaging(PageRequestDTO pageRequestDTO, CakeCategory category) {
+    public void validatePaging(PageRequestDTO pageRequestDTO) {
 
         if (pageRequestDTO.getPage() < 1 || pageRequestDTO.getSize() < 1) {
             throw new BusinessException(ErrorCode.INVALID_PAGE_SIZE);
-        }
-
-        if (category == null) {
-            throw new BusinessException(ErrorCode.INVALID_CATEGORY);
         }
 
     }

@@ -25,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +42,7 @@ public class ShopServiceImpl implements ShopService {
     private final ShopValidator shopValidator;
     private final ShopImageService shopImageService;
     private final ShopImageRepository shopImageRepository;
+    private final GeoService geoService;
 
     //매장 상세 조회 = 공지사항 미리보기 + 매장별 상품 보기
     @Override
@@ -217,6 +219,27 @@ public class ShopServiceImpl implements ShopService {
 
         Shop shop = shopValidator.validateShop(shopId);
         shopValidator.validateUpdateShop(updateDTO);
+
+        // 주소가 있으면 좌표 변환 후, 새 DTO 복사본 생성
+        if (updateDTO.getAddress() != null && !updateDTO.getAddress().isEmpty()) {
+            Point point = geoService.getCoordinatesFromAddress(updateDTO.getAddress());
+            updateDTO = ShopUpdateDTO.builder()
+                    .address(updateDTO.getAddress())
+                    .phone(updateDTO.getPhone())
+                    .content(updateDTO.getContent())
+                    .openTime(updateDTO.getOpenTime())
+                    .closeTime(updateDTO.getCloseTime())
+                    .closeDays(updateDTO.getCloseDays())
+                    .websiteUrl(updateDTO.getWebsiteUrl())
+                    .instagramUrl(updateDTO.getInstagramUrl())
+                    .status(updateDTO.getStatus())
+                    .thumbnailImageUrl(updateDTO.getThumbnailImageUrl())
+                    .imageIds(updateDTO.getImageIds())
+                    .thumbnailImageId(updateDTO.getThumbnailImageId())
+                    .lat(BigDecimal.valueOf(point.getLatitude()))
+                    .lng(BigDecimal.valueOf(point.getLongitude()))
+                    .build();
+        }
 
         shop.updateShop(updateDTO);
         Shop saveShop=shopRepository.save(shop);

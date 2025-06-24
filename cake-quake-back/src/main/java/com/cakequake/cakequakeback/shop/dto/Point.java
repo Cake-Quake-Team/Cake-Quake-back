@@ -2,14 +2,14 @@ package com.cakequake.cakequakeback.shop.dto;
 
 // 주소 -> 좌표 변환 결과를 담는 객체
 public class Point {
-    private final double latitude;
-    private final double longitude;
+    private final double lat;
+    private final double lon;
 
-    public Point(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public Point(double lat, double lon) {
+        this.lat = lat;
+        this.lon = lon;
     }
 
-    public double getLatitude() { return latitude; }
-    public double getLongitude() { return longitude; }
+    public double getLatitude() { return lat; }
+    public double getLongitude() { return lon; }
 }

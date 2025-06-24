@@ -147,6 +147,15 @@ public class Shop extends BaseEntity {
             this.thumbnailImageUrl = updateDTO.getThumbnailImageUrl();
             System.out.println("DEBUG: ThumbnailImageUrl 업데이트됨: " + this.thumbnailImageUrl);
         }
+        if (updateDTO.getLat() != null) {
+            this.lat = updateDTO.getLat();
+            System.out.println("DEBUG: lat 업데이트됨: " + this.lat);
+        }
+        if (updateDTO.getLng() != null) {
+            this.lng = updateDTO.getLng();
+            System.out.println("DEBUG: lng 업데이트됨: " + this.lng);
+        }
+
         System.out.println("DEBUG: updateShop 메서드 종료.");
     }
 

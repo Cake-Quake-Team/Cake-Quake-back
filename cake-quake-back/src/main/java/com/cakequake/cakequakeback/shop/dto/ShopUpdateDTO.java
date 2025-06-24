@@ -5,6 +5,7 @@ import com.cakequake.cakequakeback.shop.entities.ShopStatus;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -28,6 +29,8 @@ public class ShopUpdateDTO {
     private String thumbnailImageUrl;
     private List<Long> imageIds;
     private Long thumbnailImageId;
+    private BigDecimal lat;
+    private BigDecimal lng;
 
 
 
