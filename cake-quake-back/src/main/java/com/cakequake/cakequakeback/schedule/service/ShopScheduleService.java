@@ -2,7 +2,7 @@ package com.cakequake.cakequakeback.schedule.service;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.schedule.entities.ShopSchedule;
-import com.cakequake.cakequakeback.shop.entities.Shop;
+import com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,7 +12,7 @@ public interface ShopScheduleService {
 
    List<LocalTime> getPossiblePickupTime(Long shopId);
     List<LocalTime> getAvailablePickupTimes(Long shopId, LocalDate date);
-    List<Shop> getAvailableShopsByDate(LocalDate date);
+    List<ShopScheduleDTO> getAvailableShopsByDate(LocalDate date);
 
     //주문 생성 시 슬롯 감소 및 스케줄 생성
     ShopSchedule decreaseSlotsForOrderCreation(CakeOrder order);

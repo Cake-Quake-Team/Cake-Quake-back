@@ -1,7 +1,7 @@
 package com.cakequake.cakequakeback.schedule.controller;
 
 import com.cakequake.cakequakeback.schedule.service.ShopScheduleService;
-import com.cakequake.cakequakeback.shop.entities.Shop;
+import com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,9 +23,9 @@ public class ShopScheduleController{
 
      // 1. 특정 날짜에 예약 가능한 매장 목록을 조회
      @GetMapping("/available-shops-by-date")
-     public ResponseEntity<List<Shop>> getAvailableShopsByDate(
+     public ResponseEntity<List<ShopScheduleDTO>> getAvailableShopsByDate(
              @RequestParam LocalDate date) {
-         List<Shop> availableShops = shopScheduleService.getAvailableShopsByDate(date);
+         List<ShopScheduleDTO> availableShops = shopScheduleService.getAvailableShopsByDate(date);
          return ResponseEntity.ok(availableShops);
         }
 

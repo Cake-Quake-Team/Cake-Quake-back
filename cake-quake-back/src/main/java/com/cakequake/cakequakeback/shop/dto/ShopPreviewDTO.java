@@ -1,10 +1,7 @@
 //가게 요약 정보
 package com.cakequake.cakequakeback.shop.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -12,6 +9,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
+@Getter
 
 public class ShopPreviewDTO {
     private Long shopId;
