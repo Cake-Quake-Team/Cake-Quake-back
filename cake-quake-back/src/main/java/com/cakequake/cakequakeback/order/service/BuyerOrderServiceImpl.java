@@ -250,6 +250,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         List<OrderDetail.OrderDetailItem> itemDtos = items.stream()
                 .map(item -> OrderDetail.OrderDetailItem.builder()
                         .orderItemId(item.getOrderItemId())
+                        .cakeId(item.getCakeItem().getCakeId())
                         .cname(item.getCakeItem().getCname())
                         .productCnt(item.getQuantity())
                         .price(item.getUnitPrice().longValue())
