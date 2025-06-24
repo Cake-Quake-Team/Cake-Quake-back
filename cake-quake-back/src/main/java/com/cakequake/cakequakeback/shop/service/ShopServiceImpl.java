@@ -132,25 +132,33 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public InfiniteScrollResponseDTO<ShopPreviewDTO> getShops(  int page,int size,ShopStatus status,
                                                                 String keyword,String filter, String sort) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort)); // sort 파라미터 사용
+        Sort sorting = Sort.by(sort);
+        Pageable pageable = PageRequest.of(page, size, sorting);
 
-        log.info(">>> [getShops] page: " + page + ", size: " + size + ", status: " + status);
-        log.info(">>> [getShops] keyword: " + keyword + ", filter: " + filter + ", sort: " + sort);
-
-        // 2. 검색어(keyword) 및 필터(filter) 적용 로직 추가
         Page<ShopPreviewDTO> resultPage;
 
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            log.info(">>> [getShops] Keyword 검색 조건이 있음 → 검색용 쿼리 실행");
-            resultPage = shopRepository.findAll(status, pageable);
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        ShopStatus filterStatus = null; // filterStatus 변수 초기화
+
+        // filter 문자열을 ShopStatus Enum으로 변환 시도
+        if (filter != null && !filter.trim().isEmpty()) {
+            try {
+                filterStatus = ShopStatus.valueOf(filter.toUpperCase()); // 대문자로 변환하여 Enum 매칭 시도
+            } catch (IllegalArgumentException e) {
+                log.warn(">>> [getShops] Invalid filter status value: " + filter + ". Ignoring filter.", e);
+            }
+        }
+        boolean hasFilter = (filterStatus != null);
+
+        if (hasKeyword || hasFilter) {
+            resultPage = shopRepository.findShopPreviewsByStatusAndKeywordAndFilter( status, keyword, filterStatus, pageable);
         } else {
-            log.info(">>> [getShops] Keyword 없음 → 기본 쿼리 실행");
             resultPage = shopRepository.findAll(status, pageable);
         }
 
         log.info(">>> [getShops] 조회된 매장 수: " + resultPage.getContent().size());
         log.info(">>> [getShops] hasNext: " + resultPage.hasNext());
-        log.info(">>> [getShops] totalCount: " + resultPage.getTotalElements());
+        log.info(">>> [getShops] totalElements: " + resultPage.getTotalElements());
 
         return InfiniteScrollResponseDTO.<ShopPreviewDTO>builder()
                 .content(resultPage.getContent())
@@ -158,6 +166,7 @@ public class ShopServiceImpl implements ShopService {
                 .totalCount((int) resultPage.getTotalElements())
                 .build();
     }
+
 
     //공지사항 목록 조회
     @Override
