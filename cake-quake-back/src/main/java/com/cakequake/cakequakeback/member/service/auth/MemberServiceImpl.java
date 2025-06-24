@@ -170,7 +170,7 @@ public class MemberServiceImpl implements MemberService {
             String userId = claims.get("userId", String.class);
             String uname = claims.get("uname", String.class);
             String role = claims.get("role", String.class);
-            String shopId = claims.get("shopId", String.class);
+            Long shopId = claims.get("shopId", Long.class);
             log.debug("userId: {}", userId);
 
             // 토큰에 정보 추가
@@ -180,7 +180,7 @@ public class MemberServiceImpl implements MemberService {
             tokenClaims.put("role", role);
 
             // shopId가 있는 경우에만 추가
-            if (shopId != null && !shopId.isEmpty()) {
+            if (shopId != null) {
                 tokenClaims.put("shopId", shopId);
             }
 

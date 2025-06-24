@@ -77,8 +77,10 @@ public class BuyerServiceImpl implements BuyerService{
             throw new BusinessException(ErrorCode.NOT_AUTHORIZED_OTHER);
         }
 
-        // 전화번호 형식 + 중복 검사
-        memberValidator.validatePhoneNumber(modifyDTO.getPhoneNumber());
+        // 전화번호가 기존과 다를 때만 전화번호 형식 + 중복 검사
+        if (!buyer.getPhoneNumber().equals(modifyDTO.getPhoneNumber())) {
+            memberValidator.validatePhoneNumber(modifyDTO.getPhoneNumber());
+        }
 
         // 휴대폰 인증은 프론트에서 따로 호출
 
