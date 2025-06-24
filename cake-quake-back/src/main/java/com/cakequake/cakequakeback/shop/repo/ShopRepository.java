@@ -27,7 +27,7 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
             "FROM Shop s WHERE s.status = :status")
     Page<ShopPreviewDTO> findAll(@Param("status") ShopStatus status, Pageable pageable);
 
-    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopScheduleDTO(" +
+    @Query("SELECT new com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO(" +
             "s.shopId, s.shopName, s.address, s.rating, s.thumbnailImageUrl, " + // 기존 필드
             "s.openTime, s.closeTime, s.closeDays) " + // <<-- 이 필드들을 추가해야 합니다.
             "FROM Shop s WHERE s.status = :status")
