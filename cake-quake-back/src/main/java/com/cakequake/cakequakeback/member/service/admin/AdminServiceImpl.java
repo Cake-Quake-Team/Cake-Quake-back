@@ -10,7 +10,9 @@ import com.cakequake.cakequakeback.member.entities.*;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.repo.PendingSellerRequestRepository;
 import com.cakequake.cakequakeback.shop.entities.Shop;
+import com.cakequake.cakequakeback.shop.entities.ShopImage;
 import com.cakequake.cakequakeback.shop.entities.ShopStatus;
+import com.cakequake.cakequakeback.shop.repo.ShopImageRepository;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,11 +26,13 @@ public class AdminServiceImpl implements AdminService{
     private final PendingSellerRequestRepository pendingSellerRequestRepository;
     private final MemberRepository memberRepository;
     private final ShopRepository shopRepository;
+    private final ShopImageRepository shopImageRepository;
 
-    public AdminServiceImpl(PendingSellerRequestRepository pendingSellerRequestRepository, MemberRepository memberRepository, ShopRepository shopRepository) {
+    public AdminServiceImpl(PendingSellerRequestRepository pendingSellerRequestRepository, MemberRepository memberRepository, ShopRepository shopRepository, ShopImageRepository shopImageRepository) {
         this.pendingSellerRequestRepository = pendingSellerRequestRepository;
         this.memberRepository = memberRepository;
         this.shopRepository = shopRepository;
+        this.shopImageRepository = shopImageRepository;
     }
 
 
@@ -86,6 +90,20 @@ public class AdminServiceImpl implements AdminService{
                 .build();
 
         shopRepository.save(shop);
+
+        // 2-1. Shop 저장
+        shopRepository.save(shop);
+
+        // 2-2. 대표 이미지 등록
+        ShopImage shopImage = ShopImage.builder()
+                .shop(shop)
+                .shopImageUrl(request.getShopImageUrl())
+                .isThumbnail(true)
+                .createdBy(request.getUserId())
+                .modifiedBy(request.getUserId())
+                .build();
+
+        shopImageRepository.save(shopImage);
 
         // 3. 요청 상태 변경
         request.changeStatus(SellerRequestStatus.APPROVED);
