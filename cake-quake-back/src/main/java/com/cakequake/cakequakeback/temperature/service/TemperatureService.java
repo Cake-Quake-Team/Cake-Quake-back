@@ -2,6 +2,7 @@ package com.cakequake.cakequakeback.temperature.service;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.temperature.dto.TemperatureHistoryResponseDTO;
 import com.cakequake.cakequakeback.temperature.dto.TemperatureRequestDTO;
 import com.cakequake.cakequakeback.temperature.dto.TemperatureResponseDTO;
@@ -18,6 +19,8 @@ public interface TemperatureService {
     public void increaseReview(Long orderId);
     public Temperature getTemperatureByUid(Long uid);
     public void updateByuid(TemperatureRequestDTO request);
+    public Temperature createInitialTemperature(Member member);
+
 
 
 }

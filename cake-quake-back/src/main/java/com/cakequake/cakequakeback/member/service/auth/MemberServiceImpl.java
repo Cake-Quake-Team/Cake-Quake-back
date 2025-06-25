@@ -15,6 +15,7 @@ import com.cakequake.cakequakeback.member.validator.MemberValidator;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
+import com.cakequake.cakequakeback.temperature.service.TemperatureService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -38,14 +39,16 @@ public class MemberServiceImpl implements MemberService {
     private final MemberValidator memberValidator;
     private final JWTUtil jwtUtil;
     private final AuthenticatedUserService authenticatedUserService;
+    private final TemperatureService temperatureService;
 
-    public MemberServiceImpl(MemberRepository memberRepository, ShopRepository shopRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, JWTUtil jwtUtil, AuthenticatedUserService authenticatedUserService) {
+    public MemberServiceImpl(MemberRepository memberRepository, ShopRepository shopRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, JWTUtil jwtUtil, AuthenticatedUserService authenticatedUserService, TemperatureService temperatureService) {
         this.memberRepository = memberRepository;
         this.shopRepository = shopRepository;
         this.passwordEncoder = passwordEncoder;
         this.memberValidator = memberValidator;
         this.jwtUtil = jwtUtil;
         this.authenticatedUserService = authenticatedUserService;
+        this.temperatureService = temperatureService;
     }
 
     public ApiResponseDTO signup(BuyerSignupRequestDTO requestDTO) {
@@ -91,6 +94,9 @@ public class MemberServiceImpl implements MemberService {
                 .build();
 
         memberRepository.save(member);
+
+         Member savedMember = memberRepository.save(member);
+        temperatureService.createInitialTemperature(savedMember);
 
         return ApiResponseDTO.builder()
                 .success(true)
