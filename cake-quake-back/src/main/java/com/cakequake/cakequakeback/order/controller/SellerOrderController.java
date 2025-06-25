@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/seller/shops/{shopId}/orders")
+@RequestMapping("/api/v1/shops/{shopId}")
 @RequiredArgsConstructor
 public class SellerOrderController {
     private final SellerOrderService sellerOrderService;
@@ -23,7 +23,7 @@ public class SellerOrderController {
     /**
      * 판매자 주문 목록 조회
      */
-    @GetMapping
+    @GetMapping("/orders")
     public ResponseEntity<SellerOrderList.Response> getShopOrderList(
             @PathVariable Long shopId,
             Pageable pageable) {
@@ -35,7 +35,7 @@ public class SellerOrderController {
     /**
      * 판매자 주문 상세 조회
      */
-    @GetMapping("/{orderId}")
+    @GetMapping("orders/{orderId}")
     public ResponseEntity<SellerOrderDetail.Response> getShopOrderDetail(
             @PathVariable Long shopId,
             @PathVariable Long orderId) {

@@ -30,6 +30,21 @@ public class AddCart {
         @Min(value = 1, message = "productCnt는 최소 1개 이상이어야 합니다.")
         @Max(value = 99, message="productCnt는 최소 99개 미만이어야 합니다.")
         private Integer productCnt;
+
+        @Valid
+        private List<CartItemOption> cakeOptions;
+
+    }
+    @Getter
+    @NoArgsConstructor // Lombok을 사용한다면 @NoArgsConstructor, @AllArgsConstructor 추가
+    @Builder
+    @AllArgsConstructor
+    public static class CartItemOption {
+        @NotNull(message = "옵션 아이템 ID는 필수입니다.")
+        private Long optionItemId; // 선택된 OptionItem의 ID
+
+        @Min(value = 1, message = "옵션 수량은 최소 1개 이상이어야 합니다.")
+        private Integer optionCnt; // 해당 옵션의 수량 (예: 토핑 2개)
     }
 
     @Getter
@@ -41,7 +56,7 @@ public class AddCart {
         private String cname; // (선택적) 상품명
         private Integer productCnt; // 최종 수량
         private Long itemTotalPrice; // 해당 아이템의 총 가격
-    }
 
+    }
 
 }
