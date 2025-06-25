@@ -17,13 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.lang.Nullable; // ⭐ 이 임포트가 반드시 필요합니다. ⭐
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,17 +34,29 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
     @Override
-    public SellerOrderList.Response getShopOrderList(Long shopId, Pageable pageable) {
+    public SellerOrderList.Response getShopOrderList(Long shopId, Pageable pageable, @Nullable OrderStatus status) { // ⭐ @Nullable 어노테이션 추가 ⭐
         // 1) 가게 ID로 CakeOrder 엔티티를 페이징 조회
-        Page<CakeOrder> page = sellerOrderRepository.findByShopId(shopId, pageable);
-        // 2) 조회된 CakeOrder 목록을 SellerOrderListItem DTO로 변환
+        Page<CakeOrder> page;
+        // ⭐ status 파라미터에 따라 호출할 리포지토리 메서드를 분기 ⭐
+        if (status != null) {
+            page = sellerOrderRepository.findByShopIdAndStatus(shopId, status, pageable);
+        } else {
+            // status가 null이면 (즉, 모든 상태의 주문을 조회할 때) 기존 findByShopId 사용
+            page = sellerOrderRepository.findByShopId(shopId, pageable);
+        } // 2) 조회된 CakeOrder 목록을 SellerOrderListItem DTO로 변환
         List<SellerOrderList.Response.SellerOrderListItem> dtoItems = page.getContent().stream()
                 .map(order -> {
-                    CakeOrderItem firstItem = cakeOrderItemRepository.findByCakeOrder_OrderId(order.getOrderId()).get(0);
-                    String cname     = firstItem.getCakeItem().getCname();
-                    String thumbnail = firstItem.getCakeItem().getThumbnailImageUrl();
-                    Integer cnt      = firstItem.getQuantity();
-                    Long total       = order.getOrderTotalPrice().longValue();
+                    List<CakeOrderItem> orderItems = cakeOrderItemRepository.findByCakeOrder_OrderId(order.getOrderId());
+                    String cname = "상품 정보 없음";
+                    String thumbnail = null;
+                    Integer cnt = 0;
+
+                    if (!orderItems.isEmpty()) {
+                        CakeOrderItem firstItem = orderItems.get(0);
+                        cname = firstItem.getCakeItem().getCname();
+                        thumbnail = firstItem.getCakeItem().getThumbnailImageUrl();
+                        cnt = firstItem.getQuantity();
+                    }
 
                     return SellerOrderList.Response.SellerOrderListItem.builder()
                             .orderId(order.getOrderId())
@@ -75,6 +85,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                 .pageInfo(pageInfo)
                 .build();
     }
+
     //특정 가게(shopId)에 속한 단일 주문(orderId)의 상세 정보를 조회
     @Override
     public SellerOrderDetail.Response getShopOrderDetail(Long shopId, Long orderId) {
@@ -115,6 +126,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                 .pickupDate(order.getPickupDate())
                 .pickupTime(order.getPickupTime())
                 .OrderTotalPrice(order.getOrderTotalPrice())
+                .orderNote(order.getOrderNote())
                 .buyer(buyer)
                 .products(products)
                 .build();
@@ -130,6 +142,9 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                 .findByOrderIdAndShopId(orderId, shopId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID));
 
+        System.out.println("DEBUG: Current Order Status (Before Change): " + order.getStatus()); // 디버그 로그
+        System.out.println("DEBUG: Attempting to change to Status: " + statusStr); // 디버그 로그
+
         // 2) 문자열 → Enum 변환
         OrderStatus newStatus;
         try {
@@ -141,37 +156,55 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         // 3) 상태 전환 가능 여부 검증
         boolean valid;
         switch (order.getStatus()) {
-            case RESERVATION_PENDING:
+            case RESERVATION_PENDING: // 예약 대기 중
                 valid = (newStatus == OrderStatus.RESERVATION_CONFIRMED ||
                         newStatus == OrderStatus.RESERVATION_CANCELLED);
                 break;
-            case RESERVATION_CONFIRMED:
-                valid = (newStatus == OrderStatus.PICKUP_COMPLETED ||
+            case RESERVATION_CONFIRMED: // 예약 확정 (픽업 준비/픽업 완료/노쇼 가능)
+                valid = (newStatus == OrderStatus.PREPARING || // 추가
+                        newStatus == OrderStatus.READY_FOR_PICKUP || // 추가
+                        newStatus == OrderStatus.PICKUP_COMPLETED ||
                         newStatus == OrderStatus.NO_SHOW);
                 break;
-            case RESERVATION_CANCELLED:
-                throw new BusinessException(ErrorCode.ORDER_MISMATCH,"이미 취소된 주문입니다.");
-            case NO_SHOW:
-                throw new BusinessException(ErrorCode.ORDER_MISMATCH,"이미 노쇼 처리된 주문입니다.");
-            case PICKUP_COMPLETED:
-                throw new BusinessException(ErrorCode.ORDER_MISMATCH,"이미 픽업 완료된 주문입니다.");
-            default:
-                throw new BusinessException(ErrorCode.ORDER_MISMATCH);
+            case PREPARING: // 준비 중
+                valid = (newStatus == OrderStatus.READY_FOR_PICKUP ||
+                        newStatus == OrderStatus.PICKUP_COMPLETED ||
+                        newStatus == OrderStatus.RESERVATION_CANCELLED); // 준비 중에도 취소 가능 여부 (정책에 따라 추가)
+                break;
+            case READY_FOR_PICKUP: // 픽업 준비 완료
+                valid = (newStatus == OrderStatus.PICKUP_COMPLETED ||
+                        newStatus == OrderStatus.NO_SHOW); // 픽업 준비 완료 상태에서 취소는 보통 불가능
+                break;
+            case PICKUP_COMPLETED: // 픽업 완료 (더 이상 변경 불가, 최종 상태)
+                valid = false; // 픽업 완료는 최종 상태이므로 더 이상 다른 상태로 변경할 수 없음
+                break;
+            case RESERVATION_CANCELLED: // 이미 취소됨 (변경 불가, 최종 상태)
+                valid = false;
+                break;
+            case NO_SHOW: // 노쇼 처리됨 (변경 불가, 최종 상태)
+                valid = false;
+                break;
+            default: // 정의되지 않거나 예상치 못한 현재 상태
+                valid = false;
         }
         if (!valid) {
-            throw new BusinessException(ErrorCode.ORDER_MISMATCH);
+            System.out.println("DEBUG: Invalid Status Transition from " + order.getStatus() + " to " + newStatus); // 디버그 로그
+            throw new BusinessException(ErrorCode.ORDER_MISMATCH,
+                    String.format("현재 주문 상태 (%s) 에서 %s(으)로 변경할 수 없습니다.", order.getStatus(), newStatus));
         }
 
-        // 4) 리플렉션으로 private 필드 직접 변경
-        try {
-            var field = CakeOrder.class.getDeclaredField("status");
-            field.setAccessible(true);
-            field.set(order, newStatus);
-        } catch (ReflectiveOperationException e) {
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,"주문 상태 변경 실패");
-        }
+        // ⭐⭐⭐ 4) 상태 변경 로직 수정: 리플렉션 대신 엔티티의 setter 사용 ⭐⭐⭐
+        // CakeOrder 엔티티에 public void setStatus(OrderStatus status) 또는 public void updateStatus(OrderStatus newStatus) 메서드가 있다고 가정
+        order.updateStatus(newStatus); // 또는 order.setStatus(newStatus);
+        // CakeOrder 엔티티가 @Getter @Setter (혹은 @Data) 롬복 어노테이션을 가지고 있다면 setStatus()는 자동 생성됩니다.
+        // 아니면 CakeOrder 엔티티에 public void updateStatus(OrderStatus newStatus) { this.status = newStatus; } 메서드를 직접 추가해야 합니다.
 
-        // 5) Dirty checking 으로 트랜잭션 커밋 시점에 자동 반영됩니다.
+        // 5) 명시적으로 저장 (선택 사항이지만 안전을 위해 추가)
+        // @Transactional 어노테이션이 있으므로 Dirty Checking에 의해 자동 저장되지만,
+        // 디버깅 목적으로는 명시적 저장이 도움이 될 수 있습니다.
+        sellerOrderRepository.save(order);
+
+        System.out.println("DEBUG: Order Status Successfully Updated to: " + order.getStatus()); // 디버그 로그
     }
 
     @Override

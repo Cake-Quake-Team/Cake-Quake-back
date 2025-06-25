@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.order.controller;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderDetail;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderList;
 import com.cakequake.cakequakeback.order.dto.seller.SellerStatistics;
+import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.service.SellerOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,9 +27,9 @@ public class SellerOrderController {
     @GetMapping("/orders")
     public ResponseEntity<SellerOrderList.Response> getShopOrderList(
             @PathVariable Long shopId,
-            Pageable pageable) {
-        // TODO: 해당 shopId에 대한 권한이 있는지 확인하는 로직 필요
-        SellerOrderList.Response response = sellerOrderService.getShopOrderList(shopId, pageable);
+            Pageable pageable, @RequestParam(required = false) OrderStatus status) { // ⭐⭐ status @RequestParam 추가 ⭐⭐
+        // ⭐⭐ 서비스 호출 시 status 파라미터 전달 ⭐⭐
+        SellerOrderList.Response response = sellerOrderService.getShopOrderList(shopId, pageable, status);
         return ResponseEntity.ok(response);
     }
 
@@ -39,7 +40,6 @@ public class SellerOrderController {
     public ResponseEntity<SellerOrderDetail.Response> getShopOrderDetail(
             @PathVariable Long shopId,
             @PathVariable Long orderId) {
-        // TODO: 해당 shopId에 대한 권한이 있는지 확인하는 로직 필요
         SellerOrderDetail.Response response = sellerOrderService.getShopOrderDetail(shopId, orderId);
         return ResponseEntity.ok(response);
     }
@@ -53,7 +53,6 @@ public class SellerOrderController {
             @PathVariable Long shopId,
             @PathVariable Long orderId,
             @RequestBody Map<String, String> payload) { // 간단한 상태 값 변경을 위해 Map 사용
-        // TODO: 해당 shopId에 대한 권한이 있는지 확인하는 로직 필요
         String status = payload.get("status");
         if (status == null || status.trim().isEmpty()) {
             // 적절한 예외 처리 또는 BadRequest 응답

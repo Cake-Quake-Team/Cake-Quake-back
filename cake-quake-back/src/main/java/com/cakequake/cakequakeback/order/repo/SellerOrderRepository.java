@@ -19,30 +19,22 @@ import java.util.Optional;
 @Repository
 public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
 
-    // 기존 쿼리들 (이전에 수정된 내용 포함)...
+    // ⭐⭐ 기존 findByShopId 쿼리 수정 (SQL 오류 발생 원인) ⭐⭐
+    // CakeOrder 엔티티 자체(co)를 선택하고, shopId로 필터링 후 modDate로 정렬합니다.
+    // CakeOrderItem과의 조인은 제거합니다. CakeOrder는 Shop 객체를 직접 가지고 있습니다.
+    @Query(value = "SELECT co FROM CakeOrder co JOIN co.shop s WHERE s.shopId = :shopId ORDER BY co.modDate DESC",
+            countQuery = "SELECT count(co.orderId) FROM CakeOrder co JOIN co.shop s WHERE s.shopId = :shopId")
+    Page<CakeOrder> findByShopId(@Param("shopId") Long shopId, Pageable pageable);
 
-    // 특정 shop의 주문 목록 페이징 조회
-    @Query(
-            value = "SELECT DISTINCT oi.cakeOrder " +
-                    "FROM CakeOrderItem oi " +
-                    "JOIN oi.cakeItem ci " +
-                    "WHERE ci.shop.shopId = :shopId",
-            countQuery = "SELECT COUNT(DISTINCT oi2.cakeOrder) " +
-                    "FROM CakeOrderItem oi2 " +
-                    "JOIN oi2.cakeItem ci2 " +
-                    "WHERE ci2.shop.shopId = :shopId"
-    )
-    Page<CakeOrder> findByShopId(Long shopId, Pageable pageable);
+    // ⭐⭐ findByOrderIdAndShopId 쿼리 수정 (더 간단하게) ⭐⭐
+    // CakeOrder 엔티티 자체(co)를 선택하고, orderId와 shopId로 필터링합니다.
+    @Query("SELECT co FROM CakeOrder co JOIN co.shop s WHERE co.orderId = :orderId AND s.shopId = :shopId")
+    Optional<CakeOrder> findByOrderIdAndShopId(@Param("orderId") Long orderId, @Param("shopId") Long shopId);
 
-    // 특정 shop 주문 조회
-    @Query(
-            "SELECT oi.cakeOrder " +
-                    "FROM CakeOrderItem oi " +
-                    "JOIN oi.cakeItem ci " +
-                    "WHERE ci.shop.shopId = :shopId " +
-                    "  AND oi.cakeOrder.orderId = :orderId"
-    )
-    Optional<CakeOrder> findByOrderIdAndShopId(Long orderId, Long shopId);
+    // ⭐⭐ 이 쿼리를 확인합니다: co.status = :status 조건이 정확히 있는지 ⭐⭐
+    @Query(value = "SELECT co FROM CakeOrder co JOIN co.shop s WHERE s.shopId = :shopId AND co.status = :status ORDER BY co.modDate DESC",
+            countQuery = "SELECT count(co.orderId) FROM CakeOrder co JOIN co.shop s WHERE s.shopId = :shopId AND co.status = :status")
+    Page<CakeOrder> findByShopIdAndStatus(@Param("shopId") Long shopId, @Param("status") OrderStatus status, Pageable pageable);
 
     // 특정 매장의 특정 날짜의 주문 조회
     @Query("SELECT co FROM CakeOrder co " +

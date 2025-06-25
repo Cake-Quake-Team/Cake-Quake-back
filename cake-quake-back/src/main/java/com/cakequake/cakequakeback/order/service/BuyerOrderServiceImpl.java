@@ -4,7 +4,6 @@ import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.cake.item.entities.CakeOptionMapping;
 import com.cakequake.cakequakeback.cake.item.repo.CakeItemRepository;
 import com.cakequake.cakequakeback.cart.entities.CartItem;
-// import com.cakequake.cakequakeback.cart.entities.CartItemOption; // ⭐ CartItemOption 제거 ⭐
 import com.cakequake.cakequakeback.cart.repo.CartItemRepository;
 import com.cakequake.cakequakeback.cart.repo.CartRepository;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
@@ -28,7 +27,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -271,6 +269,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .shopId(order.getShop().getShopId())
                 .items(itemDtos)
                 .totalPrice(order.getOrderTotalPrice().longValue())
+                .orderNote(order.getOrderNote()) //orderNote 추가
                 .build();
     }
 
