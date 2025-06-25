@@ -65,6 +65,9 @@ public class CreateOrder {
     @JsonDeserialize(builder = DirectItem.DirectItemBuilder.class)
     public static class DirectItem {
 
+        @NotNull(message = "shopId는 필수입니다.")
+        private Long shopId;
+
         @NotNull(message = "cakeId는 필수입니다.")
         private Long cakeId;
 
