@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 // 케이크  상품 상세 조회 응답 DTO
 public class CakeDetailDTO {
+    private String shopName;
     private Long shopId;
     private Long cakeId;
     private String cname;
@@ -46,6 +47,7 @@ public class CakeDetailDTO {
         }
 
         return CakeDetailDTO.builder()
+                .shopName(cakeItem.getShop().getShopName())
                 .shopId(cakeItem.getShop().getShopId())
                 .cakeId(cakeItem.getCakeId())
                 .cname(cakeItem.getCname())

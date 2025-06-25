@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.member.entities;
 
+import com.cakequake.cakequakeback.badge.entities.Badge;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,9 +23,13 @@ public class MemberDetail extends BaseEntity {
     @JoinColumn(name = "uid") // users.uid를 참조
     private Member member;
 
-    @Column
-    private String badges;
+    @Column(nullable = false)
+    private String profileBadge; // 대표 뱃지
 
     @Column
     private LocalDateTime delDate;
+
+    public void changeProfileBadge(String newProfileBadge) {
+        this.profileBadge = newProfileBadge;
+    }
 }
