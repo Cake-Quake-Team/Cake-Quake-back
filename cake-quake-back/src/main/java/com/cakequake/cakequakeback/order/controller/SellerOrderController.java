@@ -48,7 +48,7 @@ public class SellerOrderController {
      * 주문 상태 변경
      * 요청 본문에 {"status": "NEW_STATUS_VALUE"} 형식으로 데이터를 받습니다.
      */
-    @PatchMapping("/{orderId}/status")
+    @PatchMapping("orders/{orderId}")
     public ResponseEntity<Void> updateOrderStatus(
             @PathVariable Long shopId,
             @PathVariable Long orderId,
