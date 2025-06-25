@@ -259,7 +259,36 @@ public class TemperatureServiceImpl implements TemperatureService {
         temperatureRepository.save(temperature);
     }
 
+    //회원가입시 초기 온도 데이터 생성
+    public Temperature createInitialTemperature(Member member) {
+        log.info("초기 Temperature 생성 시작합니다. uid = {}", member.getUid());
+
+        try {
+            Temperature initialTemperature = Temperature.builder()
+                    .member(member)
+                    .temperature(36.5) // 초기 매너 온도
+                    .grade(Grade.fromTemperature(36.5)) // 초기 온도에 따른 등급 설정
+                    .changeAmount(0.0f) // 최초 생성 시 변화량 0
+                    .reason(ChangeReason.ADMIN_ADJUSTMENT) // 초기 생성임을 명시
+                    .relatedObjectType(RelatedObjectType.SYSTEM) // 멤버 생성으로 인한 변화
+                    .relatedObjectId(member.getUid().toString()) // 관련 객체 ID는 멤버의 UID
+                    .build();
+
+            log.debug("Member UID {} 를 위한 Temperature 객체 생성 완료: {}", member.getUid(), initialTemperature);
+
+            Temperature savedTemperature = temperatureRepository.save(initialTemperature);
+            log.info("Member UID {} 에 대한 초기 Temperature 데이터가 성공적으로 저장되었습니다. Temperature UID: {}", member.getUid(), savedTemperature.getUid());
+            return savedTemperature;
+
+        } catch (Exception e) {
+            log.error("Member UID {} 에 대한 초기 Temperature 생성 중 오류 발생: {}", member.getUid(), e.getMessage(), e);
+            throw e; // 트랜잭션 롤백을 위해 예외를 다시 던짐
+        }
+    }
+
 }
+
+
 
 
 
