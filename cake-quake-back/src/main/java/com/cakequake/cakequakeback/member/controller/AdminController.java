@@ -2,14 +2,13 @@ package com.cakequake.cakequakeback.member.controller;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
 import com.cakequake.cakequakeback.member.dto.admin.PendingSellerRequestListDTO;
 import com.cakequake.cakequakeback.member.service.admin.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -23,12 +22,21 @@ public class AdminController {
         this.adminService = adminService;
     }
 
+    // 대기 중인 판매자 목록 조회
     @GetMapping("/sellers/pending")
     public ResponseEntity<InfiniteScrollResponseDTO<PendingSellerRequestListDTO>> pendingSellerList(PageRequestDTO requestDTO) {
         log.debug("---AdminController---pendingSellerList---");
 
         InfiniteScrollResponseDTO<PendingSellerRequestListDTO> list = adminService.pendingSellerRequestList(requestDTO);
-
         return ResponseEntity.ok(list);
+    }
+
+    // 판매자 승인
+    @PostMapping("/sellers/{tempSellerId}/approve")
+    public ResponseEntity<ApiResponseDTO> approvePendingSeller(@PathVariable Long tempSellerId) {
+        log.debug("---AdminController---approvePendingSeller--- tempSellerId: {}", tempSellerId);
+
+        ApiResponseDTO response = adminService.approvePendingSeller(tempSellerId);
+        return ResponseEntity.ok(response);
     }
 }
