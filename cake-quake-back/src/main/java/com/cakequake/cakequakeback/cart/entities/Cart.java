@@ -32,7 +32,7 @@ public class Cart extends BaseEntity {
 
     /*CakeOrder와 1:1 연관관계*/
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false, foreignKey = @ForeignKey(name = "fk_cart_order"))
+    @JoinColumn(name = "order_id", foreignKey = @ForeignKey(name = "fk_cart_order"))
     private CakeOrder order;
 
     /*장바구니 상품들 합친 총 가격*/

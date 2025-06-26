@@ -34,6 +34,8 @@ public class SellerOrderDetail {
 
         private List<ProductDetail> products;
 
+        private String orderNote;
+
         private BuyerInfo buyer;
 
         /** 해당 주문의 총 금액 */

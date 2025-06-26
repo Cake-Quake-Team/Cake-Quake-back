@@ -3,6 +3,8 @@ package com.cakequake.cakequakeback.order.service;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderDetail;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderList;
 import com.cakequake.cakequakeback.order.dto.seller.SellerStatistics;
+import com.cakequake.cakequakeback.order.entities.OrderStatus;
+import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -17,7 +19,7 @@ public interface SellerOrderService {
 
 
     //판매자 주문 목록 조회
-    SellerOrderList.Response getShopOrderList(Long shopId, Pageable pageable);
+    SellerOrderList.Response getShopOrderList(Long shopId, Pageable pageable, @Nullable OrderStatus status);
 
     //판매자 주문 상세 조회
     SellerOrderDetail.Response getShopOrderDetail(Long shopId, Long orderId);

@@ -6,6 +6,7 @@ import com.cakequake.cakequakeback.order.dto.buyer.OrderList;
 import com.cakequake.cakequakeback.order.service.BuyerOrderService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class BuyerOrderController {
     @GetMapping
     public ResponseEntity<OrderList.Response> getOrderList(
             @AuthenticationPrincipal(expression = "member.userId") String userId,
-            @PageableDefault(size = 20) Pageable pageable
+            @PageableDefault(size = 20, sort = "modDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         OrderList.Response response = buyerOrderService.getOrderList(userId, pageable);
         return ResponseEntity.ok(response);
