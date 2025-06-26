@@ -1,6 +1,6 @@
 package com.cakequake.cakequakeback.cakeAI.validator;
 
-import com.cakequake.cakequakeback.cakeAI.DTO.AIRequestDTO;
+import com.cakequake.cakequakeback.cakeAI.dto.AIRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

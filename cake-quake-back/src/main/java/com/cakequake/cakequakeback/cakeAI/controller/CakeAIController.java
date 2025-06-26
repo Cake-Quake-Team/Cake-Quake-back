@@ -1,7 +1,7 @@
 package com.cakequake.cakequakeback.cakeAI.controller;
 
 
-import com.cakequake.cakequakeback.cakeAI.DTO.AIRequestDTO;
+import com.cakequake.cakequakeback.cakeAI.dto.AIRequestDTO;
 import com.cakequake.cakequakeback.cakeAI.service.CakeAIService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
