@@ -1,6 +1,6 @@
 package com.cakequake.cakequakeback.cakeAI.service;
 
-import com.cakequake.cakequakeback.cakeAI.DTO.AIRequestDTO;
+import com.cakequake.cakequakeback.cakeAI.dto.AIRequestDTO;
 import com.cakequake.cakequakeback.cakeAI.validator.CakeAIValidator;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -32,6 +32,8 @@ public class CakeAIServiceImpl implements CakeAIService {
     private Resource cakeOptionResource;
     @Value("classpath:/prompts/cake-lettering.st")
     private Resource cakeLetteringPromptResource;
+    @Value("classpath:/prompts/cake-design.st")
+    private Resource cakeDesignPromptResource;
 
     public CakeAIServiceImpl(ImageModel imageModel, ChatClient.Builder builder, CakeAIValidator cakeAIValidator) {
 
@@ -93,15 +95,12 @@ public class CakeAIServiceImpl implements CakeAIService {
         cakeAIValidator.validateCommonAI(new AIRequestDTO(question));
 
         return handleAIProcessing(() -> {
-            // 현실적이고 실제 제작 가능한 케이크 디자인을 요청하는 문장 추가
-            String promptText = question +
-                    ", realistic cake design suitable for bakery, simple and elegant, " +
-                    "no fantasy elements, no surreal or abstract styles, " +
-                    "natural colors, edible decorations only, photographed in natural lighting, " +
-                    "professional bakery photo style, no cartoon or CGI effects";
+
+            PromptTemplate template = new PromptTemplate(cakeDesignPromptResource);
+            Prompt prompt = template.create(Map.of("question", question));
 
             ImageResponse response = imageModel.call(
-                    new ImagePrompt(promptText,
+                    new ImagePrompt(prompt.getContents(),
                             OpenAiImageOptions.builder()
                                     .withN(1)    // 이미지 갯수. 1 ~ 10 사이 지정,  DALL-E-3는 1개만 지원됨.  유료는 여러개 지정 가능.
                                     .withHeight(1024)

@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.cakeAI.DTO;
+package com.cakequake.cakequakeback.cakeAI.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
