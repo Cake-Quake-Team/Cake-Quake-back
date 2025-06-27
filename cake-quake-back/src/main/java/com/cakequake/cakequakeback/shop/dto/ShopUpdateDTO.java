@@ -29,8 +29,6 @@ public class ShopUpdateDTO {
     private String thumbnailImageUrl;
     private List<Long> imageIds;
     private Long thumbnailImageId;
-    private BigDecimal lat;
-    private BigDecimal lng;
 
 
 

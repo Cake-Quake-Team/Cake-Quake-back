@@ -231,7 +231,6 @@ public class ShopServiceImpl implements ShopService {
 
         // 주소가 있으면 좌표 변환 후, 새 DTO 복사본 생성
         if (updateDTO.getAddress() != null && !updateDTO.getAddress().isEmpty()) {
-            Point point = geoService.getCoordinatesFromAddress(updateDTO.getAddress());
             updateDTO = ShopUpdateDTO.builder()
                     .address(updateDTO.getAddress())
                     .phone(updateDTO.getPhone())
@@ -245,8 +244,6 @@ public class ShopServiceImpl implements ShopService {
                     .thumbnailImageUrl(updateDTO.getThumbnailImageUrl())
                     .imageIds(updateDTO.getImageIds())
                     .thumbnailImageId(updateDTO.getThumbnailImageId())
-                    .lat(BigDecimal.valueOf(point.getLatitude()))
-                    .lng(BigDecimal.valueOf(point.getLongitude()))
                     .build();
         }
 
