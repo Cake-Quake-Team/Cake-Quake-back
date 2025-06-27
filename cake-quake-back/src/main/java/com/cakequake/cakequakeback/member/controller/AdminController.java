@@ -4,6 +4,7 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
 import com.cakequake.cakequakeback.member.dto.admin.PendingSellerRequestListDTO;
+import com.cakequake.cakequakeback.member.entities.SellerRequestStatus;
 import com.cakequake.cakequakeback.member.service.admin.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +38,17 @@ public class AdminController {
         log.debug("---AdminController---approvePendingSeller--- tempSellerId: {}", tempSellerId);
 
         ApiResponseDTO response = adminService.approvePendingSeller(tempSellerId);
+        return ResponseEntity.ok(response);
+    }
+
+    // 판매자 거절 & 보류
+    @PatchMapping("/sellers/{tempSellerId}/status")
+    public ResponseEntity<ApiResponseDTO> updateSellerStatus(
+            @PathVariable Long tempSellerId,
+            @RequestParam("status") SellerRequestStatus status) {
+        log.debug("---AdminController---updateSellerStatus--- tempSellerId: {}, status: {}", tempSellerId, status);
+
+        ApiResponseDTO response = adminService.updatePendingSellerStatus(tempSellerId, status);
         return ResponseEntity.ok(response);
     }
 }
