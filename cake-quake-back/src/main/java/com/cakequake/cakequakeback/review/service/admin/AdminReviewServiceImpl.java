@@ -36,14 +36,17 @@ public class AdminReviewServiceImpl implements AdminReviewService {
         Page<ReviewDeletionRequest> page = reviewDeletionRequestRepo.findAllRequest(pageable);
 
         List<ReviewDeletionRequestDTO> dtos = page.stream()
-                .map(r -> new ReviewDeletionRequestDTO(
-                        r.getRequestId(),
-                        r.getReview().getReviewId(),
-                        r.getStatus().name(),
-                        r.getReason(),
-                        r.getRegDate(),
-                        r.getReview().getContent()
-                ))
+                .map(r -> ReviewDeletionRequestDTO.builder()
+                        .requestId(r.getRequestId())
+                        .reviewId(r.getReview().getReviewId())
+                        .status(r.getStatus().name())
+                        .reason(r.getReason())
+                        .regDate(r.getRegDate())
+                        .reviewContent(r.getReview().getContent())
+                        // Review → Shop 관계에서 매장명 가져오기
+                        .shopName(r.getReview().getShop().getShopName())
+                        .build()
+                )
                 .collect(Collectors.toList());
 
         return InfiniteScrollResponseDTO.<ReviewDeletionRequestDTO>builder()
