@@ -91,9 +91,6 @@ public class AdminServiceImpl implements AdminService{
 
         shopRepository.save(shop);
 
-        // 2-1. Shop 저장
-        shopRepository.save(shop);
-
         // 2-2. 대표 이미지 등록
         ShopImage shopImage = ShopImage.builder()
                 .shop(shop)
@@ -114,6 +111,30 @@ public class AdminServiceImpl implements AdminService{
                 .build();
     }
 
-    // 판매자 가입 거절
+    // 판매자 가입 거절, 보류
+    @Override
+    public ApiResponseDTO updatePendingSellerStatus(Long tempSellerId, SellerRequestStatus status) {
+        // 상태 유효성 검사 (승인 외 상태만 처리)
+        if (status == SellerRequestStatus.APPROVED) {
+            throw new BusinessException(ErrorCode.INVALID_STATUS_UPDATE);
+        }
+
+        PendingSellerRequest request = pendingSellerRequestRepository.findById(tempSellerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TEMP_SELLER_ID));
+
+        request.changeStatus(status);
+
+        // 응답 메시지 구성
+        String message = switch (status) {
+            case HOLD -> "판매자 요청이 보류 처리되었습니다.";
+            case REJECTED -> "판매자 요청이 거절되었습니다.";
+            default -> "처리가 완료되었습니다.";
+        };
+
+        return ApiResponseDTO.builder()
+                .success(true)
+                .message(message)
+                .build();
+    }
 
 }
