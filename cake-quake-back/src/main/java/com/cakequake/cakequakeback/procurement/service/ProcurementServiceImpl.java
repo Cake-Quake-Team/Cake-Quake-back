@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -233,6 +234,13 @@ public class ProcurementServiceImpl implements ProcurementService{
                             .build();
                 })
                 .collect(Collectors.toList());
+
+        // BigDecimal로 합산
+        BigDecimal total = items.stream()
+                .map(i -> i.getIngredient().getPricePerUnit()     // BigDecimal
+                        .multiply(BigDecimal.valueOf(i.getQuantity())))// BigDecimal × quantity
+                .reduce(BigDecimal.ZERO, BigDecimal::add);         // 모두 더하기
+
         return ProcurementResponseDTO.builder()
                 .procurementId(p.getProcurementId())
                 .shopId(p.getShop().getShopId())
@@ -243,6 +251,7 @@ public class ProcurementServiceImpl implements ProcurementService{
                 .regDate(p.getRegDate())
                 .cancelReason(p.getCancelReason())
                 .items(respItems)
+                .totalPrice(total)
                 .build();
 
     }
