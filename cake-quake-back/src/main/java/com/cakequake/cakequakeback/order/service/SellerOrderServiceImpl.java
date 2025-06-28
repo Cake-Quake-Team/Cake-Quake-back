@@ -12,6 +12,10 @@ import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemOptionRepository;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemRepository;
 import com.cakequake.cakequakeback.order.repo.SellerOrderRepository;
+import com.cakequake.cakequakeback.point.service.PointService;
+import com.cakequake.cakequakeback.temperature.entities.Grade;
+import com.cakequake.cakequakeback.temperature.entities.Temperature;
+import com.cakequake.cakequakeback.temperature.repo.TemperatureRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +35,8 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     private final SellerOrderRepository sellerOrderRepository;
     private final CakeOrderItemRepository cakeOrderItemRepository;
     private final CakeOrderItemOptionRepository cakeOrderItemOptionRepository;
+    private final PointService pointService;
+    private final TemperatureRepository temperatureRepository;
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
     @Override
@@ -204,6 +210,31 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         // 디버깅 목적으로는 명시적 저장이 도움이 될 수 있습니다.
         sellerOrderRepository.save(order);
 
+
+
+        if (newStatus == OrderStatus.PICKUP_COMPLETED) {
+            // (1) Temperature 엔티티에서 grade 조회
+            var tempOpt = temperatureRepository.findByMember(order.getMember());
+            Grade grade = tempOpt
+                    .map(Temperature::getGrade)
+                    .orElse(Grade.BASIC); // 없으면 BASIC으로 간주
+
+            // (2) 등급별 적립율 결정
+            double rate = getEarnRateByGrade(grade);
+
+            // (3) 계산된 적립 포인트
+            long earnedPoints = Math.round(order.getOrderTotalPrice() * rate);
+
+            if (earnedPoints > 0) {
+                pointService.changePoint(
+                        order.getMember().getUid(),
+                        earnedPoints,
+                        String.format("구매 적립(%s 등급 %s%%)",
+                                grade.name(),
+                                rate * 100)
+                );
+            }
+        }
         System.out.println("DEBUG: Order Status Successfully Updated to: " + order.getStatus()); // 디버그 로그
     }
 
@@ -212,4 +243,13 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         return null;
     }
 
+    private double getEarnRateByGrade(Grade grade) {
+        switch (grade) {
+            case VIP:  return 0.01;   // 1%
+            case VVIP: return 0.015;  // 1.5%
+            default:   return 0.0;    // BASIC/FROZEN 은 적립 없음
+        }
+    }
+
 }
+
