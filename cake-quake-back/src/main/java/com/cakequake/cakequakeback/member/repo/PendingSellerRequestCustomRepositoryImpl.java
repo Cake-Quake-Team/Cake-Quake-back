@@ -2,9 +2,11 @@ package com.cakequake.cakequakeback.member.repo;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.member.dto.admin.PendingSellerPageRequestDTO;
 import com.cakequake.cakequakeback.member.dto.admin.PendingSellerRequestListDTO;
 import com.cakequake.cakequakeback.member.entities.PendingSellerRequest;
 import com.cakequake.cakequakeback.member.entities.QPendingSellerRequest;
+import com.cakequake.cakequakeback.member.entities.SellerRequestStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPQLQuery;
@@ -24,7 +26,7 @@ public class PendingSellerRequestCustomRepositoryImpl implements PendingSellerRe
     }
 
     @Override
-    public InfiniteScrollResponseDTO<PendingSellerRequestListDTO> pendingSellerRequestList(PageRequestDTO pageRequestDTO) {
+    public InfiniteScrollResponseDTO<PendingSellerRequestListDTO> pendingSellerRequestList(PendingSellerPageRequestDTO pageRequestDTO) {
         QPendingSellerRequest qPendingSellerRequest = QPendingSellerRequest.pendingSellerRequest;
 
         JPQLQuery<PendingSellerRequest> query = queryFactory.selectFrom(qPendingSellerRequest);
@@ -35,8 +37,8 @@ public class PendingSellerRequestCustomRepositoryImpl implements PendingSellerRe
         log.debug("type: {}", type);
         log.debug("keyword: {}", keyword);
 
+        BooleanBuilder builder = new BooleanBuilder();
         if (keyword != null && !keyword.isEmpty() && type != null) {
-            BooleanBuilder builder = new BooleanBuilder();
 
             switch (type) {
                 case "USERID": // userId 검색
@@ -50,9 +52,20 @@ public class PendingSellerRequestCustomRepositoryImpl implements PendingSellerRe
                     break;
             }
 
-            log.debug("builder: {}", builder);
-            query.where(builder);
         } // end if
+
+        // 상태 필터 추가
+        String statusFilter = pageRequestDTO.getStatus(); // 프론트에서 보내는 status 값
+        log.debug("pageRequestDTO.getStatus(): {}", pageRequestDTO.getStatus());
+        if (statusFilter != null && !statusFilter.isEmpty()) {
+            builder.and(qPendingSellerRequest.status.eq(SellerRequestStatus.valueOf(statusFilter)));
+        }
+
+        log.debug("builder: {}", builder);
+        // 조건이 있는 경우에만 where 호출
+        if (builder.hasValue()) {
+            query.where(builder);
+        }
 
         Pageable pageable = pageRequestDTO.getPageable("tempSellerId");
         query.limit(pageable.getPageSize());
@@ -85,7 +98,7 @@ public class PendingSellerRequestCustomRepositoryImpl implements PendingSellerRe
         log.debug("Generated DTO Query: {}", dtoQuery);
 
         List<PendingSellerRequestListDTO> dtoList = dtoQuery.fetch();
-        log.debug("Fetched DTO List: {}", dtoList); // DTO 리스트 확인
+//        log.debug("Fetched DTO List: {}", dtoList); // DTO 리스트 확인
 
         // 전체 개수 쿼리 (페이지 계산용)
         long total = dtoQuery.fetchCount();
