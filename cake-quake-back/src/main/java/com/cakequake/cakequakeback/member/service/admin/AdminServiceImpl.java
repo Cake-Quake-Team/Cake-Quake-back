@@ -5,6 +5,7 @@ import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;
+import com.cakequake.cakequakeback.member.dto.admin.PendingSellerPageRequestDTO;
 import com.cakequake.cakequakeback.member.dto.admin.PendingSellerRequestListDTO;
 import com.cakequake.cakequakeback.member.entities.*;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
@@ -38,7 +39,7 @@ public class AdminServiceImpl implements AdminService{
 
     @Transactional(readOnly = true)
     @Override
-    public InfiniteScrollResponseDTO<PendingSellerRequestListDTO> pendingSellerRequestList(PageRequestDTO pageRequestDTO) {
+    public InfiniteScrollResponseDTO<PendingSellerRequestListDTO> pendingSellerRequestList(PendingSellerPageRequestDTO pageRequestDTO) {
 
         InfiniteScrollResponseDTO<PendingSellerRequestListDTO> dto = pendingSellerRequestRepository.pendingSellerRequestList(pageRequestDTO);
 
@@ -72,7 +73,7 @@ public class AdminServiceImpl implements AdminService{
 
         memberRepository.save(member); // uid 생성됨
 
-        // 2. Shop 저장 (uid 참조) -> 위도 경도 나중에 추가
+        // 2. Shop 저장
         Shop shop = Shop.builder()
                 .member(member)
                 .businessNumber(request.getBusinessNumber())
@@ -85,13 +86,11 @@ public class AdminServiceImpl implements AdminService{
                 .openTime(request.getOpenTime())
                 .closeTime(request.getCloseTime())
                 .status(ShopStatus.ACTIVE)
-//                .lat()
-//                .lng()
                 .build();
 
         shopRepository.save(shop);
 
-        // 2-2. 대표 이미지 등록
+        // 2-1. 대표 이미지 등록
         ShopImage shopImage = ShopImage.builder()
                 .shop(shop)
                 .shopImageUrl(request.getShopImageUrl())
@@ -111,29 +110,49 @@ public class AdminServiceImpl implements AdminService{
                 .build();
     }
 
-    // 판매자 가입 거절, 보류
+    // 판매자 가입 보류
     @Override
-    public ApiResponseDTO updatePendingSellerStatus(Long tempSellerId, SellerRequestStatus status) {
-        // 상태 유효성 검사 (승인 외 상태만 처리)
-        if (status == SellerRequestStatus.APPROVED) {
-            throw new BusinessException(ErrorCode.INVALID_STATUS_UPDATE);
-        }
+    public ApiResponseDTO holdPendingSellerStatus(Long tempSellerId) {
+        if(tempSellerId == null) throw new BusinessException(ErrorCode.NOT_FOUND_TEMP_SELLER_ID);
 
         PendingSellerRequest request = pendingSellerRequestRepository.findById(tempSellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TEMP_SELLER_ID));
 
-        request.changeStatus(status);
+        SellerRequestStatus status = request.getStatus();
 
-        // 응답 메시지 구성
-        String message = switch (status) {
-            case HOLD -> "판매자 요청이 보류 처리되었습니다.";
-            case REJECTED -> "판매자 요청이 거절되었습니다.";
-            default -> "처리가 완료되었습니다.";
-        };
+        // 상태가 대기(PENDING)가 아니면 예외 발생
+        if (status != SellerRequestStatus.PENDING) {
+            throw new BusinessException(ErrorCode.INVALID_STATUS_UPDATE);
+        }
+
+        request.changeStatus(SellerRequestStatus.HOLD);
 
         return ApiResponseDTO.builder()
                 .success(true)
-                .message(message)
+                .message("판매자 요청이 보류 처리되었습니다.")
+                .build();
+    }
+
+    // 판매자 가입 거절
+    @Override
+    public ApiResponseDTO rejectPendingSellerStatus(Long tempSellerId) {
+        if(tempSellerId == null) throw new BusinessException(ErrorCode.NOT_FOUND_TEMP_SELLER_ID);
+
+        PendingSellerRequest request = pendingSellerRequestRepository.findById(tempSellerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_TEMP_SELLER_ID));
+
+        SellerRequestStatus status = request.getStatus();
+
+        // 상태가 대기(PENDING)가 아니면 예외 발생
+        if (status != SellerRequestStatus.PENDING) {
+            throw new BusinessException(ErrorCode.INVALID_STATUS_UPDATE);
+        }
+
+        request.changeStatus(SellerRequestStatus.REJECTED);
+
+        return ApiResponseDTO.builder()
+                .success(true)
+                .message("판매자 요청이 거절되었습니다.")
                 .build();
     }
 
