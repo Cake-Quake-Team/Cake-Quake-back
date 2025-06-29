@@ -35,7 +35,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 
-public class ShopServiceImpl implements ShopService {
+public class    ShopServiceImpl implements ShopService {
     private final ShopRepository shopRepository;
     private final ShopNoticeRepository shopNoticeRepository;
     private final CakeItemService cakeItemService;
