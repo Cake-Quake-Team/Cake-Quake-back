@@ -12,6 +12,7 @@ import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemOptionRepository;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemRepository;
 import com.cakequake.cakequakeback.order.repo.SellerOrderRepository;
+import com.cakequake.cakequakeback.temperature.service.TemperatureService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     private final SellerOrderRepository sellerOrderRepository;
     private final CakeOrderItemRepository cakeOrderItemRepository;
     private final CakeOrderItemOptionRepository cakeOrderItemOptionRepository;
+    private final TemperatureService temperatureService;
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
     @Override
@@ -203,7 +205,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         // @Transactional 어노테이션이 있으므로 Dirty Checking에 의해 자동 저장되지만,
         // 디버깅 목적으로는 명시적 저장이 도움이 될 수 있습니다.
         sellerOrderRepository.save(order);
-
+        temperatureService.updateTemperature(orderId,null);
         System.out.println("DEBUG: Order Status Successfully Updated to: " + order.getStatus()); // 디버그 로그
     }
 

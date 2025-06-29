@@ -195,7 +195,7 @@ public class TemperatureServiceImpl implements TemperatureService {
 
         temperature.updateTemperature(
                 changeAmount,
-                ChangeReason.NO_SHOW,
+                ChangeReason.PICKUP_COMPLETED,
                 RelatedObjectType.RESERVATION,
                 String.valueOf(orderId)
 
