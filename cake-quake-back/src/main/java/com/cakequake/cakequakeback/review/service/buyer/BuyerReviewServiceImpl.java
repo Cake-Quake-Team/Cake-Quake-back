@@ -13,6 +13,7 @@ import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
 import com.cakequake.cakequakeback.review.entities.Review;
 import com.cakequake.cakequakeback.review.repo.buyer.BuyerReviewRepo;
 import com.cakequake.cakequakeback.review.validator.BuyerReviewValidator;
+import com.cakequake.cakequakeback.temperature.service.TemperatureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
     private final PointService pointService;
     private final CustomImageUtils imageUtils;
     private final BuyerReviewValidator validator;
+    private final TemperatureService temperatureService;
 
     //구매자 리뷰 추가
     @Override
@@ -81,6 +83,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
         // 프로젝션(selectDTO)으로 바로 DTO 반환
         ReviewResponseDTO response = buyerReviewRepo.selectDTO(savedReview.getReviewId());
+        temperatureService.updateTemperature(orderId, savedReview.getReviewId());
 
         if(response == null){
             throw new IllegalStateException("DTO 조회 실패");
