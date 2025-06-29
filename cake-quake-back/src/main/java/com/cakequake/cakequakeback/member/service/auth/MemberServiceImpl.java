@@ -12,6 +12,8 @@ import com.cakequake.cakequakeback.member.entities.MemberStatus;
 import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
+import com.cakequake.cakequakeback.point.service.PointService;
+import com.cakequake.cakequakeback.point.service.PointServiceImpl;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
@@ -40,8 +42,9 @@ public class MemberServiceImpl implements MemberService {
     private final JWTUtil jwtUtil;
     private final AuthenticatedUserService authenticatedUserService;
     private final TemperatureService temperatureService;
+    private final PointService pointService;
 
-    public MemberServiceImpl(MemberRepository memberRepository, ShopRepository shopRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, JWTUtil jwtUtil, AuthenticatedUserService authenticatedUserService, TemperatureService temperatureService) {
+    public MemberServiceImpl(MemberRepository memberRepository, ShopRepository shopRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, JWTUtil jwtUtil, AuthenticatedUserService authenticatedUserService, TemperatureService temperatureService, PointService pointService) {
         this.memberRepository = memberRepository;
         this.shopRepository = shopRepository;
         this.passwordEncoder = passwordEncoder;
@@ -49,6 +52,7 @@ public class MemberServiceImpl implements MemberService {
         this.jwtUtil = jwtUtil;
         this.authenticatedUserService = authenticatedUserService;
         this.temperatureService = temperatureService;
+        this.pointService = pointService;
     }
 
     public ApiResponseDTO signup(BuyerSignupRequestDTO requestDTO) {
@@ -97,6 +101,13 @@ public class MemberServiceImpl implements MemberService {
 
          Member savedMember = memberRepository.save(member);
         temperatureService.createInitialTemperature(savedMember);
+
+        // ★ 회원가입 축하 포인트 3000 적립 ★
+        pointService.changePoint(
+                savedMember.getUid(),          // 회원 PK
+                3000L,                              // 적립할 포인트
+                "회원가입 축하 3,000포인트"          // 적립 사유
+        );
 
         return ApiResponseDTO.builder()
                 .success(true)
