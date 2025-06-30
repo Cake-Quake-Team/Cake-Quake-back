@@ -16,6 +16,7 @@ public class IngredientResponseDTO {
     private String unit;
     private BigDecimal pricePerUnit;
     private String description;
+    private Integer stockQuantity;
     private LocalDateTime redDate;
     private LocalDateTime modDate;
 }
