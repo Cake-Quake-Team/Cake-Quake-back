@@ -118,39 +118,33 @@ public class ProcurementServiceImpl implements ProcurementService{
                     var ingredient = ingredientRepo.findById(itemDTO.getIngredientId())
                             .orElseThrow(() -> new BusinessException(ErrorCode. NOT_FOUND_INGREDIENT_ID));
 
+                    // 3-2) 실시간 재고 차감 (반환값 0 이면 재고 부족)
+                    int updated = ingredientRepo.adjustStock(ingredient.getIngredientId(), -itemDTO.getQuantity());
+                    if (updated == 0) {
+                        throw new BusinessException(
+                                ErrorCode.NOT_ENOUGH_STOCK,
+                                ErrorCode.NOT_ENOUGH_STOCK.getMessage()
+                        );
+                    }
                     // ② ProcurementItem 생성 (반드시 return)
                     return ProcurementItem.builder()
                             .procurement(saved)
                             .ingredient(ingredient)        // 관계 필드에 엔티티 넣기
                             .quantity(itemDTO.getQuantity())
+                            .ingredientName(ingredient.getName())
+                            .unitPrice(ingredient.getPricePerUnit().intValue())
                             .build();
                 })
                 .collect(Collectors.toList());
 
         procurementItemRepository.saveAll(items);
 
+        procurement.updateStatus(ProcurementStatus.COMPLETED);
+
         return toResponseDTO(saved,items);
     }
 
-    //관리자 확정(일정 지정) -> 스케줄 설정, 상태 변경
-    @Override
-    public ProcurementResponseDTO confirmProcurement(Long procurementId, ConfirmProcurementDTO confirmDTO) {
 
-        //요청 존재 및 상태 유효성 검증
-        Procurement procurement = validator.findProcurementOrThrow(procurementId);
-        validator.validateConfirm(procurement, confirmDTO.getScheduledDate() );
-
-        //일정 및 상태 업데이트
-        procurement.updateScheduledDate(confirmDTO.getScheduledDate());
-        procurement.updateStatus(ProcurementStatus.SCHEDULED);
-
-        //변경된 엔티티에 매핑된 항목 조회
-        List<ProcurementItem> items = procurementItemRepository.findByProcurement_ProcurementId(procurementId);
-
-        //재고 차감 로직, 알림 발송 등 추가 예정
-
-        return toResponseDTO(procurement,items);
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -228,18 +222,17 @@ public class ProcurementServiceImpl implements ProcurementService{
                     return ProcurementItemResponseDTO.builder()
                             .itemId(i.getProcurementItemId())
                             .ingredientId(ingrId)
-                            .ingredientName(i.getIngredient().getName())
-                            .unit(i.getIngredient().getUnit())
+                            .ingredientName(i.getIngredientName())
+                            .unitPrice(i.getUnitPrice())
                             .quantity(i.getQuantity())
                             .build();
                 })
                 .collect(Collectors.toList());
 
-        // BigDecimal로 합산
-        BigDecimal total = items.stream()
-                .map(i -> i.getIngredient().getPricePerUnit()     // BigDecimal
-                        .multiply(BigDecimal.valueOf(i.getQuantity())))// BigDecimal × quantity
-                .reduce(BigDecimal.ZERO, BigDecimal::add);         // 모두 더하기
+         BigDecimal total = items.stream()
+                         .map(i -> BigDecimal.valueOf(i.getUnitPrice())
+                                .multiply(BigDecimal.valueOf(i.getQuantity())))
+                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return ProcurementResponseDTO.builder()
                 .procurementId(p.getProcurementId())

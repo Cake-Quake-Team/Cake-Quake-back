@@ -22,4 +22,6 @@ public class IngredientRequestDTO {
     private BigDecimal pricePerUnit;
 
     private String description;
+
+    private Integer stockQuantity;
 }

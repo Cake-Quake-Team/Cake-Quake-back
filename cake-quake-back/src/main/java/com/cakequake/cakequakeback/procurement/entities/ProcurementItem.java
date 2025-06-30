@@ -28,4 +28,11 @@ public class ProcurementItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(name = "ingredient_name", length = 100, nullable = false)
+    private String ingredientName;
+
+    @Column(name = "unit_price", nullable = false)
+    private Integer unitPrice;
+
+
 }

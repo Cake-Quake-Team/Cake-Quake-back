@@ -14,6 +14,7 @@ public class ProcurementItemResponseDTO {
     private Long ingredientId;
     private String ingredientName;
     private String unit;
+    private Integer unitPrice;
     private Integer quantity;
 
 }

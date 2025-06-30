@@ -64,6 +64,7 @@ public class IngredientServiceImpl implements IngredientService {
                 .unit(ingredientRequestDTO.getUnit())
                 .pricePerUnit(ingredientRequestDTO.getPricePerUnit())
                 .description(ingredientRequestDTO.getDescription())
+                .stockQuantity(ingredientRequestDTO.getStockQuantity() != null ? ingredientRequestDTO.getStockQuantity() : 0)
                 .build();
         Ingredient saved = ingredientRepo.save(ing);
         return toResponseDTO(saved);
@@ -80,6 +81,9 @@ public class IngredientServiceImpl implements IngredientService {
         ing.updateDescription(ingredientRequestDTO.getDescription());
         ing.updateUnit(ingredientRequestDTO.getUnit());
         ing.updatePricePerUnit(ingredientRequestDTO.getPricePerUnit());
+        if(ingredientRequestDTO.getStockQuantity() != null) {
+            ing.updateStockQuantity(ingredientRequestDTO.getStockQuantity());
+        }
         return toResponseDTO(ing);
     }
 
@@ -102,6 +106,7 @@ public class IngredientServiceImpl implements IngredientService {
                 .unit(ing.getUnit())
                 .pricePerUnit(ing.getPricePerUnit())
                 .description(ing.getDescription())
+                .stockQuantity(ing.getStockQuantity())
                 .redDate(ing.getRegDate())
                 .modDate(ing.getModDate())
                 .build();
