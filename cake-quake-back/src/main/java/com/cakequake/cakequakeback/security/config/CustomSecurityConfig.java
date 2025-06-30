@@ -50,7 +50,7 @@ public class CustomSecurityConfig {
 //            auth.requestMatchers("/**").permitAll(); // 모든 요청 허용
             auth.requestMatchers(
                     "/api/v1/auth/signup/**",
-                    "/api/v1/auth/signin",
+                    "/api/v1/auth/signin/**",
                     "/api/v1/auth/otp/send", // 전화번호 인증
                     "/api/v1/auth/otp/verify",
                     "/api/v1/auth/business/verify", // 사업자 진위 여부

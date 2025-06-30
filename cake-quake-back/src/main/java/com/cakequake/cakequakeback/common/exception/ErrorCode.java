@@ -73,6 +73,7 @@ public enum ErrorCode {
     INVALID_AI_REQUEST(400, 665, "AI 요청이 잘못되었습니다"),
     INVALID_QUANTITY(400, 666, "수량은 1개 이상이어야 합니다."),
     INVALID_STATUS_UPDATE(400, 667, "요청 상태를 해당 값으로 변경할 수 없습니다."),
+    MISSING_SOCIAL_ID(400, 668, "socialId가 누락되었습니다."),
 
     //HTTP 401 Unauthorized (code:801~809)
     INVALID_CREDENTIALS(401, 801, "아이디 또는 패스워드가 일치하지 않습니다."),

@@ -2,6 +2,7 @@ package com.cakequake.cakequakeback.member.validator;
 
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.member.dto.auth2.SocialSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO;
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
@@ -48,6 +49,31 @@ public class MemberValidator {
 
         // ID 중복 검사
         if (memberRepository.existsByUserId(userId)) {
+            throw new BusinessException(ErrorCode.ALREADY_EXIST_USER_ID); // 701
+        }
+
+        // 전화번호 중복 검사
+        if (memberRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
+            throw new BusinessException(ErrorCode.ALREADY_EXIST_PHONE); // 702
+        }
+    }
+
+    // 소셜 회원가입 형식 검사
+    public void validateSocialSignupRequest(SocialSignupRequestDTO dto) {
+
+        // 형식 검사
+        if (!isValidName(dto.getUname())) {
+            throw new BusinessException(ErrorCode.INVALID_NAME_SHORT); // 603
+        }
+        if (!isValidPhoneNumber(dto.getPhoneNumber())) {
+            throw new BusinessException(ErrorCode.INVALID_PHONE); // 604
+        }
+        if (!isValidJoinType(dto.getJoinType())) {
+            throw new BusinessException(ErrorCode.INVALID_SIGNUP_TYPE); // 606
+        }
+
+        // ID 중복 검사
+        if (memberRepository.existsByUserId(dto.getUserId())) {
             throw new BusinessException(ErrorCode.ALREADY_EXIST_USER_ID); // 701
         }
 
@@ -194,7 +220,7 @@ public class MemberValidator {
     }
 
     private boolean isValidName(String name) {
-        return name != null && name.matches("^(?=.*[가-힣a-zA-Z])([가-힣a-zA-Z0-9]{1,19})$");
+        return name != null && name.matches("^(?=.*[가-힣a-zA-Z])([가-힣a-zA-Z0-9]{1,20})$");
     }
 
     private boolean isValidPhoneNumber(String phoneNumber) {
