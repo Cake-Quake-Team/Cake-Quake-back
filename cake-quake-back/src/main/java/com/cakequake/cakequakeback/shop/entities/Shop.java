@@ -161,7 +161,12 @@ public class Shop extends BaseEntity {
     }
 
 
+    public void updateReviewCount(Integer reviewCount) {
+        this.reviewCount = reviewCount;
+    }
 
 
-
+    public void updateRating(BigDecimal rating) {
+        this.rating = rating;
+    }
 }

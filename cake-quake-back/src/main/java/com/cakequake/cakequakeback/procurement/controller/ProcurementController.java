@@ -85,13 +85,13 @@ public class ProcurementController {
     //-------------------관리자-----------------
     //관리자 확정(일정 지정)
     // /api/procurements/{procurementId}/confirm
-    @PostMapping("/procurements/{procurementId}/confirm")
-    public ResponseEntity<ProcurementResponseDTO> confirm(
-            @PathVariable("procurementId") Long procurementId,
-            @RequestBody@Valid ConfirmProcurementDTO confirmDTO
-    ){
-        return ResponseEntity.ok(procurementService.confirmProcurement(procurementId,confirmDTO));
-    }
+//    @PostMapping("/procurements/{procurementId}/confirm")
+//    public ResponseEntity<ProcurementResponseDTO> confirm(
+//            @PathVariable("procurementId") Long procurementId,
+//            @RequestBody@Valid ConfirmProcurementDTO confirmDTO
+//    ){
+//        return ResponseEntity.ok(procurementService.confirmProcurement(procurementId,confirmDTO));
+//    }
 
     //관리자용 발주 전체 조회
     @GetMapping("/procurements")

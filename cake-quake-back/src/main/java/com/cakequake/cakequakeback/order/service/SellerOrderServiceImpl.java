@@ -12,10 +12,14 @@ import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemOptionRepository;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemRepository;
 import com.cakequake.cakequakeback.order.repo.SellerOrderRepository;
+
+import com.cakequake.cakequakeback.temperature.service.TemperatureService;
+
 import com.cakequake.cakequakeback.point.service.PointService;
 import com.cakequake.cakequakeback.temperature.entities.Grade;
 import com.cakequake.cakequakeback.temperature.entities.Temperature;
 import com.cakequake.cakequakeback.temperature.repo.TemperatureRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,8 +39,12 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     private final SellerOrderRepository sellerOrderRepository;
     private final CakeOrderItemRepository cakeOrderItemRepository;
     private final CakeOrderItemOptionRepository cakeOrderItemOptionRepository;
+
+    private final TemperatureService temperatureService;
+
     private final PointService pointService;
     private final TemperatureRepository temperatureRepository;
+
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
     @Override
@@ -210,6 +218,9 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         // 디버깅 목적으로는 명시적 저장이 도움이 될 수 있습니다.
         sellerOrderRepository.save(order);
 
+        temperatureService.updateTemperature(orderId,null);
+
+
 
 
         if (newStatus == OrderStatus.PICKUP_COMPLETED) {
@@ -235,6 +246,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                 );
             }
         }
+
         System.out.println("DEBUG: Order Status Successfully Updated to: " + order.getStatus()); // 디버그 로그
     }
 

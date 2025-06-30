@@ -11,10 +11,13 @@ import com.cakequake.cakequakeback.point.service.PointService;
 import com.cakequake.cakequakeback.review.dto.ReviewRequestDTO;
 import com.cakequake.cakequakeback.review.dto.ReviewResponseDTO;
 import com.cakequake.cakequakeback.review.entities.Review;
+import com.cakequake.cakequakeback.review.event.ReviewChangedEvent;
 import com.cakequake.cakequakeback.review.repo.buyer.BuyerReviewRepo;
 import com.cakequake.cakequakeback.review.validator.BuyerReviewValidator;
+import com.cakequake.cakequakeback.temperature.service.TemperatureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,11 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
     private final PointService pointService;
     private final CustomImageUtils imageUtils;
     private final BuyerReviewValidator validator;
+
+    private final ApplicationEventPublisher eventPublisher;
+
+    private final TemperatureService temperatureService;
+
 
     //구매자 리뷰 추가
     @Override
@@ -79,8 +87,17 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
                 : "텍스트 리뷰 작성 보상";
         pointService.changePoint(reviewerUid, amount, desc);
 
+        // **리뷰 변경 이벤트 발행**
+        log.info("[DEBUG] ReviewChangedEvent 발행 → shopId={}", savedReview.getShop().getShopId());
+        eventPublisher.publishEvent(
+                new ReviewChangedEvent(this, savedReview.getShop().getShopId())
+        );
+
+
+
         // 프로젝션(selectDTO)으로 바로 DTO 반환
         ReviewResponseDTO response = buyerReviewRepo.selectDTO(savedReview.getReviewId());
+        temperatureService.updateTemperature(orderId, savedReview.getReviewId());
 
         if(response == null){
             throw new IllegalStateException("DTO 조회 실패");
@@ -138,6 +155,12 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
         buyerReviewRepo.save(review);
 
+
+        // **리뷰 변경 이벤트 발행**
+        eventPublisher.publishEvent(
+                new ReviewChangedEvent(this, review.getShop().getShopId())
+        );
+
         return buyerReviewRepo.selectDTO(reviewId);
     }
 
@@ -150,5 +173,10 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
         //삭제 -> 상태만 DELETE로 변경
         review.deleteByBuyer();
+
+        // **리뷰 변경 이벤트 발행**
+        eventPublisher.publishEvent(
+                new ReviewChangedEvent(this, review.getShop().getShopId())
+        );
     }
 }
