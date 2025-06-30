@@ -3,7 +3,6 @@ package com.cakequake.cakequakeback.member.service.auth2;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.dto.auth2.KakaoUserDTO;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;

@@ -228,7 +228,8 @@ public class MemberServiceImpl implements MemberService {
             // 전달된 리프레시 토큰을 검증하고 페이로드(claims) 추출
             Claims claims = (Claims) jwtUtil.validateToken(refreshToken);
             // 토큰 내에서 필요한 사용자 정보 추출
-            String uid = claims.get("uid", String.class);
+            Long uid = claims.get("uid", Long.class);
+            log.debug("---refreshTokens---uid: {}", uid);
             String userId = claims.get("userId", String.class);
             String uname = claims.get("uname", String.class);
             String role = claims.get("role", String.class);
