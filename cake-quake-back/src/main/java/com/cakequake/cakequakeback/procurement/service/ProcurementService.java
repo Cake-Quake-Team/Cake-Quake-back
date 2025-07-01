@@ -40,7 +40,7 @@ public interface ProcurementService {
     /**
      * 관리자 확정 (일정 지정)
      */
-    ProcurementResponseDTO confirmProcurement(Long procurementId, ConfirmProcurementDTO confirmDto);
+    //ProcurementResponseDTO confirmProcurement(Long procurementId, ConfirmProcurementDTO confirmDto);
 
 
     //관리자 발주 전체 조회

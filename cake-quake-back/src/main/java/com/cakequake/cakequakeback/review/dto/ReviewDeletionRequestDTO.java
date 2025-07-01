@@ -18,5 +18,6 @@ public class ReviewDeletionRequestDTO  {
     private LocalDateTime regDate;
 
     private String reviewContent;
+    private String shopName;
 
 }

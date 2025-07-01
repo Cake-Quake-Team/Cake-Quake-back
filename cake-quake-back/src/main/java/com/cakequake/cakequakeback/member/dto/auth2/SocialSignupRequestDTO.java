@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.member.dto.buyer;
+package com.cakequake.cakequakeback.member.dto.auth2;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,36 +19,36 @@ public class SocialSignupRequestDTO {
     private String userId; // socialId와 동일
 
     @NotBlank(message = "이름은 필수 입력값입니다.")
-    @Pattern(regexp = "^[a-zA-Z가-힣]{1,19}$", message = "이름은 한글 또는 영어 1자이상 20자 미만으로 입력해야합니다.")
+    @Pattern(regexp = "^(?=.*[가-힣a-zA-Z])([가-힣a-zA-Z0-9]{1,20})$", message = "이름은 한글 또는 영어가 최소 1개 이상 포함되고, 한글, 영어, 숫자 조합으로 20자 이내로 입력해야합니다.")
     private String uname;
 
-    @NotBlank(message = "비밀번호는 필수 입력값입니다.")
-    private String password; // 소셜의 경우 비밀번호를 받지 않아서 Random UUID를 해시해서 저장. 로그인에도 사용되지 않음.
-
     @NotBlank(message = "전화번호는 필수 입력값입니다.")
-    @Pattern(regexp = "^\\d{3}-\\d{4}-\\d{4}$", message = "전화번호 양식은 XXX-XXXX-XXXX로 입력해야합니다.")
+    @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$", message = "전화번호 양식은 XXX-XXX(X)-XXXX로 입력해야합니다.")
     private String phoneNumber;
 
     @NotBlank(message = "정보 공개 여부는 필수 입력값입니다.")
-    @Pattern(regexp = "^[yn]{1}$", message = "정보 공개 여부는 y 또는 n만 허용됩니다.")
-    private String publicInfo;
+    private Boolean publicInfo;
 
     @NotNull(message = "알람 설정 값은 필수입니다.")
     private Boolean alarm;
-
-    @NotBlank(message = "권한은 필수입니다.")
-    @Pattern(regexp = "^(BUYER)$", message = "권한은 BUYER만 허용됩니다.")
-    private String role;
 
     @NotBlank
     @Pattern(regexp = "^(kakao|google)$", message = "가입 유형은 kakao 또는 google만 허용됩니다.")
     private String joinType;
 
+
     @Override
     public String toString() {
-        return String.format("BuyerSignupRequestDTO{userId='%s', uname='%s', phoneNumber='%s', publicInfo='%s', alarm=%s, role='%s', joinType='%s'}",
-                userId, uname, phoneNumber, publicInfo, alarm, role, joinType);
+        return String.format("SocialSignupRequestDTO{userId='%s', uname='%s', phoneNumber='%s', publicInfo='%s', alarm=%s, joinType='%s'}",
+                userId, uname, mask(phoneNumber), publicInfo, alarm, joinType);
     }
 
+    private String mask(String input) {
+        if (input == null || input.length() < 4) return "***";
+        return input.substring(0, 2) + "***" + input.substring(input.length() - 2);
+    }
 
+    public void changeUname( String uname) {
+        this.uname = uname;
+    }
 }

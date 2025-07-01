@@ -5,6 +5,7 @@ import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.common.utils.JWTUtil;
 import com.cakequake.cakequakeback.member.dto.*;
 import com.cakequake.cakequakeback.member.dto.auth.*;
+import com.cakequake.cakequakeback.member.dto.auth2.SocialSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.entities.MemberRole;
@@ -12,6 +13,8 @@ import com.cakequake.cakequakeback.member.entities.MemberStatus;
 import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
+import com.cakequake.cakequakeback.point.service.PointService;
+import com.cakequake.cakequakeback.security.jwt.JWTClaimProvider;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
@@ -19,7 +22,6 @@ import com.cakequake.cakequakeback.temperature.service.TemperatureService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -38,19 +41,37 @@ public class MemberServiceImpl implements MemberService {
     private final PasswordEncoder passwordEncoder;
     private final MemberValidator memberValidator;
     private final JWTUtil jwtUtil;
+    private final JWTClaimProvider jwtClaimProvider;
     private final AuthenticatedUserService authenticatedUserService;
     private final TemperatureService temperatureService;
+    private final PointService pointService;
 
-    public MemberServiceImpl(MemberRepository memberRepository, ShopRepository shopRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, JWTUtil jwtUtil, AuthenticatedUserService authenticatedUserService, TemperatureService temperatureService) {
+    public MemberServiceImpl(
+            MemberRepository memberRepository,
+            ShopRepository shopRepository,
+            PasswordEncoder passwordEncoder,
+            MemberValidator memberValidator,
+            JWTUtil jwtUtil,
+            JWTClaimProvider jwtClaimProvider,
+            AuthenticatedUserService authenticatedUserService,
+            TemperatureService temperatureService,
+            PointService pointService
+    ) {
         this.memberRepository = memberRepository;
         this.shopRepository = shopRepository;
         this.passwordEncoder = passwordEncoder;
         this.memberValidator = memberValidator;
         this.jwtUtil = jwtUtil;
+        this.jwtClaimProvider = jwtClaimProvider;
         this.authenticatedUserService = authenticatedUserService;
         this.temperatureService = temperatureService;
+        this.pointService = pointService;
     }
 
+    /*
+        25.06.30 수정
+        소셜 가입은 로직 분리.
+     */
     public ApiResponseDTO signup(BuyerSignupRequestDTO requestDTO) {
         log.debug("---------signup--------------");
 
@@ -63,22 +84,7 @@ public class MemberServiceImpl implements MemberService {
         memberValidator.validateSignupRequest(requestDTO);
         log.debug("---memberValidator 통과---");
 
-        // basic 가입일 때만 비밀번호 인코딩
-        String encodedPassword = null;
-        switch (joinType) {
-            case BASIC:
-                encodedPassword = passwordEncoder.encode(requestDTO.getPassword());
-                break;
-
-            case KAKAO:
-            case GOOGLE:
-                // 소셜 회원 가입 처리 로직은 추후 추가 예정
-                // 예: 액세스 토큰으로 사용자 정보 조회 → 검증 → 회원 가입
-                break;
-
-            default:
-                throw new IllegalArgumentException("지원하지 않는 가입 방식입니다."); // 나중에 변경
-        }
+        String encodedPassword = passwordEncoder.encode(requestDTO.getPassword());
 
         /* 휴대폰 인증은 프론트에서 따로 호출 */
 
@@ -93,10 +99,80 @@ public class MemberServiceImpl implements MemberService {
                 .socialType(joinType)
                 .build();
 
-        memberRepository.save(member);
-
-         Member savedMember = memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
+        // 첫 온도 설정
         temperatureService.createInitialTemperature(savedMember);
+
+        // ★ 회원가입 축하 포인트 3000 적립 ★
+        pointService.changePoint(
+                savedMember.getUid(),          // 회원 PK
+                3000L,                              // 적립할 포인트
+                "회원가입 축하 3,000포인트"          // 적립 사유
+        );
+
+        return ApiResponseDTO.builder()
+                .success(true)
+                .message("회원 가입에 성공하였습니다.")
+                .build();
+    }
+
+    @Override
+    public ApiResponseDTO signupSocial(SocialSignupRequestDTO requestDTO) {
+        log.debug("---------signupSocial--------------");
+
+        SocialType joinType = SocialType.from(requestDTO.getJoinType());
+        // basic 이면 안 됨
+        if (joinType == SocialType.BASIC) throw new BusinessException(ErrorCode.INVALID_SIGNUP_TYPE);
+        // 소셜 아이디가 null 이면
+        if(requestDTO.getUserId() == null) throw new BusinessException(ErrorCode.MISSING_SOCIAL_ID);
+
+        // 카카오에서 받아오는 닉네임 -> uname 정제 (특수문자 제거 및 길이 제한)
+        String nickname = requestDTO.getUname();
+        if (nickname != null) {
+            // 특수문자 제거: 문자/숫자/공백만 허용
+            nickname = nickname.replaceAll("[^\\p{L}\\p{N}]", "");
+            // 최대 20자 제한
+            if (nickname.length() > 20) {
+                nickname = nickname.substring(0, 20);
+            }
+        } // end if
+        requestDTO.changeUname(nickname);
+
+        /*
+            유효성 형식 검사 - uname 길이, 전화번호 형식, 가입 방식
+            중복 검사 - userId, 전화번호
+        */
+        memberValidator.validateSocialSignupRequest(requestDTO);
+        log.debug("---memberValidator 통과---");
+
+        String encodedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+
+        /* 휴대폰 인증은 프론트에서 따로 호출 */
+
+        Member member = Member.builder()
+                .userId(requestDTO.getUserId())
+                .uname(requestDTO.getUname())
+                .password(encodedPassword)
+                .phoneNumber(requestDTO.getPhoneNumber())
+                .publicInfo(requestDTO.getPublicInfo())
+                .alarm(requestDTO.getAlarm())
+                .role(MemberRole.BUYER)
+                .socialType(joinType)
+                .build();
+
+        Member savedMember = memberRepository.save(member);
+        log.debug("소셜 회원가입 완료 - uid: {}, userId: {}", savedMember.getUid(), savedMember.getUserId());
+        // 첫 온도 설정
+        temperatureService.createInitialTemperature(savedMember);
+
+        // ★ 회원가입 축하 포인트 3000 적립 ★
+        pointService.changePoint(
+                savedMember.getUid(),          // 회원 PK
+                3000L,                              // 적립할 포인트
+                "회원가입 축하 3,000포인트"          // 적립 사유
+        );
+
+        // 회원 가입 후 자동 로그인 하려면 토큰 발급해야 함.
 
         return ApiResponseDTO.builder()
                 .success(true)
@@ -126,29 +202,8 @@ public class MemberServiceImpl implements MemberService {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        // 로그인 성공 시 토큰에 담을 기본 정보 추출
-        Long uid = member.getUid();
-        String uname = member.getUname();
-        String role = member.getRole().name();
-
-        // 유저 역할이 SELLER일 경우 uid를 이용해서 shop의 shopId를 가져와야 해
-        Long shopId = null;
-        // 유저 역할이 SELLER일 경우 shopId를 가져옴
-        if (role.equals("SELLER")) {
-            Optional<ShopPreviewDTO> shopPreview = shopRepository.findPreviewByUid(uid);
-            if (shopPreview.isPresent()) {
-                shopId = shopPreview.get().getShopId();
-            }
-            log.debug(shopId.toString());
-        }
-        // 토큰에 정보 추가
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("uname", uname);
-        claims.put("role", role);
-        if (shopId != null) {
-            claims.put("shopId", shopId); // shopId 추가
-        }
+        // 토큰에 저장된 정보들
+        Map<String, Object> claims = jwtClaimProvider.createClaims(member);
 
         // 액세스 토큰 생성 (유효기간: 5분)
         String accessToken = jwtUtil.createToken(claims, 5);
@@ -173,6 +228,8 @@ public class MemberServiceImpl implements MemberService {
             // 전달된 리프레시 토큰을 검증하고 페이로드(claims) 추출
             Claims claims = (Claims) jwtUtil.validateToken(refreshToken);
             // 토큰 내에서 필요한 사용자 정보 추출
+            Long uid = claims.get("uid", Long.class);
+            log.debug("---refreshTokens---uid: {}", uid);
             String userId = claims.get("userId", String.class);
             String uname = claims.get("uname", String.class);
             String role = claims.get("role", String.class);
@@ -181,6 +238,7 @@ public class MemberServiceImpl implements MemberService {
 
             // 토큰에 정보 추가
             Map<String, Object> tokenClaims = new HashMap<>();
+            tokenClaims.put("uid", uid);
             tokenClaims.put("userId", userId);
             tokenClaims.put("uname", uname);
             tokenClaims.put("role", role);

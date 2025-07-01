@@ -9,6 +9,7 @@ import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep1RequestDTO
 import com.cakequake.cakequakeback.member.dto.seller.SellerSignupStep2RequestDTO;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.service.auth.MemberService;
+import com.cakequake.cakequakeback.member.service.auth2.KakaoLoginService;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
 import com.cakequake.cakequakeback.security.domain.CustomUserDetails;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
@@ -32,11 +33,20 @@ public class MemberAuthController {
     private final AuthenticatedUserService authenticatedUserService;
     private final PasswordEncoder passwordEncoder;
 
-    public MemberAuthController(MemberService memberService, SellerService sellerService, AuthenticatedUserService authenticatedUserService, PasswordEncoder passwordEncoder) {
+    private final KakaoLoginService kakaoLoginService;
+
+    public MemberAuthController(
+            MemberService memberService,
+            SellerService sellerService,
+            AuthenticatedUserService authenticatedUserService,
+            PasswordEncoder passwordEncoder,
+            KakaoLoginService kakaoLoginService
+    ) {
         this.memberService = memberService;
         this.sellerService = sellerService;
         this.authenticatedUserService = authenticatedUserService;
         this.passwordEncoder = passwordEncoder;
+        this.kakaoLoginService = kakaoLoginService;
     }
 
     @PostMapping("/signup/buyers")
@@ -77,6 +87,23 @@ public class MemberAuthController {
         return ResponseEntity.ok(memberService.refreshTokens(accessToken, requestDTO));
     }
 
+    // 카카오 로그인
+    @PostMapping("signin/kakao")
+    public ResponseEntity<ApiResponseDTO> getKakao(@RequestHeader("Authorization") String authorization) {
+
+        String accessToken = authorization.replace("Bearer ", "");
+        log.debug("---MemberAuthController---getKakao--- accessToken: {}", accessToken.substring(7));
+
+        ApiResponseDTO dto = kakaoLoginService.processKakaoLogin(accessToken);
+
+        return ResponseEntity.ok(
+                    ApiResponseDTO.builder()
+                        .success(true)
+                        .message("access......")
+                        .data(dto)
+                        .build());
+    }
+
     @PostMapping("/signout")
     public ResponseEntity<Void> signout(HttpServletResponse response) {
         log.debug("---MemberAuthController---signout()");
@@ -108,17 +135,13 @@ public class MemberAuthController {
     /*
         테스트 용
      */
-//    @PreAuthorize("hasRole('BUYER')")
+    @PreAuthorize("hasRole('BUYER')")
     @GetMapping("/token-test")
     public ResponseEntity<ApiResponseDTO> tokenTest(){
-
-        Member member = authenticatedUserService.getCurrentMember();
-        log.debug("UserId: {}, Uid: {}", member.getUserId(), member.getUid());
 
         return ResponseEntity.ok(ApiResponseDTO.builder()
                 .success(true)
                 .message("로그인 후 토큰으로 테스트 접근 성공")
-//                        .data(member)
                 .build());
     }
 

@@ -12,6 +12,14 @@ import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemOptionRepository;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemRepository;
 import com.cakequake.cakequakeback.order.repo.SellerOrderRepository;
+
+import com.cakequake.cakequakeback.temperature.service.TemperatureService;
+
+import com.cakequake.cakequakeback.point.service.PointService;
+import com.cakequake.cakequakeback.temperature.entities.Grade;
+import com.cakequake.cakequakeback.temperature.entities.Temperature;
+import com.cakequake.cakequakeback.temperature.repo.TemperatureRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -44,6 +52,12 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     private final SellerOrderRepository sellerOrderRepository;
     private final CakeOrderItemRepository cakeOrderItemRepository;
     private final CakeOrderItemOptionRepository cakeOrderItemOptionRepository;
+
+    private final TemperatureService temperatureService;
+
+    private final PointService pointService;
+    private final TemperatureRepository temperatureRepository;
+
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
     @Override
@@ -214,6 +228,35 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
         sellerOrderRepository.save(order);
 
+        temperatureService.updateTemperature(orderId,null);
+
+
+
+
+        if (newStatus == OrderStatus.PICKUP_COMPLETED) {
+            // (1) Temperature 엔티티에서 grade 조회
+            var tempOpt = temperatureRepository.findByMember(order.getMember());
+            Grade grade = tempOpt
+                    .map(Temperature::getGrade)
+                    .orElse(Grade.BASIC); // 없으면 BASIC으로 간주
+
+            // (2) 등급별 적립율 결정
+            double rate = getEarnRateByGrade(grade);
+
+            // (3) 계산된 적립 포인트
+            long earnedPoints = Math.round(order.getOrderTotalPrice() * rate);
+
+            if (earnedPoints > 0) {
+                pointService.changePoint(
+                        order.getMember().getUid(),
+                        earnedPoints,
+                        String.format("구매 적립(%s 등급 %s%%)",
+                                grade.name(),
+                                rate * 100)
+                );
+            }
+        }
+
         System.out.println("DEBUG: Order Status Successfully Updated to: " + order.getStatus()); // 디버그 로그
     }
 
@@ -379,7 +422,6 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                 .generatedAt(LocalDateTime.now())
                 .build();
     }
-
     @Override
     public byte[] getSellerStatisticsPdf(Long shopId, LocalDate startDate, LocalDate endDate) {
         // 1. 먼저 통계 데이터를 가져옵니다.
@@ -456,4 +498,13 @@ public class SellerOrderServiceImpl implements SellerOrderService {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "PDF 보고서 생성 중 예기치 못한 오류 발생: " + e.getMessage());
         }
     }
+
+    private double getEarnRateByGrade(Grade grade) {
+        switch (grade) {
+            case VIP:  return 0.01;   // 1%
+            case VVIP: return 0.015;  // 1.5%
+            default:   return 0.0;    // BASIC/FROZEN 은 적립 없음
+        }
+    }
+
 }

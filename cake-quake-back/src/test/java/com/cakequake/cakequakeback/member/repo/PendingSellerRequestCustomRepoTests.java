@@ -2,6 +2,7 @@ package com.cakequake.cakequakeback.member.repo;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.member.dto.admin.PendingSellerPageRequestDTO;
 import com.cakequake.cakequakeback.member.dto.admin.PendingSellerRequestListDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ public class PendingSellerRequestCustomRepoTests {
     @Test
     public void testProductSearchList() {
 
-        PageRequestDTO requestDTO = new PageRequestDTO();
+        PendingSellerPageRequestDTO requestDTO = new PendingSellerPageRequestDTO();
         requestDTO.setPage(1);
         requestDTO.setSize(10);
         requestDTO.setType("SHOPNAME");

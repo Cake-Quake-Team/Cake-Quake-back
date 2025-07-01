@@ -6,10 +6,12 @@ import com.cakequake.cakequakeback.point.service.PointService;
 import com.cakequake.cakequakeback.review.dto.ReviewDeletionRequestDTO;
 import com.cakequake.cakequakeback.review.entities.Review;
 import com.cakequake.cakequakeback.review.entities.ReviewDeletionRequest;
+import com.cakequake.cakequakeback.review.event.ReviewChangedEvent;
 import com.cakequake.cakequakeback.review.repo.request.ReviewDeletionRequestRepo;
 import com.cakequake.cakequakeback.review.validator.AdminReviewValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class AdminReviewServiceImpl implements AdminReviewService {
     private final ReviewDeletionRequestRepo reviewDeletionRequestRepo;
     private final AdminReviewValidator validator;
     private final PointService pointService;
+    private final ApplicationEventPublisher eventPublisher;
 
     //삭제 요청 리뷰 전체 조회
     @Override
@@ -36,14 +39,17 @@ public class AdminReviewServiceImpl implements AdminReviewService {
         Page<ReviewDeletionRequest> page = reviewDeletionRequestRepo.findAllRequest(pageable);
 
         List<ReviewDeletionRequestDTO> dtos = page.stream()
-                .map(r -> new ReviewDeletionRequestDTO(
-                        r.getRequestId(),
-                        r.getReview().getReviewId(),
-                        r.getStatus().name(),
-                        r.getReason(),
-                        r.getRegDate(),
-                        r.getReview().getContent()
-                ))
+                .map(r -> ReviewDeletionRequestDTO.builder()
+                        .requestId(r.getRequestId())
+                        .reviewId(r.getReview().getReviewId())
+                        .status(r.getStatus().name())
+                        .reason(r.getReason())
+                        .regDate(r.getRegDate())
+                        .reviewContent(r.getReview().getContent())
+                        // Review → Shop 관계에서 매장명 가져오기
+                        .shopName(r.getReview().getShop().getShopName())
+                        .build()
+                )
                 .collect(Collectors.toList());
 
         return InfiniteScrollResponseDTO.<ReviewDeletionRequestDTO>builder()
@@ -71,6 +77,12 @@ public class AdminReviewServiceImpl implements AdminReviewService {
         long amountToDeduct = hadImage? 1000L:500L;
         String desc = "리뷰 삭제로 인한 포인트 차감";
         pointService.changePoint(reviewUid,-amountToDeduct,desc);
+
+
+        // 4) Shop 통계를 갱신하기 위한 이벤트 발행 (삭제 승인 시점)
+        eventPublisher.publishEvent(
+                new ReviewChangedEvent(this, review.getShop().getShopId())
+        );
     }
 
     @Override

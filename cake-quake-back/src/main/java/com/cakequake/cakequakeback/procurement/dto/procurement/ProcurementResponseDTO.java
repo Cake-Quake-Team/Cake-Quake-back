@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.procurement.dto.procurement;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,4 +25,29 @@ public class ProcurementResponseDTO{
     private LocalDateTime regDate;
     private String cancelReason;
     private List<ProcurementItemResponseDTO> items;
+    private BigDecimal totalPrice;
+
+
+    public ProcurementResponseDTO(
+            Long procurementId,
+            Long shopId,
+            String shopName,
+            ProcurementStatus status,
+            String note,
+            LocalDate scheduleDate,
+            LocalDateTime regDate,
+            String cancelReason,
+            List<ProcurementItemResponseDTO> items
+    ) {
+        this.procurementId = procurementId;
+        this.shopId        = shopId;
+        this.shopName      = shopName;
+        this.status        = status;
+        this.note          = note;
+        this.scheduleDate  = scheduleDate;
+        this.regDate       = regDate;
+        this.cancelReason  = cancelReason;
+        this.items         = items;
+        this.totalPrice    = BigDecimal.ZERO;
+    }
 }
