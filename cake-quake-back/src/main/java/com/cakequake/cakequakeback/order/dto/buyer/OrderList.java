@@ -35,6 +35,8 @@ public class OrderList {
         private String orderType;           //주문 타입
         private LocalDate pickupDate;       //픽업 날짜
         private LocalTime pickupTime;       //픽업 시간
+        private Integer discountAmount; // 추가
+        private Integer finalPaymentAmount; // 추가
 
         private List<OrderItemOption> items;
     }

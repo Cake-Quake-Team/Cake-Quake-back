@@ -27,4 +27,7 @@ public interface BuyerOrderRepository extends JpaRepository<CakeOrder, Long> {
             @Param("orderId") Long orderId,
             @Param("uid") Long uid
     );
+    //주문 최신순으로 정렬
+    Page<CakeOrder> findByMemberUserIdOrderByRegDateDesc(String userId, Pageable pageable);
+
 }

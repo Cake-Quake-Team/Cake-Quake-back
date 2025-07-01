@@ -45,7 +45,10 @@ public class CreateOrder {
         /** 주문 시 요청사항 (선택) */
         private String orderNote;
 
-        // 🔽 조건 유효성 검사
+        // ⭐포인트 사용 필드 추가
+        private Integer usedPoints;
+
+        // 조건 유효성 검사
         @AssertTrue(message = "cartItemIds 또는 directItems 중 하나만 제공되어야 합니다.")
         public boolean isEitherCartOrDirectProvided() {
             boolean cartProvided = cartItemIds != null && !cartItemIds.isEmpty();

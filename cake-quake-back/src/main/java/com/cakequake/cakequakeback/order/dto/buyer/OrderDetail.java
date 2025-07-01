@@ -24,6 +24,8 @@ public class OrderDetail {
         private List<OrderDetailItem> items;
         private Long totalPrice;
         private String orderNote;
+        private Integer discountAmount; // 추가
+        private Integer finalPaymentAmount; // 추가
     }
 
     @Getter

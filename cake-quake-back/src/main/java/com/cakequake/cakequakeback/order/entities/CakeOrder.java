@@ -54,6 +54,15 @@ public class CakeOrder extends BaseEntity {
     @Column(name = "orderTotalPrice", nullable = false)
     private Integer orderTotalPrice;
 
+    // 새로 추가함
+    // 포인트 할인 금액 (사용된 포인트)
+    @Column(name = "discountAmount", nullable = false)
+    private Integer discountAmount;
+
+    // 최종 결제 금액 (할인 적용 후)
+    // 새로 추가함
+    @Column(name = "finalPaymentAmount", nullable = false)
+    private Integer finalPaymentAmount;
 
     //픽업 날짜
     @Column(name = "pickupDate", nullable = false)

@@ -53,6 +53,13 @@ public class SellerOrderList {
 
             /** 해당 주문의 총 금액(정수) */
             private Integer OrderTotalPrice;
+
+            // 새로 추가할 필드
+            /** 포인트 할인 금액 (사용된 포인트) */
+            private Integer discountAmount;
+
+            /** 최종 결제 금액 (할인 적용 후) */
+            private Integer finalPaymentAmount;
         }
         @Getter
         @Builder
