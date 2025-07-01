@@ -80,6 +80,9 @@ dependencies {
 	// openai
 	implementation "org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M6"
 
+	//pdf 파일 생성
+	implementation 'org.apache.pdfbox:pdfbox:2.0.31'
+
 }
 
 tasks.named('test') {

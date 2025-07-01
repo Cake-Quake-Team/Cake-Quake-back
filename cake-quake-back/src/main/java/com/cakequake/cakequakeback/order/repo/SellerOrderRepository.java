@@ -19,19 +19,17 @@ import java.util.Optional;
 @Repository
 public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
 
-    // ⭐⭐ 기존 findByShopId 쿼리 수정 (SQL 오류 발생 원인) ⭐⭐
-    // CakeOrder 엔티티 자체(co)를 선택하고, shopId로 필터링 후 modDate로 정렬합니다.
-    // CakeOrderItem과의 조인은 제거합니다. CakeOrder는 Shop 객체를 직접 가지고 있습니다.
+    // 기존 findByShopId 쿼리 수정 (SQL 오류 발생 원인)
     @Query(value = "SELECT co FROM CakeOrder co JOIN co.shop s WHERE s.shopId = :shopId ORDER BY co.modDate DESC",
             countQuery = "SELECT count(co.orderId) FROM CakeOrder co JOIN co.shop s WHERE s.shopId = :shopId")
     Page<CakeOrder> findByShopId(@Param("shopId") Long shopId, Pageable pageable);
 
-    // ⭐⭐ findByOrderIdAndShopId 쿼리 수정 (더 간단하게) ⭐⭐
+    // findByOrderIdAndShopId 쿼리 수정
     // CakeOrder 엔티티 자체(co)를 선택하고, orderId와 shopId로 필터링합니다.
     @Query("SELECT co FROM CakeOrder co JOIN co.shop s WHERE co.orderId = :orderId AND s.shopId = :shopId")
     Optional<CakeOrder> findByOrderIdAndShopId(@Param("orderId") Long orderId, @Param("shopId") Long shopId);
 
-    // ⭐⭐ 이 쿼리를 확인합니다: co.status = :status 조건이 정확히 있는지 ⭐⭐
+    // 이 쿼리를 확인: co.status = :status 조건이 정확히 있는지
     @Query(value = "SELECT co FROM CakeOrder co JOIN co.shop s WHERE s.shopId = :shopId AND co.status = :status ORDER BY co.modDate DESC",
             countQuery = "SELECT count(co.orderId) FROM CakeOrder co JOIN co.shop s WHERE s.shopId = :shopId AND co.status = :status")
     Page<CakeOrder> findByShopIdAndStatus(@Param("shopId") Long shopId, @Param("status") OrderStatus status, Pageable pageable);
@@ -62,7 +60,7 @@ public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
     // --- 새로 추가되는 메서드들 ---
 
     /**
-     * 특정 매장의 특정 픽업 날짜/시간에 유효한(취소되지 않은) 주문의 총 개수를 조회합니다.
+     * 특정 매장의 특정 픽업 날짜/시간에 유효한(취소되지 않은) 주문의 총 개수를 조회
      * @param shopId 매장 ID
      * @param pickupDate 픽업 날짜
      * @param pickupTime 픽업 시간
@@ -82,7 +80,7 @@ public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
 
 
     /**
-     * 특정 날짜에 유효한(취소되지 않은) 주문이 있는 모든 고유한 매장(Shop) 목록을 조회합니다.
+     * 특정 날짜에 유효한(취소되지 않은) 주문이 있는 모든 고유한 매장(Shop) 목록을 조회
      * @param pickupDate 픽업 날짜
      * @param excludedStatuses 제외할 주문 상태 목록 (예: 취소, 노쇼)
      * @return 해당 날짜에 활성 주문이 있는 Shop 엔티티 목록
@@ -95,7 +93,7 @@ public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
             @Param("excludedStatuses") List<OrderStatus> excludedStatuses);
 
 
-    // 기존 SellerStatistics 관련 메서드 (만약 있다면)
+    // 기존 SellerStatistics 관련 메서드
     Long countByShopShopIdAndRegDateBetween(Long shopId, LocalDateTime startDate, LocalDateTime endDate);
     Long countByShopShopIdAndRegDateBetweenAndStatus(Long shopId, LocalDateTime startDate, LocalDateTime endDate, OrderStatus status);
     @Query("SELECT COUNT(co) FROM CakeOrder co " +
@@ -127,15 +125,16 @@ public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT ci.cakeId, ci.cname, SUM(coi.quantity), SUM(coi.subTotalPrice), ci.thumbnailImageUrl " +
-            "FROM CakeOrderItem coi " +
-            "JOIN coi.cakeItem ci " +
-            "JOIN coi.cakeOrder co " +
-            "WHERE co.shop.shopId = :shopId " +
-            "AND co.regDate BETWEEN :startDate AND :endDate " +
+    @Query(value = "SELECT ci.cake_id, ci.cname, SUM(coi.quantity), SUM(coi.sub_total_price), ci.thumbnail_image_url " +
+            "FROM cake_order_item coi " +
+            "JOIN cake_item ci ON coi.cake_id = ci.cake_id " +
+            "JOIN cake_order co ON coi.order_id = co.order_id " +
+            "WHERE co.shop_id = :shopId " +
+            "AND co.reg_date BETWEEN :startDate AND :endDate " +
             "AND co.status = 'PICKUP_COMPLETED' " +
-            "GROUP BY ci.cakeId, ci.cname, ci.thumbnailImageUrl " +
-            "ORDER BY SUM(coi.quantity) DESC")
+            "GROUP BY ci.cake_id, ci.cname, ci.thumbnail_image_url " +
+            "HAVING SUM(coi.quantity) > 0 " +
+            "ORDER BY SUM(coi.quantity) DESC LIMIT 3", nativeQuery = true) // 상위 3개 제한
     List<Object[]> findTopSellingProductsByShopIdAndRegDateBetween(
             @Param("shopId") Long shopId,
             @Param("startDate") LocalDateTime startDate,

@@ -22,15 +22,28 @@ import com.cakequake.cakequakeback.temperature.repo.TemperatureRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.lang.Nullable; // ⭐ 이 임포트가 반드시 필요합니다. ⭐
+import org.springframework.lang.Nullable;
 
+import java.io.ByteArrayOutputStream; // PDF 생성용 임포트
+import java.io.IOException; // PDF 생성용 임포트
+import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -48,10 +61,10 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
     @Override
-    public SellerOrderList.Response getShopOrderList(Long shopId, Pageable pageable, @Nullable OrderStatus status) { // ⭐ @Nullable 어노테이션 추가 ⭐
+    public SellerOrderList.Response getShopOrderList(Long shopId, Pageable pageable, @Nullable OrderStatus status) { // @Nullable 어노테이션 추가
         // 1) 가게 ID로 CakeOrder 엔티티를 페이징 조회
         Page<CakeOrder> page;
-        // ⭐ status 파라미터에 따라 호출할 리포지토리 메서드를 분기 ⭐
+        // status 파라미터에 따라 호출할 리포지토리 메서드를 분기
         if (status != null) {
             page = sellerOrderRepository.findByShopIdAndStatus(shopId, status, pageable);
         } else {
@@ -82,6 +95,8 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                             .status(order.getStatus().name())
                             .productCnt(cnt)
                             .OrderTotalPrice(order.getOrderTotalPrice())
+                            .discountAmount(order.getDiscountAmount()) // 추가
+                            .finalPaymentAmount(order.getFinalPaymentAmount()) // 추가
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -143,6 +158,8 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                 .orderNote(order.getOrderNote())
                 .buyer(buyer)
                 .products(products)
+                .discountAmount(order.getDiscountAmount()) // 추가
+                .finalPaymentAmount(order.getFinalPaymentAmount()) // 추가
                 .build();
     }
 
@@ -207,15 +224,8 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                     String.format("현재 주문 상태 (%s) 에서 %s(으)로 변경할 수 없습니다.", order.getStatus(), newStatus));
         }
 
-        // ⭐⭐⭐ 4) 상태 변경 로직 수정: 리플렉션 대신 엔티티의 setter 사용 ⭐⭐⭐
-        // CakeOrder 엔티티에 public void setStatus(OrderStatus status) 또는 public void updateStatus(OrderStatus newStatus) 메서드가 있다고 가정
-        order.updateStatus(newStatus); // 또는 order.setStatus(newStatus);
-        // CakeOrder 엔티티가 @Getter @Setter (혹은 @Data) 롬복 어노테이션을 가지고 있다면 setStatus()는 자동 생성됩니다.
-        // 아니면 CakeOrder 엔티티에 public void updateStatus(OrderStatus newStatus) { this.status = newStatus; } 메서드를 직접 추가해야 합니다.
+        order.updateStatus(newStatus);
 
-        // 5) 명시적으로 저장 (선택 사항이지만 안전을 위해 추가)
-        // @Transactional 어노테이션이 있으므로 Dirty Checking에 의해 자동 저장되지만,
-        // 디버깅 목적으로는 명시적 저장이 도움이 될 수 있습니다.
         sellerOrderRepository.save(order);
 
         temperatureService.updateTemperature(orderId,null);
@@ -252,7 +262,241 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
     @Override
     public SellerStatistics.Response getSellerStatistics(Long shopId, LocalDate startDate, LocalDate endDate) {
-        return null;
+        // 1. 날짜 범위 변환 (LocalDate를 LocalDateTime으로 변환, `regDate` 기준)
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atStartOfDay().plusDays(1).minusNanos(1);
+
+        // 2. 통계 지표 계산 (shopId 및 regDate 필터링 적용)
+
+        // 2.1. 주문 건수 통계
+        Long orderTotalCount = sellerOrderRepository.countByShopShopIdAndRegDateBetween(shopId, startDateTime, endDateTime);
+
+        Long completedOrderCount = sellerOrderRepository.countByShopShopIdAndRegDateBetweenAndStatus(shopId, startDateTime, endDateTime, OrderStatus.PICKUP_COMPLETED);
+
+        // 취소된 주문 상태들
+        List<OrderStatus> cancelledStatuses = Arrays.asList(
+                OrderStatus.RESERVATION_CANCELLED
+        );
+        Long cancelledOrderCount = sellerOrderRepository.countByShopShopIdAndRegDateBetweenAndStatusIn(shopId, startDateTime, endDateTime, cancelledStatuses);
+
+        // 진행 중인 주문 상태들
+        List<OrderStatus> inProgressStatuses = Arrays.asList(
+                OrderStatus.RESERVATION_PENDING,
+                OrderStatus.RESERVATION_CONFIRMED,
+                OrderStatus.PREPARING,
+                OrderStatus.READY_FOR_PICKUP
+        );
+        Long inProgressOrderCount = sellerOrderRepository.countByShopShopIdAndRegDateBetweenAndStatusIn(shopId, startDateTime, endDateTime, inProgressStatuses);
+
+
+        // 2.2. 총 판매 금액 (완료된 주문 기준)
+        Double rawTotalSalesAmount = sellerOrderRepository.sumOrderTotalPriceByShopShopIdAndRegDateBetweenAndStatus(shopId, startDateTime, endDateTime, OrderStatus.PICKUP_COMPLETED);
+        Long totalSalesAmount = (rawTotalSalesAmount != null) ? rawTotalSalesAmount.longValue() : 0L;
+
+
+        // 2.3. 평균 주문 금액 (총 판매 금액 / 완료된 주문 건수)
+        Double averageSalesAmount = 0.0;
+        if (completedOrderCount != null && completedOrderCount > 0) { // 완료된 주문 건수로 평균 계산
+            averageSalesAmount = (double) totalSalesAmount / completedOrderCount;
+        }
+
+        // 2.4. 주문 상태별 건수
+        Map<String, Long> orderStatusCounts = new HashMap<>();
+        sellerOrderRepository.countOrderStatusByShopShopIdAndRegDateBetween(shopId, startDateTime, endDateTime)
+                .forEach(result -> orderStatusCounts.put(result[0].toString(), (Long) result[1]));
+
+
+        // 2.5. 상위 판매 상품 랭킹 (topSellingProducts 필드용 - 썸네일 포함)
+        List<Object[]> topSellingProductsRaw = sellerOrderRepository.findTopSellingProductsByShopIdAndRegDateBetween(shopId, startDateTime, endDateTime);
+
+        List<SellerStatistics.Response.ProductSalesRanking> topSellingProducts = topSellingProductsRaw.stream()
+                .map(result -> {
+                    // 쿼리: SELECT ci.cake_id, ci.cname, SUM(coi.quantity), SUM(coi.sub_total_price), ci.thumbnail_image_url
+                    return SellerStatistics.Response.ProductSalesRanking.builder()
+                            .cakeId((Long) result[0])
+                            .cname((String) result[1])
+                            .totalQuantity((Long) result[2])
+                            .totalSaleAmount((Long) result[3])
+                            .thumbnailImageUrl((String) result[4])
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        // --- 새로운 필드 계산 (총 판매량 화면용) ---
+
+        // 2.1. totalQuantityOverall (총 판매량: 선택 기간 내 완료된 아이템 총 수량)
+        Long totalQuantityOverall = cakeOrderItemRepository.sumTotalQuantityByShopIdAndRegDateBetweenAndStatusCompleted(shopId, startDateTime, endDateTime);
+        if (totalQuantityOverall == null) totalQuantityOverall = 0L;
+
+        // 2.2. 월별 비교 판매량 (currentMonthQuantity, previousMonthQuantity)
+        LocalDate today = LocalDate.now();
+        LocalDate firstDayOfCurrentMonth = today.withDayOfMonth(1);
+        LocalDate lastDayOfCurrentMonth = today.withDayOfMonth(today.lengthOfMonth());
+
+        LocalDate firstDayOfPreviousMonth = firstDayOfCurrentMonth.minusMonths(1);
+        LocalDate lastDayOfPreviousMonth = lastDayOfCurrentMonth.minusMonths(1);
+
+        LocalDateTime currentMonthStart = firstDayOfCurrentMonth.atStartOfDay();
+        LocalDateTime currentMonthEnd = lastDayOfCurrentMonth.atTime(LocalTime.MAX);
+
+        LocalDateTime previousMonthStart = firstDayOfPreviousMonth.atStartOfDay();
+        LocalDateTime previousMonthEnd = lastDayOfPreviousMonth.atTime(LocalTime.MAX);
+
+        Long currentMonthQuantity = cakeOrderItemRepository.sumTotalQuantityByShopIdAndRegDateBetweenAndStatusCompleted(shopId, currentMonthStart, currentMonthEnd);
+        if (currentMonthQuantity == null) currentMonthQuantity = 0L;
+
+        Long previousMonthQuantity = cakeOrderItemRepository.sumTotalQuantityByShopIdAndRegDateBetweenAndStatusCompleted(shopId, previousMonthStart, previousMonthEnd);
+        if (previousMonthQuantity == null) previousMonthQuantity = 0L;
+
+
+        // 2.3. monthlySalesTrend (6개월 차트 데이터)
+        List<SellerStatistics.Response.MonthlySalesData> monthlySalesTrend = new ArrayList<>();
+        List<Object[]> rawMonthlyData = cakeOrderItemRepository.findMonthlySalesTrendByShopIdAndRegDateBetweenAndStatusCompleted(shopId, startDateTime, endDateTime);
+        for (Object[] row : rawMonthlyData) {
+            monthlySalesTrend.add(SellerStatistics.Response.MonthlySalesData.builder()
+                    .monthYear((String) row[0])
+                    .totalQuantity((Long) row[1])
+                    .totalSales((Long) row[2])
+                    .build());
+        }
+
+
+        // 2.4. productSalesTable (상품별 판매 테이블 데이터)
+        List<SellerStatistics.Response.ProductSalesTableItem> productSalesTable = new ArrayList<>();
+        List<Object[]> rawProductTableData = cakeOrderItemRepository.findProductSalesTableByShopIdAndRegDateBetweenAndStatusCompleted(shopId, startDateTime, endDateTime);
+        for (Object[] row : rawProductTableData) {
+            productSalesTable.add(SellerStatistics.Response.ProductSalesTableItem.builder()
+                    .cakeId((Long) row[0])
+                    .cname((String) row[1])
+                    .totalQuantity((Long) row[2])
+                    .totalSaleAmount((Long) row[3])
+                    .build());
+        }
+
+
+        // 2.5. lowestRankingProducts (아쉬운 랭킹)
+        List<SellerStatistics.Response.ProductRankingItem> lowestRankingProducts = new ArrayList<>();
+        List<Object[]> rawLowestRanking = cakeOrderItemRepository.findLowest3RankingProductsNative(shopId, startDateTime, endDateTime);
+        for (Object[] row : rawLowestRanking) {
+            lowestRankingProducts.add(SellerStatistics.Response.ProductRankingItem.builder()
+                    .cakeId((Long) row[0])
+                    .cname((String) row[1])
+                    .build());
+        }
+
+        // topRankingProducts ( 인기 순위)
+        List<SellerStatistics.Response.ProductRankingItem> topRankingProductsForBuilder = new ArrayList<>(); // 변수명 변경 (중복 피함)
+        List<Object[]> rawTopRankingForBuilder = cakeOrderItemRepository.findTop3RankingProductsNative(shopId, startDateTime, endDateTime);
+        for (Object[] row : rawTopRankingForBuilder) {
+            topRankingProductsForBuilder.add(SellerStatistics.Response.ProductRankingItem.builder()
+                    .cakeId((Long) row[0])
+                    .cname((String) row[1])
+                    .build());
+        }
+
+
+        // 3. 최종 응답 DTO 빌드 및 반환
+        return SellerStatistics.Response.builder()
+                // 기존 필드
+                .orderTotalCount(orderTotalCount)
+                .completedOrderCount(completedOrderCount)
+                .cancelledOrderCount(cancelledOrderCount)
+                .inProgressOrderCount(inProgressOrderCount)
+                .totalSalesAmount(totalSalesAmount)
+                .averageSalesAmount(averageSalesAmount)
+                .orderStatusCounts(orderStatusCounts)
+                .topSellingProducts(topSellingProducts) // 기존 필드 (thumbnailImageUrl 포함)
+
+                // 새로 추가된 필드들 (총 판매량 화면용)
+                .totalQuantityOverall(totalQuantityOverall)
+                .currentMonthQuantity(currentMonthQuantity)
+                .previousMonthQuantity(previousMonthQuantity)
+                .monthlySalesTrend(monthlySalesTrend)
+                .productSalesTable(productSalesTable)
+                .lowestRankingProducts(lowestRankingProducts)
+                .topRankingProducts(topRankingProductsForBuilder)
+
+                // 조회 기간 및 생성 시각
+                .startDate(startDate)
+                .endDate(endDate)
+                .generatedAt(LocalDateTime.now())
+                .build();
+    }
+    @Override
+    public byte[] getSellerStatisticsPdf(Long shopId, LocalDate startDate, LocalDate endDate) {
+        // 1. 먼저 통계 데이터를 가져옵니다.
+        SellerStatistics.Response statistics = getSellerStatistics(shopId, startDate, endDate);
+
+        // 2. PDF 문서 생성 시작
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            PDPage page = new PDPage();
+            document.addPage(page);
+
+            // 폰트 로드 (한글 지원을 위해 외부 폰트 필요)
+            PDType0Font font = PDType0Font.load(document, new ClassPathResource("fonts/NanumGothic.ttf").getInputStream());
+
+            // ⭐ NumberFormat 인스턴스 생성 (천 단위 콤마를 위해) ⭐
+            NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.KOREA); // 한국 지역 설정으로 천 단위 콤마 포맷팅
+
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                contentStream.setFont(font, 12);
+                contentStream.beginText();
+                contentStream.setLeading(14.5f); // 줄 간격
+
+                contentStream.newLineAtOffset(50, 750); // 시작 위치
+
+                contentStream.showText("판매자 통계 보고서");
+                contentStream.newLine();
+                contentStream.showText("조회 기간: " + startDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) + " ~ " + endDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")));
+                contentStream.newLine();
+                contentStream.newLine();
+
+                contentStream.showText("총 주문 건수: " + statistics.getOrderTotalCount());
+                contentStream.newLine();
+                contentStream.showText("완료된 주문 건수: " + statistics.getCompletedOrderCount());
+                contentStream.newLine();
+                contentStream.showText("취소된 주문 건수: " + statistics.getCancelledOrderCount());
+                contentStream.newLine();
+                contentStream.showText("진행 중인 주문 건수: " + statistics.getInProgressOrderCount());
+                contentStream.newLine();
+                contentStream.newLine();
+
+                // ⭐ 오류 발생 부분 수정 ⭐
+                // statistics.getTotalSalesAmount().toLocaleString() 대신 numberFormat.format() 사용
+                contentStream.showText("총 판매 금액 (완료된 주문 기준): " + numberFormat.format(statistics.getTotalSalesAmount()) + "원");
+                contentStream.newLine();
+                contentStream.showText("평균 주문 금액: " + String.format("%.2f", statistics.getAverageSalesAmount()) + "원");
+                contentStream.newLine();
+                contentStream.newLine();
+
+                contentStream.showText("---- 주문 상태별 건수 ----");
+                contentStream.newLine();
+                statistics.getOrderStatusCounts().forEach((status, count) -> {
+                    try {
+                        String statusKr = OrderStatus.valueOf(status).getKr();
+                        contentStream.showText("- " + statusKr + ": " + count + "건");
+                        contentStream.newLine();
+                    } catch (IOException e) {
+                        throw new RuntimeException("PDF content error: " + e.getMessage(), e);
+                    } catch (IllegalArgumentException e) {
+                        throw new RuntimeException("Unknown OrderStatus: " + status, e);
+                    }
+                });
+                contentStream.newLine();
+
+                // ... (더 많은 통계 데이터를 PDF에 추가)
+
+                contentStream.endText();
+            }
+            document.save(baos);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "PDF 보고서 생성 중 IO 오류 발생: " + e.getMessage());
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "PDF 보고서 생성 중 예기치 못한 오류 발생: " + e.getMessage());
+        }
     }
 
     private double getEarnRateByGrade(Grade grade) {
@@ -264,4 +508,3 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     }
 
 }
-
