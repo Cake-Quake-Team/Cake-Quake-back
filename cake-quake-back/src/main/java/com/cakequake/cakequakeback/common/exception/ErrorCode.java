@@ -131,7 +131,7 @@ public enum ErrorCode {
     NOT_FOUND_PHONE(404, 1021, "찾을 수 없는 전화번호 입니다."),
     NOT_FOUND_CAKE_ITEM(404, 1020, "케이크 상품을 찾을 수 없습니다."),
     NOT_FOUND_CART_ITEM(404, 1023, "장바구니 아이템을 찾을 수 없습니다."),
-
+    NOT_FOUND_QNA_ID(404, 1024,"QnA를 찾을 수 없습니다"),
 
     //HTTP 409 Conflict (code: 701~715)
     ALREADY_EXIST_USER_ID      (409, 701, "이미 존재하는 아이디입니다"),
@@ -150,6 +150,8 @@ public enum ErrorCode {
     ALREADY_USED_COUPON        (409, 714, "이미 사용된 쿠폰입니다"),
     EXCEEDED_COUPON_LIMIT      (409, 715, "쿠폰 2개 이상 사용할 수 없습니다"),
     ALREADY_VERIFIED_PHONE (409, 716, "이미 인증이 완료된 전화번호입니다."),
+    ALREADY_QNA_RESPONDED(409, 715,"이미 답변하였습니다"),
+
 
     //HTTP 429 Too Many Request (code:1101)
     EXCEEDED_SMS_LIMIT         (429,1101,"SMS 요청 한도를 초과했습니다"),
