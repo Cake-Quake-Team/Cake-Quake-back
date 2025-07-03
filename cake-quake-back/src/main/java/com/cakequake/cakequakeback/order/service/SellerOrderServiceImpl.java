@@ -2,6 +2,9 @@ package com.cakequake.cakequakeback.order.service;
 
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.notification.entities.NotificationType;
+import com.cakequake.cakequakeback.notification.service.NotificationService;
+import com.cakequake.cakequakeback.notification.service.PickupReminderSchedulingService;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderDetail;
 import com.cakequake.cakequakeback.order.dto.seller.SellerOrderList;
 import com.cakequake.cakequakeback.order.dto.seller.SellerStatistics;
@@ -57,6 +60,8 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
     private final PointService pointService;
     private final TemperatureRepository temperatureRepository;
+    private final PickupReminderSchedulingService pickupReminderSchedulingService;
+    private final NotificationService notificationService;
 
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
@@ -230,8 +235,55 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
         temperatureService.updateTemperature(orderId,null);
 
+        //  주문이 '예약 확정' 상태가 되었을 때 구매자 알림
+        if (newStatus == OrderStatus.RESERVATION_CONFIRMED) {
+            try {
+                pickupReminderSchedulingService.schedulePickupReminder(order); // DB에 저장
+                System.out.println("DEBUG: RESERVATION_CONFIRMED 상태로 변경되어 픽업 알림 DB 스케줄링 완료: 주문 ID " + order.getOrderId());
 
+                if (order.getMember() != null) {
+                    // 픽업 날짜와 시간을 포함한 메시지 생성
+                    String pickupDateStr = order.getPickupDate().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"));
+                    String pickupTimeStr = order.getPickupTime().format(DateTimeFormatter.ofPattern("HH시 mm분"));
+                    String messageTitle = String.format("예약이 확정되었습니다. 픽업 일시: %s %s", pickupDateStr, pickupTimeStr);
 
+                    notificationService.sendNotification(
+                            order.getMember().getUid(),
+                            messageTitle, // 픽업 날짜와 시간이 포함된 메시지
+                            order.getOrderId(),
+                            NotificationType.RESERVATION_CONFIRMATION
+                    );
+
+                    System.out.println("DEBUG: RESERVATION_CONFIRMED 상태로 변경되어 구매자에게 즉시 알림 전송 완료: 주문 ID " + order.getOrderId());
+                } else {
+                    System.err.println("DEBUG: 주문 ID " + order.getOrderId() + "에 연결된 멤버(구매자) 정보가 NULL입니다. 알림을 보낼 수 없습니다.");
+                }
+            } catch (Exception e) {
+                System.err.println("DEBUG: 주문 확정 후 픽업 알림 DB 스케줄링 실패: 주문 ID " + order.getOrderId() + ", 에러: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // 주문이 "예약 취소" 상태가 되었을 때 구매자 알림
+        if (newStatus == OrderStatus.RESERVATION_CANCELLED) {
+            try {
+                if (order.getMember() != null) {
+                    String messageContent = String.format("주문이 취소되었습니다. 주문 번호 %s", order.getOrderNumber());
+                    notificationService.sendNotification(
+                            order.getMember().getUid(),
+                            messageContent,
+                            order.getOrderId(),
+                            NotificationType.CANCELLED_ORDER
+                    );
+                    System.out.println("DEBUG: 주문이 취소되어 구매자에게 알림 전송 완료: 주문 ID " + order.getOrderId());
+                } else {
+                    System.err.println("DEBUG: 주문 ID " + order.getOrderId() + "에 연결된 멤버(구매자) 정보가 NULL입니다. 취소 알림을 보낼 수 없습니다.");
+                }
+            } catch (Exception e) {
+                System.err.println("DEBUG: 주문 취소 후 알림 전송 실패: 주문 ID " + order.getOrderId() + ", 에러: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
 
         if (newStatus == OrderStatus.PICKUP_COMPLETED) {
             // (1) Temperature 엔티티에서 grade 조회

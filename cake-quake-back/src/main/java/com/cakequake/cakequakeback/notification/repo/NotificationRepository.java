@@ -1,7 +1,7 @@
-package com.cakequake.cakequakeback.member.repo;
+package com.cakequake.cakequakeback.notification.repo;
 
 import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.member.entities.Notification;
+import com.cakequake.cakequakeback.notification.entities.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
