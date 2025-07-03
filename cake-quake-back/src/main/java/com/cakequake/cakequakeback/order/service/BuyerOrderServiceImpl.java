@@ -8,7 +8,10 @@ import com.cakequake.cakequakeback.cart.repo.CartItemRepository;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.notification.entities.NotificationType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
+import com.cakequake.cakequakeback.notification.service.NotificationService;
+import com.cakequake.cakequakeback.notification.service.PickupReminderSchedulingService;
 import com.cakequake.cakequakeback.order.dto.buyer.CreateOrder;
 import com.cakequake.cakequakeback.order.dto.buyer.OrderDetail;
 import com.cakequake.cakequakeback.order.dto.buyer.OrderList;
@@ -34,7 +37,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,7 +55,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     private final PointRepo pointRepository;
     private final PointService pointService;
     private final CartItemRepository cartItemRepository;
-
+    private final NotificationService notificationService;
 
     @Override
     public CreateOrder.Response createOrder(String userId, CreateOrder.Request request) {
@@ -209,6 +211,19 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
         // 주문 저장
         CakeOrder savedOrder = buyerOrderRepository.save(order);
+
+        // 판매자에게 "새로운 주문" 알림 전송
+        try {
+            Long sellerUid = savedOrder.getShop().getMember().getUid();
+            notificationService.sendNotification(
+                    sellerUid,
+                    "새로운 주문이 접수되었습니다! 주문 번호: " + savedOrder.getOrderNumber(),
+                    savedOrder.getOrderId(),
+                    NotificationType.NEW_ORDER
+            );
+        } catch (Exception e) {
+            System.err.println("새 주문 알림 전송 실패: " + e.getMessage());
+        }
 
         // CakeOrderItem 및 CakeOrderItemOption 저장
         for (CakeOrderItem item : tempOrderItems) {
