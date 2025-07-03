@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -59,6 +60,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    // 알림 수동 삭제
     public void deleteNotification(Long notificationId, String currentUserId) {
         // 1. 알림 조회
         Notification notification = notificationRepository.findById(notificationId)
@@ -75,5 +77,16 @@ public class NotificationServiceImpl implements NotificationService {
 
         // 3. 알림 삭제
         notificationRepository.delete(notification);
+    }
+
+    @Override
+    // 30일 지난 알림 자동 삭제
+    public void deleteOldNotifications() {
+        // 현재 시간으로부터 30일 전 시간 계산
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+
+        // 30일보다 오래된 알림 삭제
+        int deletedCount = notificationRepository.deleteByRegDateBefore(thirtyDaysAgo);
+        System.out.println("DEBUG: " + deletedCount + "개의 오래된 알림이 삭제되었습니다. (기준 시간: " + thirtyDaysAgo + ")");
     }
 }
