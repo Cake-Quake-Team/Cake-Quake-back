@@ -285,6 +285,55 @@ public class SellerOrderServiceImpl implements SellerOrderService {
             }
         }
 
+        // 픽업 준비 완료 상태일 때 구매자 알림
+        if (newStatus == OrderStatus.READY_FOR_PICKUP) {
+            try {
+                if (order.getMember() != null) {
+
+                    String messageContent = "주문하신 케이크 픽업 준비 완료되었습니다! " + order.getShop().getShopName() + "에서 픽업 가능합니다.";
+
+                    notificationService.sendNotification(
+                            order.getMember().getUid(), // 구매자 UID
+                            messageContent,
+                            order.getOrderId(),
+                            NotificationType.READY_FOR_PICKUP // 새로 추가된 알림 타입
+                    );
+                    System.out.println("DEBUG: READY_FOR_PICKUP 상태로 변경되어 구매자에게 픽업 준비 완료 알림 전송 완료: 주문 ID " + order.getOrderId());
+
+                } else {
+                    System.err.println("DEBUG: 주문 ID " + order.getOrderId() + "에 연결된 멤버(구매자) 정보가 NULL입니다. 픽업 준비 완료 알림을 보낼 수 없습니다.");
+                }
+            } catch (Exception e) {
+                System.err.println("DEBUG: 픽업 준비 완료 알림 전송 실패: 주문 ID " + order.getOrderId() + ", 에러: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        // 노쇼 상태일 때 구매자 알림
+        if (newStatus == OrderStatus.NO_SHOW) {
+            try {
+                if (order.getMember() != null) {
+                    String pickupDateStr = order.getPickupDate().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"));
+                    String pickupTimeStr = order.getPickupTime().format(DateTimeFormatter.ofPattern("HH시 mm분"));
+
+                    String messageContent = String.format("%s %s 픽업예정이었던 케이크가 픽업되지 않아 노쇼 처리되었습니다.", pickupDateStr, pickupTimeStr);
+
+                    notificationService.sendNotification(
+                            order.getMember().getUid(), // 구매자 UID
+                            messageContent,
+                            order.getOrderId(),
+                            NotificationType.NO_SHOW_CONFIRMATION
+                    );
+                    System.out.println("DEBUG: NO_SHOW 상태로 변경되어 구매자에게 노쇼 처리 알림 전송 완료: 주문 ID " + order.getOrderId());
+                } else {
+                    System.err.println("DEBUG: 주문 ID " + order.getOrderId() + "에 연결된 멤버(구매자) 정보가 NULL입니다. 노쇼 처리 알림을 보낼 수 없습니다.");
+                }
+            } catch (Exception e) {
+                System.err.println("DEBUG: 노쇼 처리 알림 전송 실패: 주문 ID " + order.getOrderId() + ", 에러: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
         if (newStatus == OrderStatus.PICKUP_COMPLETED) {
             // (1) Temperature 엔티티에서 grade 조회
             var tempOpt = temperatureRepository.findByMember(order.getMember());
