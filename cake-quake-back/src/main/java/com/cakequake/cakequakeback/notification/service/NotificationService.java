@@ -17,4 +17,7 @@ public interface NotificationService {
 
     // 알림 삭제
     void deleteNotification(Long notificationId, String currentUserId);
+
+    // 30일 지난 알림 자동 삭제
+    void deleteOldNotifications();
 }
