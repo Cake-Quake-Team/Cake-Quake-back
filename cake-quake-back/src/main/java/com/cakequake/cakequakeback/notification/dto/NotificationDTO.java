@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class NotificationDTO {
 
     private final Long id;
+    private final Long referenceId;
     private final String content;
 
     @JsonProperty("isRead")
@@ -23,6 +24,7 @@ public class NotificationDTO {
 
     public NotificationDTO(Notification noti) {
         this.id = noti.getNotiId();
+        this.referenceId = noti.getReferenceId();
         this.content = noti.getContent();
         this.isRead = noti.isRead();
         this.type = noti.getType();

@@ -383,6 +383,32 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         order.updateStatus(OrderStatus.RESERVATION_CANCELLED);
         buyerOrderRepository.save(order);
 
+        // 구매자가 주문 취소 시 판매자 알림
+        try {
+            Shop shop = order.getShop();
+            if (shop != null && shop.getMember() != null) {
+                Long sellerUid = shop.getMember().getUid();
+
+                String orderNumber = order.getOrderNumber() != null ? order.getOrderNumber() : "N/A";
+
+                String messageContent = String.format("주문이 취소되었습니다. 주문 번호 %s", orderNumber);
+
+                // 판매자에게 알림 전송
+                notificationService.sendNotification(
+                        sellerUid,
+                        messageContent,
+                        order.getOrderId(),
+                        NotificationType.ORDER_CANCELLED_BY_BUYER
+                );
+                System.out.println("DEBUG: 구매자 주문 취소로 판매자에게 알림 전송 완료: 주문 ID " + order.getOrderId() + ", 판매자 UID: " + sellerUid);
+            } else {
+                System.err.println("DEBUG: 주문 ID " + order.getOrderId() + "에 연결된 가게 또는 판매자 정보가 NULL입니다. 구매자 취소 알림을 보낼 수 없습니다.");
+            }
+        } catch (Exception e) {
+            System.err.println("DEBUG: 구매자 주문 취소 알림 전송 실패: 주문 ID " + order.getOrderId() + ", 에러: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         // ⭐⭐⭐ 포인트 반환 로직 추가 ⭐⭐⭐
         Integer usedPoints = order.getDiscountAmount(); // 주문 시 사용된 포인트 (할인액)
         if (usedPoints != null && usedPoints > 0) {
