@@ -33,6 +33,9 @@ public class CartItem extends BaseEntity {
     @JoinColumn(name = "cakeItem",nullable = false, foreignKey = @ForeignKey(name = "fk_cart_item_cake_item"))
     private CakeItem cakeItem;
 
+    @Column(name = "selected_options", columnDefinition = "TEXT") // DB 컬럼명은 selected_options
+    private String selectedOptions;
+
     //장바구니에 담은 수량
     @Min(1)
     @Max(99)
