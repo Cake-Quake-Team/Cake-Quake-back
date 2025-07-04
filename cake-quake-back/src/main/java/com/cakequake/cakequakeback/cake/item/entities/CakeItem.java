@@ -1,6 +1,5 @@
 package com.cakequake.cakequakeback.cake.item.entities;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.UpdateCakeDTO;
 import com.cakequake.cakequakeback.common.entities.BaseEntity;
 import com.cakequake.cakequakeback.member.entities.Member;

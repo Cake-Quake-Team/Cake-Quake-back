@@ -1,6 +1,5 @@
 package com.cakequake.cakequakeback.cake.validator;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.AddCakeDTO;
 import com.cakequake.cakequakeback.cake.item.dto.ImageDTO;
 import com.cakequake.cakequakeback.cake.item.dto.UpdateCakeDTO;
@@ -38,7 +37,7 @@ public class CakeValidator {
     // member 유효성 검사 (DB 접근)
     public Member validateMember(String userId) {
         return memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MISSING_JWT));
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     // optionItem 유효성 검사 (DB 접근)

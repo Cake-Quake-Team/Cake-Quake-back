@@ -1,8 +1,17 @@
 package com.cakequake.cakequakeback.review.service.buyer;
 
+import com.cakequake.cakequakeback.badge.constants.BadgeConstants;
+import com.cakequake.cakequakeback.badge.entities.Badge;
+import com.cakequake.cakequakeback.badge.entities.MemberBadge;
+import com.cakequake.cakequakeback.badge.repo.BadgeRepository;
+import com.cakequake.cakequakeback.badge.repo.MemberBadgeRepository;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
+import com.cakequake.cakequakeback.common.exception.BusinessException;
+import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.common.utils.CustomImageUtils;
+import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.order.entities.CakeOrderItem;
 import com.cakequake.cakequakeback.order.repo.BuyerOrderRepository;
@@ -24,6 +33,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 
 @Service
 @Transactional
@@ -43,6 +55,9 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final TemperatureService temperatureService;
+    private final MemberRepository memberRepository;
+    private final MemberBadgeRepository memberBadgeRepository;
+    private final BadgeRepository badgeRepository;
 
 
     //구매자 리뷰 추가
@@ -87,6 +102,9 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
                 : "텍스트 리뷰 작성 보상";
         pointService.changePoint(reviewerUid, amount, desc);
 
+        // '리뷰 스타터' 뱃지 부여 로직 호출
+        awardReviewStarterBadge(reviewerUid);
+
         // **리뷰 변경 이벤트 발행**
         log.info("[DEBUG] ReviewChangedEvent 발행 → shopId={}", savedReview.getShop().getShopId());
         eventPublisher.publishEvent(
@@ -103,6 +121,39 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
             throw new IllegalStateException("DTO 조회 실패");
         }
         return response;
+    }
+
+    // '리뷰 스타터' 뱃지 부여 로직
+    private void awardReviewStarterBadge(Long uid) {
+        // 해당 회원이 작성한 총 리뷰 개수 확인
+        long totalReviews = buyerReviewRepo.countByMemberUid(uid);
+
+        if (totalReviews == 1) { // 첫 번째 리뷰라면
+            // 이미 '리뷰 스타터' 뱃지를 획득했는지 확인
+            boolean alreadyAcquired = memberBadgeRepository.existsByMemberUidAndBadgeBadgeId(uid, BadgeConstants.REVIEW_STARTER_BADGE_ID);
+
+            if (!alreadyAcquired) {
+                // '리뷰 스타터' 뱃지 정보 조회
+                Optional<Badge> reviewStarterBadgeOpt = badgeRepository.findById(BadgeConstants.REVIEW_STARTER_BADGE_ID);
+
+                if (reviewStarterBadgeOpt.isPresent()) {
+                    Badge reviewStarterBadge = reviewStarterBadgeOpt.get();
+                    Member member = memberRepository.findById(uid)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
+
+                    // MemberBadge 엔티티 생성 및 저장
+                    MemberBadge newMemberBadge = MemberBadge.builder()
+                            .member(member)
+                            .badge(reviewStarterBadge)
+                            .acquiredDate(LocalDateTime.now())
+                            .isRepresentative(false)
+                            .build();
+                    memberBadgeRepository.save(newMemberBadge);
+                } else {
+                    System.err.println("ERROR: '리뷰 스타터' 뱃지를 DB에서 찾을 수 없습니다! ID: " + BadgeConstants.REVIEW_STARTER_BADGE_ID);
+                }
+            }
+        }
     }
 
     //구매자 전체 리뷰 조회

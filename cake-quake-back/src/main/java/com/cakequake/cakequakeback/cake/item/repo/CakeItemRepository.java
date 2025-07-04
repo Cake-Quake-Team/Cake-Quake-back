@@ -1,7 +1,6 @@
 package com.cakequake.cakequakeback.cake.item.repo;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
-import com.cakequake.cakequakeback.cake.item.dto.CakeDetailDTO;
+import com.cakequake.cakequakeback.cake.item.entities.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.CakeListDTO;
 import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import org.springframework.data.domain.Page;
@@ -9,8 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.Optional;
 
 public interface CakeItemRepository extends JpaRepository<CakeItem, Long> {
 

@@ -1,10 +1,7 @@
 package com.cakequake.cakequakeback.cake.item.dto;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import com.cakequake.cakequakeback.cake.item.entities.CakeCategory;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 

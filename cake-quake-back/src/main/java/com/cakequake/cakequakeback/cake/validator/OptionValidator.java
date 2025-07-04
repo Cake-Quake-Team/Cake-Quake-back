@@ -36,7 +36,7 @@ public class OptionValidator {
     // member 유효성 검사 (DB 접근)
     public Member validateMember(String userId) {
         return memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MISSING_JWT));
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     // optionItemId가 존재하지 않을 경우

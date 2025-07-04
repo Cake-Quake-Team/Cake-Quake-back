@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member_badges", uniqueConstraints = {
-        @UniqueConstraint(name = "uc_member_badge", columnNames = {"member_uid", "badge_id"})
+        @UniqueConstraint(columnNames = {"uid", "badge_id"})
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -20,7 +20,7 @@ public class MemberBadge {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_uid") // users 테이블의 uid 참조
+    @JoinColumn(name = "uid") // users 테이블의 uid 참조
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)

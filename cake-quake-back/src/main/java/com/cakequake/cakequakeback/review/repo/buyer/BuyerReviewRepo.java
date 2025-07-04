@@ -30,4 +30,6 @@ public interface BuyerReviewRepo extends CommonReviewRepo {
             "WHERE r.member.uid = :uid AND r.status = com.cakequake.cakequakeback.review.entities.ReviewStatus.ACTIVE")
     Page<ReviewResponseDTO> listOfUserReviews(@Param("uid") Long userId, Pageable pageable);
 
+    // 구매자가 작성한 리뷰의 개수를 세는 메서드
+    long countByMemberUid(Long uid);
 }
