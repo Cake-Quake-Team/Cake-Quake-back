@@ -14,6 +14,8 @@ import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final CakeItemRepository cakeItemRepository;
+    private final ObjectMapper objectMapper;
 
     private Cart getOrCreateCart(Member member) {
         return cartRepository.findByMember(member)
@@ -66,6 +69,10 @@ public class CartServiceImpl implements CartService {
 
         Optional<CartItem> existingCartItemOpt = cartItemRepository.findByCartWithCakeItem(cart).stream()
                 .filter(ci -> ci.getCakeItem().getCakeId().equals(request.getCakeItemId()))
+                // ⭐ 기존 아이템 찾을 때 옵션까지 고려 (선택 사항: 동일 옵션일 때만 합치기) ⭐
+                // 현재는 케이크 ID만 비교하므로, 동일 케이크 ID라도 옵션이 다르면 별도 아이템으로 추가하는 로직이 필요할 수 있습니다.
+                // 여기서는 기존처럼 케이크 ID만으로 찾고, 옵션은 새로운 값으로 덮어쓰거나 무시할 수 있습니다.
+                // 만약 옵션까지 완전히 동일한 상품만 수량을 합치려면, 아래 filter 조건에 옵션 비교 로직 추가 필요
                 .findFirst();
 
         CartItem savedCartItem;
@@ -74,6 +81,18 @@ public class CartServiceImpl implements CartService {
         if (quantity < 1 || quantity > 99) {
             throw new BusinessException(ErrorCode.QUANTITY_LIMIT_EXCEEDED, "장바구니 상품 수량은 1개 이상 99개 이하여야 합니다.");
         }
+
+        // ⭐ 선택된 옵션 리스트를 JSON 문자열로 변환 ⭐
+        String selectedOptionsJson = null;
+        if (request.getCakeOptions() != null && !request.getCakeOptions().isEmpty()) {
+            try {
+                selectedOptionsJson = objectMapper.writeValueAsString(request.getCakeOptions());
+            } catch (JsonProcessingException e) {
+                // JSON 변환 실패 시 예외 처리 또는 로깅
+                throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "옵션 정보 변환 실패");
+            }
+        }
+
 
         if (existingCartItemOpt.isPresent()) {
             CartItem existingCartItem = existingCartItemOpt.get();
@@ -87,6 +106,7 @@ public class CartServiceImpl implements CartService {
                     .cakeItem(existingCartItem.getCakeItem())
                     .productCnt(newCount)
                     .itemTotalPrice((long) cakeItem.getPrice() * newCount)
+                    .selectedOptions(selectedOptionsJson) // ⭐ 기존 아이템 업데이트 시에도 옵션 저장 ⭐
                     .build();
         } else {
             savedCartItem = CartItem.builder()
@@ -94,6 +114,7 @@ public class CartServiceImpl implements CartService {
                     .cakeItem(cakeItem)
                     .productCnt(quantity)
                     .itemTotalPrice((long) cakeItem.getPrice() * quantity)
+                    .selectedOptions(selectedOptionsJson) // ⭐ 새 아이템 추가 시 옵션 저장 ⭐
                     .build();
         }
         savedCartItem = cartItemRepository.save(savedCartItem);
@@ -105,6 +126,7 @@ public class CartServiceImpl implements CartService {
                 .cname(savedCartItem.getCakeItem().getCname())
                 .productCnt(savedCartItem.getProductCnt())
                 .itemTotalPrice(savedCartItem.getItemTotalPrice())
+                .selectedOptions(savedCartItem.getSelectedOptions())
                 .build();
     }
 
@@ -133,7 +155,8 @@ public class CartServiceImpl implements CartService {
                         .thumbnailImageUrl(entity.getCakeItem().getThumbnailImageUrl())
                         .productCnt(entity.getProductCnt())
                         .itemTotalPrice(entity.getItemTotalPrice())
-                        .shopId(entity.getCakeItem().getShop().getShopId()) // ✅ shopId 필드를 추가합니다!
+                        .shopId(entity.getCakeItem().getShop().getShopId()) // ✅ shopId 필드를 추가
+                        .selectedOptions(entity.getSelectedOptions())
                         .build())
                 .collect(Collectors.toList());
 

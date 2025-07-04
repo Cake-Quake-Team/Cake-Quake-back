@@ -20,6 +20,7 @@ import com.cakequake.cakequakeback.order.repo.*;
 import com.cakequake.cakequakeback.point.entities.Point;
 import com.cakequake.cakequakeback.point.repo.PointRepo;
 import com.cakequake.cakequakeback.point.service.PointService;
+import com.cakequake.cakequakeback.schedule.service.ShopScheduleService;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 
@@ -53,6 +54,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     private final PointRepo pointRepository;
     private final PointService pointService;
     private final CartItemRepository cartItemRepository;
+    private final ShopScheduleService shopScheduleService;
 
 
     @Override
@@ -125,6 +127,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                         .unitPrice(itemUnitPrice) // 단가는 CakeItem의 기본 가격
                         .subTotalPrice(itemSubTotal) // 케이크 기본 가격 + 옵션 가격
                         .cakeItem(cakeItem)
+                        //나중에 옵션 관련 추가
                         .build();
                 tempOrderItems.add(item);
             }
@@ -165,6 +168,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                         .unitPrice(itemUnitPrice) // 단가는 CartItem의 UnitPrice 또는 CakeItem의 가격
                         .subTotalPrice(itemSubTotal) // 케이크 기본 가격 + 옵션 가격
                         .cakeItem(cakeItem)
+                        //여기도 옵션 관련 추가
                         .build();
                 tempOrderItems.add(item);
             }
@@ -206,6 +210,8 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .build();
         // 포인트 사용 로직 끝
 
+        // 픽업 슬롯 감소 로직 호출 (핵심!)
+        shopScheduleService.decreaseSlotsForOrderCreation(order);
 
         // 주문 저장
         CakeOrder savedOrder = buyerOrderRepository.save(order);
@@ -218,6 +224,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     .unitPrice(item.getUnitPrice())
                     .subTotalPrice(item.getSubTotalPrice())
                     .cakeOrder(savedOrder)
+                    //여기도 옵션 관련 추가
                     .build();
             CakeOrderItem savedOrderItem = cakeOrderItemRepository.save(finalItem);
 
@@ -284,8 +291,40 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     public OrderList.Response getOrderList(String userId, Pageable pageable) {
         Page<CakeOrder> page = buyerOrderRepository.findByMemberUserId(userId, pageable);
 
+        // 1. 페이지의 모든 CakeOrder ID를 추출
+        List<Long> orderIdsInPage = page.getContent().stream()
+                .map(CakeOrder::getOrderId)
+                .collect(Collectors.toList());
+
+        // 2. 페이지 내 모든 CakeOrder에 해당하는 모든 CakeOrderItem 목록을 한 번에 조회 (CakeItem 정보 포함)
+        List<CakeOrderItem> allOrderItemsInPage = new ArrayList<>();
+        if (!orderIdsInPage.isEmpty()) {
+            // CakeOrderItemRepository에 findByCakeOrder_OrderIdInWithCakeItem 메서드 추가 필요
+            // @Query("SELECT coi FROM CakeOrderItem coi JOIN FETCH coi.cakeItem WHERE coi.cakeOrder.orderId IN :orderIds")
+            allOrderItemsInPage = cakeOrderItemRepository.findByCakeOrder_OrderIdInWithCakeItem(orderIdsInPage);
+        }
+
+        // 3. 모든 CakeOrderItem의 ID를 추출하여, 모든 CakeOrderItemOption을 한 번에 조회 (핵심 N+1 해결)
+        List<Long> allOrderItemIdsInPage = allOrderItemsInPage.stream()
+                .map(CakeOrderItem::getOrderItemId)
+                .collect(Collectors.toList());
+        List<CakeOrderItemOption> allItemOptionsInPage = new ArrayList<>();
+        if (!allOrderItemIdsInPage.isEmpty()) {
+            allItemOptionsInPage = cakeOrderItemOptionRepository.findByCakeOrderItem_OrderItemIdIn(allOrderItemIdsInPage);
+        }
+
+        // 4. 조회된 데이터들을 Map으로 그룹화하여 헬퍼 메서드에 전달할 준비
+        Map<Long, List<CakeOrderItem>> orderItemsByOrderId = allOrderItemsInPage.stream()
+                .collect(Collectors.groupingBy(item -> item.getCakeOrder().getOrderId()));
+        Map<Long, List<CakeOrderItemOption>> optionsByOrderItemId = allItemOptionsInPage.stream()
+                .collect(Collectors.groupingBy(option -> option.getCakeOrderItem().getOrderItemId()));
+
+        // 5. OrderList.OrderListItem DTO로 변환
         List<OrderList.OrderListItem> items = page.getContent().stream()
-                .map(this::mapToOrderListItem)
+                .map(order -> {
+                    List<CakeOrderItem> currentOrderItems = orderItemsByOrderId.getOrDefault(order.getOrderId(), Collections.emptyList());
+                    return mapToOrderListItem(order, currentOrderItems, optionsByOrderItemId); // 헬퍼 메서드 호출 시 데이터 전달
+                })
                 .collect(Collectors.toList());
 
         OrderList.PageInfo pageInfo = OrderList.PageInfo.builder()
@@ -296,32 +335,73 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
         return OrderList.Response.builder()
                 .orders(items)
-                .pageInfo(pageInfo).build();
+                .pageInfo(pageInfo)
+                .build();
     }
 
     @Override
     public OrderDetail.Response getOrderDetail(String userId, Long orderId) {
-        CakeOrder order = buyerOrderRepository.findById(orderId)
+        // 1. CakeOrder 정보 조회: Member와 Shop을 FETCH JOIN으로 함께 가져와 N+1 방지
+        // buyerOrderRepository에 findByOrderIdAndMemberUserIdWithMemberAndShop 메서드를 추가했다고 가정합니다.
+        CakeOrder order = buyerOrderRepository
+                .findByOrderIdAndMemberUserIdWithMemberAndShop(orderId, userId) // 수정: 새로운 Repository 메서드 사용
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID, "해당 주문 정보를 찾을 수 없습니다."));
 
+        // 소유권 검증 (Member 정보는 이미 FETCH JOIN으로 가져왔으므로 추가 쿼리 없음)
         if (!Objects.equals(order.getMember().getUserId(), userId)) {
             throw new BusinessException(ErrorCode.NOT_OWN_ORDER, "주문 번호가 본인의 것이 아닙니다.");
         }
 
-        List<CakeOrderItem> items = cakeOrderItemRepository.findByCakeOrder_OrderId(orderId);
+        // 2. 모든 CakeOrderItem 목록 조회: CakeItem 정보도 함께 FETCH JOIN으로 가져와 N+1 방지
+        // 수정: cakeOrderItemRepository의 findByCakeOrder_OrderIdWithCakeItem 메서드 사용
+        List<CakeOrderItem> orderItems = cakeOrderItemRepository.findByCakeOrder_OrderId(orderId);
 
-        List<OrderDetail.OrderDetailItem> itemDtos = items.stream()
-                .map(item -> OrderDetail.OrderDetailItem.builder()
-                        .orderItemId(item.getOrderItemId())
-                        .cakeId(item.getCakeItem().getCakeId())
-                        .cname(item.getCakeItem().getCname())
-                        .productCnt(item.getQuantity())
-                        .price(item.getUnitPrice().longValue())
-                        .thumbnailImageUrl(item.getCakeItem().getThumbnailImageUrl())
-                        .build()
-                )
+        // 3. 모든 CakeOrderItem의 ID를 추출
+        List<Long> orderItemIds = orderItems.stream()
+                .map(CakeOrderItem::getOrderItemId)
                 .collect(Collectors.toList());
 
+        // 4. 추출된 ID를 이용해 모든 CakeOrderItemOption을 한 번에 조회 (핵심 N+1 해결)
+        List<CakeOrderItemOption> allItemOptions = new ArrayList<>();
+        if (!orderItemIds.isEmpty()) {
+            // 수정: CakeOrderItemOptionRepository의 findByCakeOrderItem_OrderItemIdIn 메서드 사용 (OptionItem까지 JOIN FETCH)
+            allItemOptions = cakeOrderItemOptionRepository.findByCakeOrderItem_OrderItemIdIn(orderItemIds);
+        }
+
+        // 5. 조회된 옵션들을 orderItemId를 기준으로 그룹화하여 Map으로 준비
+        Map<Long, List<CakeOrderItemOption>> optionsByOrderItemId = allItemOptions.stream()
+                .collect(Collectors.groupingBy(option -> option.getCakeOrderItem().getOrderItemId()));
+
+        // 6. OrderDetailItem DTO 리스트 생성 및 각 OrderDetailItem에 옵션 정보 추가
+        List<OrderDetail.OrderDetailItem> itemDtos = orderItems.stream()
+                .map(item -> {
+                    // 해당 orderItem에 속하는 옵션 리스트 가져오기
+                    List<CakeOrderItemOption> itemOptions = optionsByOrderItemId.getOrDefault(item.getOrderItemId(), Collections.emptyList());
+
+                    // OrderDetail.OrderDetailItem DTO의 options 필드는 List<String> 형태
+                    // 옵션 이름을 포함한 문자열로 포맷팅합니다.
+                    List<String> formattedOptions = itemOptions.stream()
+                            .map(o -> {
+                                String optionName = o.getCakeOptionMapping().getOptionItem().getOptionName();
+                                Integer optionCnt = o.getOptionCnt();
+                                // 예: "생크림 추가 (1개)", "레터링: Happy (1개)"
+                                return optionCnt > 1 ? String.format("%s (%d개)", optionName, optionCnt) : optionName;
+                            })
+                            .collect(Collectors.toList());
+
+                    return OrderDetail.OrderDetailItem.builder()
+                            .orderItemId(item.getOrderItemId())
+                            .cakeId(item.getCakeItem().getCakeId())
+                            .cname(item.getCakeItem().getCname())
+                            .productCnt(item.getQuantity())
+                            .price(item.getUnitPrice().longValue())
+                            .thumbnailImageUrl(item.getCakeItem().getThumbnailImageUrl())
+                            .options(formattedOptions) // 수정: 조합된 옵션 List<String> 설정
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        // 7. 최종 OrderDetail.Response DTO 생성 및 반환
         return OrderDetail.Response.builder()
                 .orderId(order.getOrderId())
                 .status(order.getStatus().name())
@@ -329,14 +409,14 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .reservedAt(LocalDateTime
                         .of(order.getPickupDate(), order.getPickupTime())
                         .toString())
-                .uname(order.getMember().getUname())
-                .phone(order.getMember().getPhoneNumber())
-                .shopId(order.getShop().getShopId())
+                .uname(order.getMember().getUname()) // Member 정보는 이미 FETCH JOIN으로 가져옴
+                .phone(order.getMember().getPhoneNumber()) // Member 정보는 이미 FETCH JOIN으로 가져옴
+                .shopId(order.getShop().getShopId()) // Shop 정보는 이미 FETCH JOIN으로 가져옴
                 .items(itemDtos)
                 .totalPrice(order.getOrderTotalPrice().longValue())
-                .orderNote(order.getOrderNote()) //orderNote 추가
-                .discountAmount(order.getDiscountAmount()) // 추가
-                .finalPaymentAmount(order.getFinalPaymentAmount()) // 추가
+                .orderNote(order.getOrderNote()) //
+                .discountAmount(order.getDiscountAmount()) //
+                .finalPaymentAmount(order.getFinalPaymentAmount()) //
                 .build();
     }
 
@@ -385,26 +465,60 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
         Page<CakeOrder> page = buyerOrderRepository.findByMemberUserIdOrderByRegDateDesc(userId, latest3Pageable); // ⭐ Repository 메서드 호출
 
+        // 1. 페이지의 모든 CakeOrder ID를 추출
+        List<Long> orderIdsInPage = page.getContent().stream()
+                .map(CakeOrder::getOrderId)
+                .collect(Collectors.toList());
+
+        // 2. 페이지 내 모든 CakeOrder에 해당하는 모든 CakeOrderItem 목록을 한 번에 조회 (CakeItem 정보 포함)
+        List<CakeOrderItem> allOrderItemsInPage = new ArrayList<>();
+        if (!orderIdsInPage.isEmpty()) {
+            allOrderItemsInPage = cakeOrderItemRepository.findByCakeOrder_OrderIdInWithCakeItem(orderIdsInPage);
+        }
+
+        // 3. 모든 CakeOrderItem의 ID를 추출하여, 모든 CakeOrderItemOption을 한 번에 조회 (핵심 N+1 해결)
+        List<Long> allOrderItemIdsInPage = allOrderItemsInPage.stream()
+                .map(CakeOrderItem::getOrderItemId)
+                .collect(Collectors.toList());
+        List<CakeOrderItemOption> allItemOptionsInPage = new ArrayList<>();
+        if (!allOrderItemIdsInPage.isEmpty()) {
+            allItemOptionsInPage = cakeOrderItemOptionRepository.findByCakeOrderItem_OrderItemIdIn(allOrderItemIdsInPage);
+        }
+
+        // 4. 조회된 데이터들을 Map으로 그룹화하여 헬퍼 메서드에 전달할 준비
+        Map<Long, List<CakeOrderItem>> orderItemsByOrderId = allOrderItemsInPage.stream()
+                .collect(Collectors.groupingBy(item -> item.getCakeOrder().getOrderId()));
+        Map<Long, List<CakeOrderItemOption>> optionsByOrderItemId = allItemOptionsInPage.stream()
+                .collect(Collectors.groupingBy(option -> option.getCakeOrderItem().getOrderItemId()));
+
+
         // CakeOrderItem 정보를 가져와 DTO로 변환합니다. (mapToOrderListItem 재활용)
         List<OrderList.OrderListItem> dtoItems = page.getContent().stream()
-                .map(this::mapToOrderListItem) // ⭐ mapToOrderListItem 메서드 호출
+                // ⭐ 이 부분을 수정합니다: 람다식으로 필요한 인자들을 명시적으로 전달 ⭐
+                .map(order -> {
+                    List<CakeOrderItem> currentOrderItems = orderItemsByOrderId.getOrDefault(order.getOrderId(), Collections.emptyList());
+                    return mapToOrderListItem(order, currentOrderItems, optionsByOrderItemId);
+                })
                 .collect(Collectors.toList());
 
         return dtoItems; // 최신 3개 리스트만 반환
     }
 
     // mapToOrderListItem 헬퍼 메서드
-    private OrderList.OrderListItem mapToOrderListItem(CakeOrder order) {
-        List<CakeOrderItem> items = this.cakeOrderItemRepository.findByCakeOrder_OrderId(order.getOrderId());
-
-        List<OrderList.OrderItemOption> itemOptions = items.stream() // ⭐ OrderList.Response.OrderItemOption으로 변경
-                .map(this::mapToOrderItemOption) // ⭐ mapToOrderItemOption 메서드 호출
-                .collect(Collectors.toList());
-
+    private OrderList.OrderListItem mapToOrderListItem(
+            CakeOrder order,
+            List<CakeOrderItem> orderItemsForThisOrder, // 해당 주문의 OrderItem 목록
+            Map<Long, List<CakeOrderItemOption>> optionsByOrderItemId // 모든 OrderItemOption 맵
+    ) {
         // shopName이 null이 될 수 있으므로, null 체크를 통해 안전하게 처리
         String shopName = (order.getShop() != null && order.getShop().getShopName() != null)
                 ? order.getShop().getShopName()
                 : "";
+
+        // OrderList.OrderItemOption DTO 리스트 생성
+        List<OrderList.OrderItemOption> itemOptions = orderItemsForThisOrder.stream()
+                .map(item -> mapToOrderItemOption(item, optionsByOrderItemId.getOrDefault(item.getOrderItemId(), Collections.emptyList()))) // 옵션 데이터 전달
+                .collect(Collectors.toList());
 
         return OrderList.OrderListItem.builder()
                 .orderId(order.getOrderId())
@@ -414,33 +528,28 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .status(order.getStatus().name())
                 .pickupDate(order.getPickupDate())
                 .pickupTime(order.getPickupTime())
-                .items(itemOptions)
-                .discountAmount(order.getDiscountAmount()) // 추가
-                .finalPaymentAmount(order.getFinalPaymentAmount()) // 추가
+                .items(itemOptions) // 수정: 옵션 목록 설정
+                .discountAmount(order.getDiscountAmount()) //
+                .finalPaymentAmount(order.getFinalPaymentAmount()) //
                 .build();
     }
 
     // mapToOrderItemOption 헬퍼 메서드
-    private OrderList.OrderItemOption mapToOrderItemOption(CakeOrderItem cakeOrderItem) {
+    private OrderList.OrderItemOption mapToOrderItemOption(
+            CakeOrderItem cakeOrderItem,
+            List<CakeOrderItemOption> itemOptionsForThisOrderItem // 해당 OrderItem의 옵션 목록
+    ) {
         String cname = cakeOrderItem.getCakeItem().getCname();
         String thumbnail = cakeOrderItem.getCakeItem().getThumbnailImageUrl();
-        // 가격 필드가 Long인지 Integer인지 확인. CakeOrderItem.getUnitPrice()는 Integer.longValue()로 캐스팅해야 합니다.
-        Long price = cakeOrderItem.getUnitPrice() != null ? cakeOrderItem.getUnitPrice().longValue() : 0L; // null 체크 및 캐스팅
+        Long price = cakeOrderItem.getUnitPrice() != null ? cakeOrderItem.getUnitPrice().longValue() : 0L;
         Integer count = cakeOrderItem.getQuantity();
 
         Map<String, String> options = new HashMap<>();
-        List<CakeOrderItemOption> opts = this.cakeOrderItemOptionRepository
-                .findByCakeOrderItem_OrderItemId(cakeOrderItem.getOrderItemId());
-
-        for (CakeOrderItemOption oio : opts) {
-            // CakeOptionMapping 및 OptionItem이 null이 아닐 때만 접근
+        for (CakeOrderItemOption oio : itemOptionsForThisOrderItem) { // 전달받은 옵션 리스트 사용
             if (oio.getCakeOptionMapping() != null && oio.getCakeOptionMapping().getOptionItem() != null) {
                 options.put(
-                        // 옵션의 이름 또는 그룹 이름을 키로 사용하는 것이 더 의미 있을 수 있습니다.
-                        // 예: oio.getCakeOptionMapping().getOptionItem().getName()
-                        // 현재는 mappingId를 String으로 변환하여 사용
-                        String.valueOf(oio.getCakeOptionMapping().getMappingId()),
-                        String.valueOf(oio.getOptionCnt())
+                        oio.getCakeOptionMapping().getOptionItem().getOptionName(), // 수정: 옵션 이름을 키로 사용
+                        String.valueOf(oio.getOptionCnt()) // 옵션 수량을 값으로 사용
                 );
             }
         }
@@ -450,7 +559,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .thumbnailImageUrl(thumbnail)
                 .price(price)
                 .productCnt(count)
-                .options(options)
+                .options(options) // 수정: 올바르게 조합된 옵션 Map 설정
                 .build();
     }
 }

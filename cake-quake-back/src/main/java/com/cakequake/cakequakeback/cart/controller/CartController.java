@@ -44,12 +44,6 @@ public class CartController {
         return ResponseEntity.ok(cartService.getCart(userId));
     }
 
-    //String userId = userD.getMember().getUserId();
-    //GetCart.Response responseDto = cartService.getCart(userId);
-    //log.info("principal userId",userId);
-    //return ResponseEntity.ok(cartService.getCart(userId));
-
-
     /** 장바구니 내 특정 아이템 수량 수정 */
     @PatchMapping()
     public ResponseEntity<UpdateCartItem.Response> updateCartItem(
@@ -68,6 +62,16 @@ public class CartController {
             @PathVariable Long cartItemId
     ) {
         cartService.deleteCartItem(userId, cartItemId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** 현재 사용자의 장바구니 전체 삭제 */
+    @DeleteMapping // 또는 @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAllCartItems(
+            @AuthenticationPrincipal(expression = "member.userId") String userId
+    ) {
+        log.info("deleteAllCartItems for userId: {}", userId);
+        cartService.deleteAllCartItems(userId);
         return ResponseEntity.noContent().build();
     }
 }
