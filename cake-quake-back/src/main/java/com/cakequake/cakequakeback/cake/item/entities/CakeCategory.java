@@ -1,4 +1,4 @@
-package com.cakequake.cakequakeback.cake.item;
+package com.cakequake.cakequakeback.cake.item.entities;
 
 public enum CakeCategory {
     WEDDING,

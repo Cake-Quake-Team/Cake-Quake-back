@@ -1,5 +1,10 @@
 package com.cakequake.cakequakeback.order.service;
 
+import com.cakequake.cakequakeback.badge.constants.BadgeConstants;
+import com.cakequake.cakequakeback.badge.entities.Badge;
+import com.cakequake.cakequakeback.badge.entities.MemberBadge;
+import com.cakequake.cakequakeback.badge.repo.BadgeRepository;
+import com.cakequake.cakequakeback.badge.repo.MemberBadgeRepository;
 import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.cake.item.entities.CakeOptionMapping;
 import com.cakequake.cakequakeback.cake.item.repo.CakeItemRepository;
@@ -56,6 +61,8 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     private final PointService pointService;
     private final CartItemRepository cartItemRepository;
     private final NotificationService notificationService;
+    private final MemberBadgeRepository memberBadgeRepository;
+    private final BadgeRepository badgeRepository;
 
     @Override
     public CreateOrder.Response createOrder(String userId, CreateOrder.Request request) {
@@ -282,6 +289,8 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         }
         // 사용자 포인트 차감 끝
 
+        // '첫 주문 오더' 뱃지 부여
+        awardBadgesAfterOrderCreation(member.getUid());
 
         return CreateOrder.Response.builder()
                 .orderId(savedOrder.getOrderId())
@@ -298,6 +307,36 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         int random = (int) (Math.random() * 100000);
         return "ORD-" + date + "-" + userId + "-" + String.format("%05d", random);
+    }
+
+    // '첫 오더 달성' 뱃지 부여 로직
+    private void awardBadgesAfterOrderCreation(Long uid) {
+        long totalPendingOrders = buyerOrderRepository.countByMemberUidAndStatus(uid, OrderStatus.RESERVATION_PENDING);
+
+        if (totalPendingOrders == 1) { // 첫 주문(RESERVATION_PENDING 상태의 주문이 1개)이 맞다면
+            // 이미 '첫 오더 달성' 뱃지를 획득했는지 확인
+            boolean alreadyAcquired = memberBadgeRepository.existsByMemberUidAndBadgeBadgeId(uid, BadgeConstants.FIRST_ORDER_BADGE_ID);
+
+            if (!alreadyAcquired) {
+                // '첫 오더 달성' 뱃지 정보 조회
+                Optional<Badge> firstOrderBadgeOpt = badgeRepository.findById(BadgeConstants.FIRST_ORDER_BADGE_ID);
+
+                if (firstOrderBadgeOpt.isPresent()) {
+                    Badge firstOrderBadge = firstOrderBadgeOpt.get();
+                    Member member = memberRepository.findById(uid)
+                            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
+
+                    // MemberBadge 엔티티 생성 및 저장
+                    MemberBadge newMemberBadge = MemberBadge.builder()
+                            .member(member)
+                            .badge(firstOrderBadge)
+                            .acquiredDate(LocalDateTime.now())
+                            .isRepresentative(false) // 기본적으로 대표 뱃지는 아님
+                            .build();
+                    memberBadgeRepository.save(newMemberBadge);
+                }
+            }
+        }
     }
 
     @Override

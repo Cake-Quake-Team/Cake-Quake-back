@@ -2,6 +2,7 @@ package com.cakequake.cakequakeback.order.repo;
 
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
+import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,4 +31,6 @@ public interface BuyerOrderRepository extends JpaRepository<CakeOrder, Long> {
     //주문 최신순으로 정렬
     Page<CakeOrder> findByMemberUserIdOrderByRegDateDesc(String userId, Pageable pageable);
 
+    // 회원의 주문 상태 건수 조회 (뱃지에 사용 - 예: 첫 주문 오더 뱃지)
+    long countByMemberUidAndStatus(Long memberUid, OrderStatus status);
 }
