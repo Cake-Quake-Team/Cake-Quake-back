@@ -236,6 +236,11 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     .build();
             CakeOrderItem savedOrderItem = cakeOrderItemRepository.save(finalItem);
 
+            // 주문된 케이크 아이템의 주문 수 증가
+            CakeItem orderedCakeItem = savedOrderItem.getCakeItem(); // 주문 항목에 연결된 CakeItem 가져오기
+            orderedCakeItem.incrementOrderCount(); // CakeItem 엔티티의 ordersCount 증가 메서드 호출
+            cakeItemRepository.save(orderedCakeItem); // 변경된 CakeItem 엔티티 저장
+
             Map<Long, Integer> optionsMap = null;
             if (hasDirect) {
                 CreateOrder.DirectItem directItemRequest = request.getDirectItems().stream()

@@ -78,4 +78,13 @@ public class CakeItem extends BaseEntity {
         this.thumbnailImageUrl = thumbnailImageUrl;
     }
 
+    // 조회수 1 증가
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
+
+    // 주문수 1 증가
+    public void incrementOrderCount() {
+        this.orderCount++;
+    }
 }
