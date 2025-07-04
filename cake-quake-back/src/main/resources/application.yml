@@ -1,3 +1,6 @@
+procurement:
+  cutoff-hour: 11    # 컷오프 시각 (시(hour) 단위)
+  transit-days: 1    # 배송 소요일수 (연속일)
 spring:
   servlet:
     multipart:

@@ -3,11 +3,9 @@ package com.cakequake.cakequakeback.procurement.service;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.CancelProcurementDTO;
-import com.cakequake.cakequakeback.procurement.dto.procurement.ConfirmProcurementDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementRequestDTO;
 import com.cakequake.cakequakeback.procurement.dto.procurement.ProcurementResponseDTO;
 import com.cakequake.cakequakeback.procurement.entities.Procurement;
-import com.cakequake.cakequakeback.procurement.entities.ProcurementItem;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementStatus;
 
 public interface ProcurementService {
@@ -37,10 +35,6 @@ public interface ProcurementService {
      */
     ProcurementResponseDTO createProcurement(ProcurementRequestDTO request);
 
-    /**
-     * 관리자 확정 (일정 지정)
-     */
-    //ProcurementResponseDTO confirmProcurement(Long procurementId, ConfirmProcurementDTO confirmDto);
 
 
     //관리자 발주 전체 조회

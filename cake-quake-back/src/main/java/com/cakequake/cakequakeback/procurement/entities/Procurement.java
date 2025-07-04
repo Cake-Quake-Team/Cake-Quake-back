@@ -35,14 +35,13 @@ public class Procurement extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
 
-    private LocalDate scheduledDate;
+    @Column
+    private LocalDate estimatedArrivalDate;
 
     @Column
     private String cancelReason;
 
-    public void updateScheduledDate(LocalDate scheduledDate) {
-        this.scheduledDate = scheduledDate;
-    }
+
 
     public void updateStatus(ProcurementStatus status) {
         this.status = status;
