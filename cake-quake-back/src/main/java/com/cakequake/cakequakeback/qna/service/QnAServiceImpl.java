@@ -127,11 +127,20 @@ public class QnAServiceImpl implements QnAService {
         qna.respond(qnAAdminRequestDTO.getAdminResponse());
     }
 
+    //등록 role에따른 분류
     @Override
     @Transactional(readOnly = true)
     public Page<QnAResponseDTO> listBuAuthorRole(MemberRole role, Pageable pageable) {
         return qnaRepo.findByMember_Role(role, pageable)
                 .map(this::toDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public QnAResponseDTO getDetailForAdmin(Long qnaId) {
+        QnA qna = qnaValidator.validateExists(qnaId);
+
+        return toDTO(qna);
     }
 
 
