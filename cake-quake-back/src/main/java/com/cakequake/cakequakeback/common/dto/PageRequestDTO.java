@@ -24,6 +24,9 @@ public class PageRequestDTO {
 
     private String keyword;
 
+    @Builder.Default
+    private String sort = "regDate,desc";
+
     public String[] getTypes() {
         if (type == null || type.isEmpty()) {
             return null;
@@ -33,5 +36,19 @@ public class PageRequestDTO {
 
     public Pageable getPageable(String... props) {
         return PageRequest.of(this.page - 1, this.size, Sort.by(props).descending());
+    }
+
+    public Pageable getPageable(Sort sort) {
+        return PageRequest.of(this.page - 1, this.size, sort);
+    }
+
+    public Sort getSpringSort() {
+        if (this.sort == null || this.sort.isEmpty()) {
+            return Sort.unsorted();
+        }
+        String[] parts = this.sort.split(",");
+        String property = parts[0];
+        Sort.Direction direction = parts.length > 1 && parts[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        return Sort.by(direction, property);
     }
 }
