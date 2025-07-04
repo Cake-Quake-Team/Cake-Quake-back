@@ -33,6 +33,17 @@ public interface CakeOrderItemRepository extends JpaRepository<CakeOrderItem, Lo
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable);
 
+    // ✅ 구매자/판매자 주문 상세 조회에서 사용:
+    // 특정 주문에 속하는 CakeOrderItem 목록과 CakeItem 정보를 함께 가져옴
+    @Query("SELECT coi FROM CakeOrderItem coi JOIN FETCH coi.cakeItem WHERE coi.cakeOrder.orderId = :orderId")
+    List<CakeOrderItem> findByCakeOrder_OrderIdWithCakeItem(@Param("orderId") Long orderId);
+
+    // ✅ 구매자/판매자 주문 목록 조회에서 사용:
+    // 여러 주문 ID에 속하는 CakeOrderItem 목록과 CakeItem 정보를 함께 가져옴 (배치 조회)
+    @Query("SELECT coi FROM CakeOrderItem coi JOIN FETCH coi.cakeItem WHERE coi.cakeOrder.orderId IN :orderIds")
+    List<CakeOrderItem> findByCakeOrder_OrderIdInWithCakeItem(@Param("orderIds") List<Long> orderIds);
+
+
 
     // 1. 총 판매량 (아이템 총 수량) 조회
     @Query("SELECT SUM(coi.quantity) FROM CakeOrderItem coi " +

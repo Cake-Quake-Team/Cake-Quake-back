@@ -165,19 +165,19 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
                 }
 
                 // 3. 영업 시간 확인 (DTO에서 필드 사용)
-                LocalTime requestTime = LocalTime.now();
-                LocalTime openTime = LocalTime.parse(shopDto.getOpenTime());
-                LocalTime closeTime = LocalTime.parse(shopDto.getCloseTime());
-
-                if (openTime.isBefore(closeTime)) {
-                    if (requestTime.isBefore(openTime) || requestTime.isAfter(closeTime)) {
-                        continue;
-                    }
-                } else {
-                    if (!(requestTime.isAfter(openTime) || requestTime.isBefore(closeTime))) {
-                        continue;
-                    }
-                }
+//                LocalTime requestTime = LocalTime.now();
+//                LocalTime openTime = LocalTime.parse(shopDto.getOpenTime());
+//                LocalTime closeTime = LocalTime.parse(shopDto.getCloseTime());
+//
+//                if (openTime.isBefore(closeTime)) {
+//                    if (requestTime.isBefore(openTime) || requestTime.isAfter(closeTime)) {
+//                        continue;
+//                    }
+//                } else {
+//                    if (!(requestTime.isAfter(openTime) || requestTime.isBefore(closeTime))) {
+//                        continue;
+//                    }
+//                }
 
                 // 모든 조건을 통과하면 사용 가능한 매장에 추가
                 availableShops.add(shopDto); // 이미 DTO이므로 추가 변환 불필요

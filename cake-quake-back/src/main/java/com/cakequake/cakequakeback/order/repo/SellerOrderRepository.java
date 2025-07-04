@@ -26,7 +26,7 @@ public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
 
     // findByOrderIdAndShopId 쿼리 수정
     // CakeOrder 엔티티 자체(co)를 선택하고, orderId와 shopId로 필터링합니다.
-    @Query("SELECT co FROM CakeOrder co JOIN co.shop s WHERE co.orderId = :orderId AND s.shopId = :shopId")
+    @Query("SELECT co FROM CakeOrder co JOIN FETCH co.shop s JOIN FETCH co.member m WHERE co.orderId = :orderId AND s.shopId = :shopId")
     Optional<CakeOrder> findByOrderIdAndShopId(@Param("orderId") Long orderId, @Param("shopId") Long shopId);
 
     // 이 쿼리를 확인: co.status = :status 조건이 정확히 있는지

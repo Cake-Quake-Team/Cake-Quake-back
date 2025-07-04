@@ -21,7 +21,7 @@ public class ProcurementResponseDTO{
     private String shopName;
     private ProcurementStatus status;
     private String note;
-    private LocalDate scheduleDate;
+    private LocalDate estimatedArrivalDate;
     private LocalDateTime regDate;
     private String cancelReason;
     private List<ProcurementItemResponseDTO> items;
@@ -34,7 +34,7 @@ public class ProcurementResponseDTO{
             String shopName,
             ProcurementStatus status,
             String note,
-            LocalDate scheduleDate,
+            LocalDate estimatedArrivalDate,
             LocalDateTime regDate,
             String cancelReason,
             List<ProcurementItemResponseDTO> items
@@ -44,7 +44,7 @@ public class ProcurementResponseDTO{
         this.shopName      = shopName;
         this.status        = status;
         this.note          = note;
-        this.scheduleDate  = scheduleDate;
+        this.estimatedArrivalDate  = estimatedArrivalDate;
         this.regDate       = regDate;
         this.cancelReason  = cancelReason;
         this.items         = items;
