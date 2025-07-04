@@ -21,7 +21,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
             p.shop.shopName,
             p.status,
             p.note,
-            p.scheduledDate,
+            p.estimatedArrivalDate,
             p.regDate,
                 p.cancelReason,
             null
@@ -43,7 +43,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
             p.shop.shopName,
             p.status,
             p.note,
-            p.scheduledDate,
+            p.estimatedArrivalDate,
             p.regDate,
                 p.cancelReason,
             null
@@ -65,7 +65,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
             p.shop.shopName,
             p.status,
             p.note,
-            p.scheduledDate,
+            p.estimatedArrivalDate,
             p.regDate,
                 p.cancelReason,
             null
@@ -89,7 +89,7 @@ public interface ProcurementRepo extends JpaRepository<Procurement, Long> {
                  p.shop.shopName,
                p.status             AS status,
               p.note               AS note,
-               p.scheduledDate      AS scheduledDate,
+               p.estimatedArrivalDate      AS scheduledDate,
                p.regDate          AS regDate,
                    p.cancelReason,
               pi.procurementItemId AS procurementItemId,
