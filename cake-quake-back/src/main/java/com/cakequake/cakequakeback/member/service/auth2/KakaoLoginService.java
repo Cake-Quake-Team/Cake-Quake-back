@@ -35,18 +35,18 @@ public class KakaoLoginService {
     public ApiResponseDTO processKakaoLogin(String accessToken) {
         // 카카오 유저의 이메일과 닉네임 획득
         KakaoUserDTO kakaoUserDTO = kakaoService.getKakaoUserInfo(accessToken);
-        log.debug("---processKakaoLogin---accessToken: {}", accessToken.substring(7));
+        log.debug("---processKakaoLogin---accessToken: {}", accessToken.substring(0, 10));
 
         String email = kakaoUserDTO.getEmail();
 
         // 이미 가입한 카카오 유저인지 확인
         Optional<Member> optionalMember = memberRepository.findByUserId(email);
-        log.debug("---processKakaoLogin---optionalMember: {}", optionalMember);
+//        log.debug("---processKakaoLogin---optionalMember: {}", optionalMember);
 
         if (optionalMember.isPresent()) {
             // 기존 유저 - 로그인 처리
             Member member = optionalMember.get();
-            log.debug("---processKakaoLogin---member: {}", member);
+//            log.debug("---processKakaoLogin---member: {}", member);
 
             // 유저 상태 체크
             if (member.getStatus() != MemberStatus.ACTIVE) {

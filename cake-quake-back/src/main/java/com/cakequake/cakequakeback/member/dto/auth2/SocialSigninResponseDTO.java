@@ -20,4 +20,6 @@ public class SocialSigninResponseDTO {
     private String uname;       // 사용자 표시 이름(닉네임)
     private String role;        // BUYER, SELLER, ADMIN 등
 
+
+
 }

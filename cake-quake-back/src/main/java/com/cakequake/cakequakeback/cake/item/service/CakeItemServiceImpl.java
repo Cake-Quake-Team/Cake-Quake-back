@@ -14,6 +14,7 @@ import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.member.entities.MemberRole;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.entities.Shop;
@@ -22,13 +23,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -132,14 +133,48 @@ public class CakeItemServiceImpl implements CakeItemService {
 
     @Override
     @Transactional(readOnly = true)
-    // 상품 카테고리별 목록 조회
+    // 상품 목록 조회
     public InfiniteScrollResponseDTO<CakeListDTO> getAllCakeList(PageRequestDTO pageRequestDTO, CakeCategory category) {
 
         cakeValidator.validatePaging(pageRequestDTO);
 
-        Pageable pageable = pageRequestDTO.getPageable("regDate");  // 최신순 정렬 등
+        // 추천상품 필터링 ("조회순", "최신순", "주문순")
+        Sort sort = pageRequestDTO.getSpringSort();
+        Pageable pageable = pageRequestDTO.getPageable(sort);
 
-        Page<CakeListDTO> listpage = cakeItemRepository.findAllCakeList(category, pageable);
+        Page<CakeListDTO> listpage;
+
+        if (category != null) {
+            // 특정 카테고리로 필터링된 케이크 목록을 정렬하여 조회
+            listpage = cakeItemRepository.findAllCakeList(category, pageable);
+        } else if (pageRequestDTO.getKeyword() != null && !pageRequestDTO.getKeyword().isEmpty()) {
+            // 키워드 검색이 있다면 키워드로 필터링된 케이크 목록을 정렬하여 조회
+            listpage = cakeItemRepository.findAll(pageable)
+                    .map(cakeItem -> CakeListDTO.builder()
+                            .cakeId(cakeItem.getCakeId())
+                            .cname(cakeItem.getCname())
+                            .price(cakeItem.getPrice())
+                            .thumbnailImageUrl(cakeItem.getThumbnailImageUrl())
+                            .isOnsale(cakeItem.getIsOnsale())
+                            .viewCount(cakeItem.getViewCount())
+                            .orderCount(cakeItem.getOrderCount())
+                            .build());
+        }
+        else {
+            // 카테고리나 키워드 없이 전체 케이크 목록을 정렬하여 조회
+            listpage = cakeItemRepository.findAll(pageable)
+                    .map(cakeItem -> CakeListDTO.builder()
+                            .cakeId(cakeItem.getCakeId())
+                            .cname(cakeItem.getCname())
+                            .price(cakeItem.getPrice())
+                            .thumbnailImageUrl(cakeItem.getThumbnailImageUrl())
+                            .isOnsale(cakeItem.getIsOnsale())
+                            .viewCount(cakeItem.getViewCount())
+                            .orderCount(cakeItem.getOrderCount())
+                            .shopId(cakeItem.getShop().getShopId())
+                            .build());
+        }
+
 
         return InfiniteScrollResponseDTO.<CakeListDTO>builder()
                 .content(listpage.getContent())                 // 현재 페이지 상품 목록
@@ -167,11 +202,19 @@ public class CakeItemServiceImpl implements CakeItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     // 상품 상세 조회
     public MappingResponseDTO getCakeDetail(Long shopId, Long cakeId) {
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        Member member = cakeValidator.validateMember(userId);
         CakeItem cakeItem = cakeValidator.validateCake(cakeId);
+
+        // 조회수 증가 로직 (판매자가 아닐 때만 증가)
+        if (member.getRole().equals(MemberRole.BUYER)) {
+                cakeItem.incrementViewCount();
+                cakeItemRepository.save(cakeItem);
+        }
 
         List<ImageDTO> images = cakeImageRepository.findCakeImages(cakeId);
 

@@ -8,7 +8,10 @@ import com.cakequake.cakequakeback.cart.repo.CartItemRepository;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.entities.Member;
+import com.cakequake.cakequakeback.notification.entities.NotificationType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
+import com.cakequake.cakequakeback.notification.service.NotificationService;
+import com.cakequake.cakequakeback.notification.service.PickupReminderSchedulingService;
 import com.cakequake.cakequakeback.order.dto.buyer.CreateOrder;
 import com.cakequake.cakequakeback.order.dto.buyer.OrderDetail;
 import com.cakequake.cakequakeback.order.dto.buyer.OrderList;
@@ -35,7 +38,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,7 +56,10 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     private final PointRepo pointRepository;
     private final PointService pointService;
     private final CartItemRepository cartItemRepository;
+
     private final ShopScheduleService shopScheduleService;
+
+    private final NotificationService notificationService;
 
 
     @Override
@@ -216,6 +221,19 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         // 주문 저장
         CakeOrder savedOrder = buyerOrderRepository.save(order);
 
+        // 판매자에게 "새로운 주문" 알림 전송
+        try {
+            Long sellerUid = savedOrder.getShop().getMember().getUid();
+            notificationService.sendNotification(
+                    sellerUid,
+                    "새로운 주문이 접수되었습니다! 주문 번호: " + savedOrder.getOrderNumber(),
+                    savedOrder.getOrderId(),
+                    NotificationType.NEW_ORDER
+            );
+        } catch (Exception e) {
+            System.err.println("새 주문 알림 전송 실패: " + e.getMessage());
+        }
+
         // CakeOrderItem 및 CakeOrderItemOption 저장
         for (CakeOrderItem item : tempOrderItems) {
             CakeOrderItem finalItem = CakeOrderItem.builder()
@@ -227,6 +245,11 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     //여기도 옵션 관련 추가
                     .build();
             CakeOrderItem savedOrderItem = cakeOrderItemRepository.save(finalItem);
+
+            // 주문된 케이크 아이템의 주문 수 증가
+            CakeItem orderedCakeItem = savedOrderItem.getCakeItem(); // 주문 항목에 연결된 CakeItem 가져오기
+            orderedCakeItem.incrementOrderCount(); // CakeItem 엔티티의 ordersCount 증가 메서드 호출
+            cakeItemRepository.save(orderedCakeItem); // 변경된 CakeItem 엔티티 저장
 
             Map<Long, Integer> optionsMap = null;
             if (hasDirect) {
@@ -447,6 +470,32 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
         order.updateStatus(OrderStatus.RESERVATION_CANCELLED);
         buyerOrderRepository.save(order);
+
+        // 구매자가 주문 취소 시 판매자 알림
+        try {
+            Shop shop = order.getShop();
+            if (shop != null && shop.getMember() != null) {
+                Long sellerUid = shop.getMember().getUid();
+
+                String orderNumber = order.getOrderNumber() != null ? order.getOrderNumber() : "N/A";
+
+                String messageContent = String.format("주문이 취소되었습니다. 주문 번호 %s", orderNumber);
+
+                // 판매자에게 알림 전송
+                notificationService.sendNotification(
+                        sellerUid,
+                        messageContent,
+                        order.getOrderId(),
+                        NotificationType.ORDER_CANCELLED_BY_BUYER
+                );
+                System.out.println("DEBUG: 구매자 주문 취소로 판매자에게 알림 전송 완료: 주문 ID " + order.getOrderId() + ", 판매자 UID: " + sellerUid);
+            } else {
+                System.err.println("DEBUG: 주문 ID " + order.getOrderId() + "에 연결된 가게 또는 판매자 정보가 NULL입니다. 구매자 취소 알림을 보낼 수 없습니다.");
+            }
+        } catch (Exception e) {
+            System.err.println("DEBUG: 구매자 주문 취소 알림 전송 실패: 주문 ID " + order.getOrderId() + ", 에러: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // ⭐⭐⭐ 포인트 반환 로직 추가 ⭐⭐⭐
         Integer usedPoints = order.getDiscountAmount(); // 주문 시 사용된 포인트 (할인액)

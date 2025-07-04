@@ -17,4 +17,6 @@ public class CakeListDTO {
     private int price;
     private String thumbnailImageUrl;
     private Boolean isOnsale;
+    private int orderCount;
+    private int viewCount;
 }
