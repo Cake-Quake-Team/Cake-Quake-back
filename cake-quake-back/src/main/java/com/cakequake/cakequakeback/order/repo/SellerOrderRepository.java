@@ -139,8 +139,4 @@ public interface SellerOrderRepository extends JpaRepository<CakeOrder, Long> {
             @Param("shopId") Long shopId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
-
-    // 회원의 특정 상태 주문 중 특정 상태가 아닌 주문 수 조회
-    // 예: 완료(PICKUP_COMPLETED) 상태이면서 취소(RESERVATION_CANCELLED) 상태가 아닌 주문
-    long countByMemberUidAndStatusAndStatusNot(Long memberUid, OrderStatus completedStatus, OrderStatus excludedStatus);
 }

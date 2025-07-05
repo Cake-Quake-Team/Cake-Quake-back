@@ -25,7 +25,7 @@ public class PickupNotification extends BaseEntity {
     private CakeOrder order;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "uid", nullable = false)
     private Member member;
 
     @Column(nullable = false)

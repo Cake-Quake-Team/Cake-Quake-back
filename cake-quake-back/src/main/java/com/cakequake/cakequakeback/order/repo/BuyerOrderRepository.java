@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,9 +42,6 @@ public interface BuyerOrderRepository extends JpaRepository<CakeOrder, Long> {
     //주문 최신순으로 정렬
     Page<CakeOrder> findByMemberUserIdOrderByRegDateDesc(String userId, Pageable pageable);
 
-    // 회원의 주문 상태 건수 조회 (뱃지에 사용 - 예: 첫 주문 오더 뱃지)
-    long countByMemberUidAndStatus(Long memberUid, OrderStatus status);
-
     // --- 새로 추가되는 메서드 (주문 상세 DTO를 위한 Join Fetch) ---
     /**
      * 특정 주문 ID와 구매자 ID로 주문 상세 정보를 조회하며,
@@ -71,4 +69,34 @@ public interface BuyerOrderRepository extends JpaRepository<CakeOrder, Long> {
             @Param("uid") Long uid
     );
 
+    //------------뱃지-----------------------------------------------------
+
+    // 전체 기간 회원의 주문 상태 건수 조회
+    long countByMemberUidAndStatus(Long memberUid, OrderStatus status);
+
+    // 특정 기간 내에 주문 수 조회
+    long countByMemberUidAndStatusAndRegDateBetween(
+            Long memberUid,
+            OrderStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
+
+    // 주문 상태에 해당하는 주문 목록 조회
+    List<CakeOrder> findByMemberUidAndStatus(Long memberUid, OrderStatus status);
+
+    // 전체 기간 동안의 누적 금액 조회
+    @Query("SELECT SUM(co.orderTotalPrice) FROM CakeOrder co WHERE co.member.uid = :memberUid AND co.status = :status")
+    Long sumOrderTotalPriceByMemberUidAndStatus(@Param("memberUid") Long memberUid, @Param("status") OrderStatus status);
+
+    // 회원의 특정 상태 목록 중 하나라도 특정 날짜 이후에 존재하는지 확인
+    @Query("SELECT CASE WHEN COUNT(co) > 0 THEN TRUE ELSE FALSE END FROM CakeOrder co " +
+            "WHERE co.member.uid = :memberUid " +
+            "AND co.status IN :statuses " +
+            "AND co.regDate >= :regDate")
+    boolean existsByMemberUidAndStatusInAndRegDateAfter(
+            @Param("memberUid") Long memberUid,
+            @Param("statuses") List<OrderStatus> statuses,
+            @Param("regDate") LocalDateTime regDate
+    );
 }

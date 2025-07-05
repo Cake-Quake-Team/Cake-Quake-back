@@ -2,6 +2,7 @@ package com.cakequake.cakequakeback.badge.controller;
 
 import com.cakequake.cakequakeback.badge.dto.AcquiredBadgeDTO;
 import com.cakequake.cakequakeback.badge.dto.MemberBadgeDTO;
+import com.cakequake.cakequakeback.badge.dto.RepresentativeBadgeResponseDTO;
 import com.cakequake.cakequakeback.badge.service.BadgeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -22,15 +23,23 @@ public class BadgeController {
 
     @PutMapping("/profile")
     // 대표 뱃지 설정
-    public ResponseEntity<Void> setProfileBadge(
+    public ResponseEntity<RepresentativeBadgeResponseDTO> setProfileBadge(
             @PathVariable Long uid,
             @RequestBody Map<String, Long> requestBody) {
 
         Long badgeId = requestBody.get("badgeId");
-        badgeService.setProfileBadge(uid, badgeId);
+        RepresentativeBadgeResponseDTO responseDTO = badgeService.setProfileBadge(uid, badgeId);
 
-        return ResponseEntity.ok().build(); // 200 OK 반환
+        return ResponseEntity.ok(responseDTO);
     }
+
+    @GetMapping("/profile")
+    // 대표 뱃지 조회
+    public ResponseEntity<RepresentativeBadgeResponseDTO> getProfileBadge(@PathVariable Long uid) {
+        RepresentativeBadgeResponseDTO responseDTO = badgeService.getProfileBadge(uid);
+        return ResponseEntity.ok(responseDTO);
+    }
+
 
     @PostMapping("/acquire")
     // 뱃지 획득
