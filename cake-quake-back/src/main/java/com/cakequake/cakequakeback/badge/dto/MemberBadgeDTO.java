@@ -17,7 +17,7 @@ public class MemberBadgeDTO {
 
     private Long memberBadgeId;
     private Long badgeId;
-    private String badgeName;
+    private String name;
     private String icon;
     private String description;
     private LocalDateTime acquiredDate;
@@ -27,7 +27,7 @@ public class MemberBadgeDTO {
         return MemberBadgeDTO.builder()
                 .memberBadgeId(memberBadge.getId())
                 .badgeId(memberBadge.getBadge().getBadgeId())
-                .badgeName(memberBadge.getBadge().getName())
+                .name(memberBadge.getBadge().getName())
                 .icon(memberBadge.getBadge().getIcon())
                 .description(memberBadge.getBadge().getDescription())
                 .acquiredDate(memberBadge.getAcquiredDate())

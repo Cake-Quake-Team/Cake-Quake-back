@@ -1,13 +1,10 @@
 package com.cakequake.cakequakeback.order.service;
 
-import com.cakequake.cakequakeback.badge.constants.BadgeConstants;
-import com.cakequake.cakequakeback.badge.entities.Badge;
-import com.cakequake.cakequakeback.badge.entities.MemberBadge;
 import com.cakequake.cakequakeback.badge.repo.BadgeRepository;
 import com.cakequake.cakequakeback.badge.repo.MemberBadgeRepository;
+import com.cakequake.cakequakeback.badge.service.BadgeService;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
-import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.notification.entities.NotificationType;
 import com.cakequake.cakequakeback.notification.service.NotificationService;
@@ -38,9 +35,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.lang.Nullable;
 
@@ -72,6 +67,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     private final MemberRepository memberRepository;
     private final MemberBadgeRepository memberBadgeRepository;
     private final BadgeRepository badgeRepository;
+    private final BadgeService badgeService;
 
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
@@ -393,47 +389,18 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                                 rate * 100)
                 );
             }
-
-            // '철벽 쇼퍼' 뱃지 부여
-            awardIronShopperBadge(order.getMember().getUid());
         }
+
+        // 뱃지 부여
+        if (order.getMember() != null) {
+            badgeService.checkAndAcquireBadges(order.getMember().getUid());
+            System.out.println("DEBUG: 주문 상태 변경(" + newStatus + ") 후 회원 UID " + order.getMember().getUid() + "의 모든 뱃지 조건 검사 및 부여/갱신 완료.");
+        } else {
+            System.err.println("DEBUG: 주문 ID " + order.getOrderId() + "에 연결된 멤버(구매자) 정보가 NULL입니다. 뱃지를 확인할 수 없습니다.");
+        }
+
         System.out.println("DEBUG: Order Status Successfully Updated to: " + order.getStatus()); // 디버그 로그
     }
-
-    // '철벽 쇼퍼' 뱃지 부여 로직
-    public void awardIronShopperBadge(Long uid) {
-        long completedOrdersWithoutCancellation = sellerOrderRepository.countByMemberUidAndStatusAndStatusNot(
-                uid, OrderStatus.PICKUP_COMPLETED, OrderStatus.RESERVATION_CANCELLED
-        );
-
-        if (completedOrdersWithoutCancellation >= 5) { // 5회 이상 구매했다면
-            // 이미 '철벽 쇼퍼' 뱃지를 획득했는지 확인
-            boolean alreadyAcquired = memberBadgeRepository.existsByMemberUidAndBadgeBadgeId(uid, BadgeConstants.IRON_SHOPPER_BADGE_ID);
-
-            if (!alreadyAcquired) {
-                // '철벽 쇼퍼' 뱃지 정보 조회
-                Optional<Badge> ironShopperBadgeOpt = badgeRepository.findById(BadgeConstants.IRON_SHOPPER_BADGE_ID);
-
-                if (ironShopperBadgeOpt.isPresent()) {
-                    Badge ironShopperBadge = ironShopperBadgeOpt.get();
-                    Member member = memberRepository.findById(uid)
-                            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
-
-                    // MemberBadge 엔티티 생성 및 저장
-                    MemberBadge newMemberBadge = MemberBadge.builder()
-                            .member(member)
-                            .badge(ironShopperBadge)
-                            .acquiredDate(LocalDateTime.now())
-                            .isRepresentative(false)
-                            .build();
-                    memberBadgeRepository.save(newMemberBadge);
-                } else {
-                    System.err.println("ERROR: '철벽 쇼퍼' 뱃지를 DB에서 찾을 수 없습니다! ID: " + BadgeConstants.IRON_SHOPPER_BADGE_ID);
-                }
-            }
-        }
-    }
-
 
 
     @Override

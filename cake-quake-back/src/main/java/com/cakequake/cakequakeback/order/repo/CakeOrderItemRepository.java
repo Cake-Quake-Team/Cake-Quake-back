@@ -117,4 +117,16 @@ public interface CakeOrderItemRepository extends JpaRepository<CakeOrderItem, Lo
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
+    //----------뱃지----------------------------------------
+
+    // 특정 회원이 픽업 완료한 주문 내역에서 구매한 고유한 케이크 카테고리 수 조회
+    @Query("SELECT COUNT(DISTINCT ci.category) FROM CakeOrderItem coi " +
+            "JOIN coi.cakeItem ci " +
+            "JOIN coi.cakeOrder co " +
+            "WHERE co.member.uid = :memberUid AND co.status = :status")
+    Long countDistinctCategoriesByMemberUidAndOrderStatus(
+            @Param("memberUid") Long memberUid,
+            @Param("status") OrderStatus status
+    );
 }
