@@ -20,6 +20,7 @@ import com.cakequake.cakequakeback.order.repo.CakeOrderItemOptionRepository;
 import com.cakequake.cakequakeback.order.repo.CakeOrderItemRepository;
 import com.cakequake.cakequakeback.order.repo.SellerOrderRepository;
 
+import com.cakequake.cakequakeback.schedule.service.ShopScheduleService;
 import com.cakequake.cakequakeback.temperature.service.TemperatureService;
 
 import com.cakequake.cakequakeback.point.service.PointService;
@@ -64,6 +65,9 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     private final TemperatureRepository temperatureRepository;
     private final PickupReminderSchedulingService pickupReminderSchedulingService;
     private final NotificationService notificationService;
+
+    private final ShopScheduleService shopScheduleService;
+
     private final MemberRepository memberRepository;
     private final MemberBadgeRepository memberBadgeRepository;
     private final BadgeRepository badgeRepository;
@@ -266,6 +270,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
         sellerOrderRepository.save(order);
 
+        shopScheduleService.adjustScheduleSlotsForOrderStatusChange(order, newStatus);
         temperatureService.updateTemperature(orderId,null);
 
         //  주문이 '예약 확정' 상태가 되었을 때 구매자 알림

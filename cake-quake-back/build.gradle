@@ -83,6 +83,9 @@ dependencies {
 	//pdf 파일 생성
 	implementation 'org.apache.pdfbox:pdfbox:2.0.31'
 
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 }
 
 tasks.named('test') {

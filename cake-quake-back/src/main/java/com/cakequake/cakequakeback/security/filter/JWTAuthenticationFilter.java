@@ -79,7 +79,11 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             "/css/",
             "/js/",
             "/images/",
-            "/favicon.ico"
+            "/favicon.ico",
+            "/ws",
+            "/ws/",          // SockJS 엔드포인트
+            "/websocket/",   // 다른 웹소켓 엔드포인트
+            "/sockjs-node/"  // SockJS 내부에서 사용될 수 있는 경로 (안전하게 추가)
     );
 
     @Override

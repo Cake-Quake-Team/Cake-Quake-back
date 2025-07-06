@@ -43,4 +43,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     """)
     Optional<BuyerProfileResponseDTO> buyerGetOne(Long uid);
 
+    Optional<Member> findByUid(Long uid);
+
 }
