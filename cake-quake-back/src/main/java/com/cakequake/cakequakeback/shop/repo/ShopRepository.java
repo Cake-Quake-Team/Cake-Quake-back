@@ -58,4 +58,6 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     @Query("SELECT s FROM Shop s WHERE s.member.uid = :uid AND s.status = 'ACTIVE'")
     Optional<Shop> findActiveShopByUid(@Param("uid") Long uid);
 
+    Optional<Shop> findByMember_Uid(Long memberId); // 특정 Member가 소유한 Shop 찾기
+
 }

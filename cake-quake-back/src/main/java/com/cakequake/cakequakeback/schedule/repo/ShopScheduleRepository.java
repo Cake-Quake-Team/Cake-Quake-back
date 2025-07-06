@@ -2,13 +2,11 @@ package com.cakequake.cakequakeback.schedule.repo;
 
 import com.cakequake.cakequakeback.schedule.entities.ReservationStatus;
 import com.cakequake.cakequakeback.schedule.entities.ShopSchedule;
-import com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO;
 import com.cakequake.cakequakeback.shop.entities.Shop;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -37,5 +35,8 @@ public interface ShopScheduleRepository extends JpaRepository<ShopSchedule, Long
     List<ShopSchedule> findByShopShopIdAndScheduleDateTimeBetween(
             Long shopShopId, LocalDateTime startOfDay, LocalDateTime endOfDay
     );
+
+    Optional<ShopSchedule> findByShop_ShopIdAndScheduleDateTime(Long shopId, LocalDateTime scheduleDateTime);
+
 
 }
