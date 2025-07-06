@@ -33,6 +33,17 @@ public interface CakeOrderItemRepository extends JpaRepository<CakeOrderItem, Lo
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable);
 
+    // ✅ 구매자/판매자 주문 상세 조회에서 사용:
+    // 특정 주문에 속하는 CakeOrderItem 목록과 CakeItem 정보를 함께 가져옴
+    @Query("SELECT coi FROM CakeOrderItem coi JOIN FETCH coi.cakeItem WHERE coi.cakeOrder.orderId = :orderId")
+    List<CakeOrderItem> findByCakeOrder_OrderIdWithCakeItem(@Param("orderId") Long orderId);
+
+    // ✅ 구매자/판매자 주문 목록 조회에서 사용:
+    // 여러 주문 ID에 속하는 CakeOrderItem 목록과 CakeItem 정보를 함께 가져옴 (배치 조회)
+    @Query("SELECT coi FROM CakeOrderItem coi JOIN FETCH coi.cakeItem WHERE coi.cakeOrder.orderId IN :orderIds")
+    List<CakeOrderItem> findByCakeOrder_OrderIdInWithCakeItem(@Param("orderIds") List<Long> orderIds);
+
+
 
     // 1. 총 판매량 (아이템 총 수량) 조회
     @Query("SELECT SUM(coi.quantity) FROM CakeOrderItem coi " +
@@ -105,5 +116,17 @@ public interface CakeOrderItemRepository extends JpaRepository<CakeOrderItem, Lo
             @Param("shopId") Long shopId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
+    );
+
+    //----------뱃지----------------------------------------
+
+    // 특정 회원이 픽업 완료한 주문 내역에서 구매한 고유한 케이크 카테고리 수 조회
+    @Query("SELECT COUNT(DISTINCT ci.category) FROM CakeOrderItem coi " +
+            "JOIN coi.cakeItem ci " +
+            "JOIN coi.cakeOrder co " +
+            "WHERE co.member.uid = :memberUid AND co.status = :status")
+    Long countDistinctCategoriesByMemberUidAndOrderStatus(
+            @Param("memberUid") Long memberUid,
+            @Param("status") OrderStatus status
     );
 }

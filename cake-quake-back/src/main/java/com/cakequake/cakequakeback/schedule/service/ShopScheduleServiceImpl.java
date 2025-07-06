@@ -160,6 +160,7 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
                 int dayOfWeek = date.getDayOfWeek().getValue();
                 if (closeDays.contains(dayOfWeek)) continue;
 
+
                 LocalTime now = LocalTime.now();
                 LocalTime openTime = LocalTime.parse(shopDto.getOpenTime());
                 LocalTime closeTime = LocalTime.parse(shopDto.getCloseTime());
@@ -169,6 +170,26 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
                 } else {
                     if (!(now.isAfter(openTime) || now.isBefore(closeTime))) continue;
                 }
+
+                if (closeDays.contains(dayOfWeekValue)) {
+                    continue;
+                }
+
+                // 3. 영업 시간 확인 (DTO에서 필드 사용)
+//                LocalTime requestTime = LocalTime.now();
+//                LocalTime openTime = LocalTime.parse(shopDto.getOpenTime());
+//                LocalTime closeTime = LocalTime.parse(shopDto.getCloseTime());
+//
+//                if (openTime.isBefore(closeTime)) {
+//                    if (requestTime.isBefore(openTime) || requestTime.isAfter(closeTime)) {
+//                        continue;
+//                    }
+//                } else {
+//                    if (!(requestTime.isAfter(openTime) || requestTime.isBefore(closeTime))) {
+//                        continue;
+//                    }
+//                }
+
 
                 availableShops.add(shopDto);
 

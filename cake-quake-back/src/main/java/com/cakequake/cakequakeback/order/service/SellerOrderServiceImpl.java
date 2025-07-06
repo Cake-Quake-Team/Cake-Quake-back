@@ -1,7 +1,11 @@
 package com.cakequake.cakequakeback.order.service;
 
+import com.cakequake.cakequakeback.badge.repo.BadgeRepository;
+import com.cakequake.cakequakeback.badge.repo.MemberBadgeRepository;
+import com.cakequake.cakequakeback.badge.service.BadgeService;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.notification.entities.NotificationType;
 import com.cakequake.cakequakeback.notification.service.NotificationService;
 import com.cakequake.cakequakeback.notification.service.PickupReminderSchedulingService;
@@ -32,9 +36,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.lang.Nullable;
 
@@ -63,7 +65,13 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     private final TemperatureRepository temperatureRepository;
     private final PickupReminderSchedulingService pickupReminderSchedulingService;
     private final NotificationService notificationService;
+
     private final ShopScheduleService shopScheduleService;
+
+    private final MemberRepository memberRepository;
+    private final MemberBadgeRepository memberBadgeRepository;
+    private final BadgeRepository badgeRepository;
+    private final BadgeService badgeService;
 
 
     //특정 가게(shopId)에 대한 주문 리스트를 페이징 처리하여 조회
@@ -125,18 +133,43 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     //특정 가게(shopId)에 속한 단일 주문(orderId)의 상세 정보를 조회
     @Override
     public SellerOrderDetail.Response getShopOrderDetail(Long shopId, Long orderId) {
+        // 1. CakeOrder 정보 조회: Member와 Shop을 FETCH JOIN으로 함께 가져와 N+1 방지
+        // sellerOrderRepository에 findByOrderIdAndShopIdWithShopAndMember 메서드를 추가했다고 가정합니다.
         CakeOrder order = sellerOrderRepository
-                .findByOrderIdAndShopId(orderId, shopId)
+                .findByOrderIdAndShopId(orderId, shopId) // 수정: 새로운 Repository 메서드 사용
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ORDER_ID));
 
-        List<CakeOrderItem> items = cakeOrderItemRepository.findByCakeOrder_OrderId(orderId);
-        List<SellerOrderDetail.ProductDetail> products = items.stream()
+        // 2. 모든 CakeOrderItem 목록 조회: CakeItem 정보도 함께 FETCH JOIN으로 가져와 N+1 방지
+        // 수정: cakeOrderItemRepository의 findByCakeOrder_OrderIdWithCakeItem 메서드 사용
+        List<CakeOrderItem> orderItems = cakeOrderItemRepository.findByCakeOrder_OrderIdWithCakeItem(orderId);
+
+        // 3. 모든 CakeOrderItem의 ID를 추출
+        List<Long> orderItemIds = orderItems.stream()
+                .map(CakeOrderItem::getOrderItemId)
+                .collect(Collectors.toList());
+
+        // 4. 추출된 ID를 이용해 모든 CakeOrderItemOption을 한 번에 조회 (핵심 N+1 해결)
+        List<CakeOrderItemOption> allItemOptions = new ArrayList<>();
+        if (!orderItemIds.isEmpty()) {
+            // 수정: CakeOrderItemOptionRepository의 findByCakeOrderItem_OrderItemIdIn 메서드 사용 (OptionItem까지 JOIN FETCH)
+            allItemOptions = cakeOrderItemOptionRepository.findByCakeOrderItem_OrderItemIdIn(orderItemIds);
+        }
+
+        // 5. 조회된 옵션들을 orderItemId를 기준으로 그룹화하여 Map으로 준비
+        Map<Long, List<CakeOrderItemOption>> optionsByOrderItemId = allItemOptions.stream()
+                .collect(Collectors.groupingBy(option -> option.getCakeOrderItem().getOrderItemId()));
+
+        // 6. ProductDetail DTO 리스트 생성 및 각 ProductDetail에 옵션 정보 추가
+        List<SellerOrderDetail.ProductDetail> products = orderItems.stream()
                 .map(item -> {
-                    Map<String, Integer> opts = cakeOrderItemOptionRepository
-                            .findByCakeOrderItem_OrderItemId(item.getOrderItemId())
-                            .stream()
+                    // 해당 orderItem에 속하는 옵션 리스트 가져오기
+                    List<CakeOrderItemOption> itemOptions = optionsByOrderItemId.getOrDefault(item.getOrderItemId(), Collections.emptyList());
+
+                    // SellerOrderDetail.ProductDetail DTO의 options 필드는 Map<String, Integer> 형태
+                    // String은 옵션 이름 (OptionItem.name)이어야 합니다.
+                    Map<String, Integer> optsMap = itemOptions.stream()
                             .collect(Collectors.toMap(
-                                    o -> o.getCakeOptionMapping().getMappingId().toString(),
+                                    o -> o.getCakeOptionMapping().getOptionItem().getOptionName(), // 수정: 옵션 이름으로 매핑
                                     CakeOrderItemOption::getOptionCnt
                             ));
                     return SellerOrderDetail.ProductDetail.builder()
@@ -145,16 +178,18 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                             .unitPrice(item.getUnitPrice())
                             .subTotalPrice(item.getSubTotalPrice())
                             .thumbnailImageUrl(item.getCakeItem().getThumbnailImageUrl())
-                            .options(opts)
+                            .options(optsMap) // 올바르게 조합된 옵션 Map 설정
                             .build();
                 })
                 .collect(Collectors.toList());
 
+        // 7. BuyerInfo DTO 생성 (Member 정보는 이미 FETCH JOIN으로 가져왔으므로 추가 쿼리 없음)
         SellerOrderDetail.BuyerInfo buyer = new SellerOrderDetail.BuyerInfo(
                 order.getMember().getUname(),
                 order.getMember().getPhoneNumber()
         );
 
+        // 8. 최종 SellerOrderDetail.Response DTO 생성 및 반환
         return SellerOrderDetail.Response.builder()
                 .orderId(order.getOrderId())
                 .orderNumber(order.getOrderNumber())
@@ -165,8 +200,8 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                 .orderNote(order.getOrderNote())
                 .buyer(buyer)
                 .products(products)
-                .discountAmount(order.getDiscountAmount()) // 추가
-                .finalPaymentAmount(order.getFinalPaymentAmount()) // 추가
+                .discountAmount(order.getDiscountAmount())
+                .finalPaymentAmount(order.getFinalPaymentAmount())
                 .build();
     }
 
@@ -361,8 +396,17 @@ public class SellerOrderServiceImpl implements SellerOrderService {
             }
         }
 
+        // 뱃지 부여
+        if (order.getMember() != null) {
+            badgeService.checkAndAcquireBadges(order.getMember().getUid());
+            System.out.println("DEBUG: 주문 상태 변경(" + newStatus + ") 후 회원 UID " + order.getMember().getUid() + "의 모든 뱃지 조건 검사 및 부여/갱신 완료.");
+        } else {
+            System.err.println("DEBUG: 주문 ID " + order.getOrderId() + "에 연결된 멤버(구매자) 정보가 NULL입니다. 뱃지를 확인할 수 없습니다.");
+        }
+
         System.out.println("DEBUG: Order Status Successfully Updated to: " + order.getStatus()); // 디버그 로그
     }
+
 
     @Override
     public SellerStatistics.Response getSellerStatistics(Long shopId, LocalDate startDate, LocalDate endDate) {

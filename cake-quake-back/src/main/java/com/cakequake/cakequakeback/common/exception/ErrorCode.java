@@ -76,6 +76,7 @@ public enum ErrorCode {
     MISSING_SOCIAL_ID(400, 668, "socialId가 누락되었습니다."),
     NOT_ENOUGH_STOCK(400, 669,"재고가 부족합니다"),
     INVALID_INPUT_VALUE(400, 670,"입력값이 올바르지 않습니다"),
+    MEMBER_BADGE_NOT_OWNED(400, 671, "해당 회원은 이 뱃지를 소유하고 있지 않습니다."),
   
 
     //HTTP 401 Unauthorized (code:801~809)
@@ -132,6 +133,7 @@ public enum ErrorCode {
     NOT_FOUND_CAKE_ITEM(404, 1020, "케이크 상품을 찾을 수 없습니다."),
     NOT_FOUND_CART_ITEM(404, 1023, "장바구니 아이템을 찾을 수 없습니다."),
     NOT_FOUND_QNA_ID(404, 1024,"QnA를 찾을 수 없습니다"),
+    NOT_FOUND_BADGE_ID(404, 1025,"해당 뱃지를 찾을 수 없습니다"),
 
     //HTTP 409 Conflict (code: 701~715)
     ALREADY_EXIST_USER_ID      (409, 701, "이미 존재하는 아이디입니다"),
@@ -151,6 +153,7 @@ public enum ErrorCode {
     EXCEEDED_COUPON_LIMIT      (409, 715, "쿠폰 2개 이상 사용할 수 없습니다"),
     ALREADY_VERIFIED_PHONE (409, 716, "이미 인증이 완료된 전화번호입니다."),
     ALREADY_QNA_RESPONDED(409, 715,"이미 답변하였습니다"),
+    BADGE_ALREADY_ACQUIRED(409, 716, "이미 획득한 뱃지입니다."),
 
 
     //HTTP 429 Too Many Request (code:1101)

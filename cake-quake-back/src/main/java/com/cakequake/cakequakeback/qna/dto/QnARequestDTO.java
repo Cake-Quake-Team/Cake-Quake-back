@@ -14,8 +14,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class QnARequestDTO {
 
-    @NotNull
-    private Long memberId;
 
     @NotNull
     private QnAType qnAType;

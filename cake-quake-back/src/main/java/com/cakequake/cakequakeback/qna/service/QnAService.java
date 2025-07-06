@@ -43,4 +43,6 @@ public interface QnAService {
     //작성자 역활별 페이징 조회
     Page<QnAResponseDTO> listBuAuthorRole(MemberRole role, Pageable pageable);
 
+    //QnA 상세 조회
+    QnAResponseDTO getDetailForAdmin(Long qnaId);
 }

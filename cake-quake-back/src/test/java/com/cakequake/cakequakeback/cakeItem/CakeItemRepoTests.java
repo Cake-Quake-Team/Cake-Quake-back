@@ -1,6 +1,6 @@
 package com.cakequake.cakequakeback.cakeItem;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
+import com.cakequake.cakequakeback.cake.item.entities.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.cake.item.repo.CakeItemRepository;
 import com.cakequake.cakequakeback.member.entities.Member;

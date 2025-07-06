@@ -8,10 +8,8 @@ import com.cakequake.cakequakeback.member.dto.*;
 import com.cakequake.cakequakeback.member.dto.auth.*;
 import com.cakequake.cakequakeback.member.dto.auth2.SocialSignupRequestDTO;
 import com.cakequake.cakequakeback.member.dto.buyer.BuyerSignupRequestDTO;
-import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.member.entities.MemberRole;
-import com.cakequake.cakequakeback.member.entities.MemberStatus;
-import com.cakequake.cakequakeback.member.entities.SocialType;
+import com.cakequake.cakequakeback.member.entities.*;
+import com.cakequake.cakequakeback.member.repo.MemberDetailRepository;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.member.validator.MemberValidator;
 import com.cakequake.cakequakeback.point.service.PointService;
@@ -48,6 +46,7 @@ public class MemberServiceImpl implements MemberService {
     private final AuthenticatedUserService authenticatedUserService;
     private final TemperatureService temperatureService;
     private final PointService pointService;
+    private final MemberDetailRepository memberDetailRepository;
 
     public MemberServiceImpl(
             MemberRepository memberRepository,
@@ -58,7 +57,7 @@ public class MemberServiceImpl implements MemberService {
             JWTClaimProvider jwtClaimProvider,
             AuthenticatedUserService authenticatedUserService,
             TemperatureService temperatureService,
-            PointService pointService
+            PointService pointService, MemberDetailRepository memberDetailRepository
     ) {
         this.memberRepository = memberRepository;
         this.shopRepository = shopRepository;
@@ -69,6 +68,7 @@ public class MemberServiceImpl implements MemberService {
         this.authenticatedUserService = authenticatedUserService;
         this.temperatureService = temperatureService;
         this.pointService = pointService;
+        this.memberDetailRepository = memberDetailRepository;
     }
 
     /*
@@ -102,7 +102,13 @@ public class MemberServiceImpl implements MemberService {
                 .socialType(joinType)
                 .build();
 
+        MemberDetail detail = MemberDetail.builder()
+                .member(member)
+                .profileBadge("")
+                .build();
+
         Member savedMember = memberRepository.save(member);
+        memberDetailRepository.save(detail);
         // 첫 온도 설정
         temperatureService.createInitialTemperature(savedMember);
 

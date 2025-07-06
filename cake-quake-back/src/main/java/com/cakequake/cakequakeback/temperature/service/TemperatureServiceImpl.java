@@ -219,7 +219,7 @@ public class TemperatureServiceImpl implements TemperatureService {
         String picture = review.getReviewPictureUrl();
         float changeAmount;
 
-        if (!picture.isBlank()) {
+        if (picture != null && !picture.isBlank()) {
             changeAmount = 1.0f;
         } else {
             return;

@@ -19,7 +19,7 @@ public class Badge {
     private String name; // 뱃지 이름 (예: "황금 비율 반죽")
 
     @Column(nullable = false)
-    private String imageUrl; // 뱃지 이미지 URL
+    private String icon; // 뱃지 이미지 URL
 
     @Column(columnDefinition = "TEXT")
     private String description; // 뱃지 설명

@@ -1,6 +1,6 @@
 package com.cakequake.cakequakeback.shop.repo;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
+import com.cakequake.cakequakeback.cake.item.entities.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.entities.CakeImage;
 import com.cakequake.cakequakeback.cake.item.entities.CakeItem;
 import com.cakequake.cakequakeback.cake.item.repo.CakeImageRepository;
@@ -9,7 +9,6 @@ import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.entities.MemberRole;
 import com.cakequake.cakequakeback.member.entities.SocialType;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
-import com.cakequake.cakequakeback.shop.dto.ShopDetailResponseDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopNoticeDetailDTO;
 import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.entities.Shop;
@@ -36,7 +35,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.cakequake.cakequakeback.member.entities.QMember.member;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 

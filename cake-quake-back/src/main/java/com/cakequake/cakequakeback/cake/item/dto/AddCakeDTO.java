@@ -1,6 +1,6 @@
 package com.cakequake.cakequakeback.cake.item.dto;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
+import com.cakequake.cakequakeback.cake.item.entities.CakeCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

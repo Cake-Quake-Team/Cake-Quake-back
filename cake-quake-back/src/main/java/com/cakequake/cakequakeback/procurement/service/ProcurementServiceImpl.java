@@ -4,6 +4,7 @@ import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
+import com.cakequake.cakequakeback.procurement.config.ProcurementProperties;
 import com.cakequake.cakequakeback.procurement.dto.procurement.*;
 import com.cakequake.cakequakeback.procurement.entities.Procurement;
 import com.cakequake.cakequakeback.procurement.entities.ProcurementItem;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +38,7 @@ public class ProcurementServiceImpl implements ProcurementService{
     private final ProcurementValidator validator;
     private final ShopRepository shopRepository;
     private final IngredientRepo ingredientRepo;
+    private final ProcurementProperties props;
 
     //매장별 요청 내역 페이지 조회
     @Override
@@ -92,6 +96,21 @@ public class ProcurementServiceImpl implements ProcurementService{
         return toResponseDTO(procurement,items);
     }
 
+    //예상 배송일 계산
+    private LocalDate calculateEstimatedArrivalDate(){
+        LocalDate today = LocalDate.now();
+
+        int currentHour = LocalTime.now().getHour();
+
+        LocalDate processingDate = today;
+        if(currentHour > props.getCutoffHour()){
+            processingDate = processingDate.plusDays(1);
+        }
+
+        return processingDate.plusDays(props.getTransitDays());
+    }
+
+
     //신규 요청 생성
     @Override
     public ProcurementResponseDTO createProcurement(ProcurementRequestDTO request) {
@@ -104,10 +123,15 @@ public class ProcurementServiceImpl implements ProcurementService{
         var shop = shopRepository.findById(shopId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
 
+
+        // 3) ETA 계산
+        LocalDate eta = calculateEstimatedArrivalDate();
+
         //Procurement생성 및 저장
         Procurement procurement = Procurement.builder()
                 .shop(shop)
                 .note(request.getNote())
+                .estimatedArrivalDate(eta)    // ★ 여기에 ETA 세팅
                 .build();
         Procurement saved = procurementRepo.save(procurement);
 
@@ -240,7 +264,7 @@ public class ProcurementServiceImpl implements ProcurementService{
                 .shopName(p.getShop().getShopName())
                 .status(p.getStatus())
                 .note(p.getNote())
-                .scheduleDate(p.getScheduledDate())
+                .estimatedArrivalDate(p.getEstimatedArrivalDate())
                 .regDate(p.getRegDate())
                 .cancelReason(p.getCancelReason())
                 .items(respItems)

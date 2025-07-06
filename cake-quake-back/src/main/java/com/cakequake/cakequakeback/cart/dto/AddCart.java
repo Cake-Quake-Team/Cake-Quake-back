@@ -43,7 +43,15 @@ public class AddCart {
         @NotNull(message = "옵션 아이템 ID는 필수입니다.")
         private Long optionItemId; // 선택된 OptionItem의 ID
 
-        @Min(value = 1, message = "옵션 수량은 최소 1개 이상이어야 합니다.")
+        // 옵션 이름과 값도 함께 받아야 프론트에서 표시하기 용이합니다.
+        // 백엔드에서 OptionItem을 조회하여 이름/값을 가져올 수도 있지만,
+        // 클라이언트에서 함께 전달받는 것이 효율적일 수 있습니다.
+        private String optionName; // 예: "맛", "사이즈", "레터링 문구"
+        private String optionValue; // 예: "초코", "미니", "생일 축하해!"
+        private Integer optionPrice; // 옵션 가격 (선택 사항, 필요 시)
+
+
+        @Min(value = 0, message = "옵션 수량은 0개 이상이어야 합니다.") // 옵션 개수가 0개일 수도 있음 (선택 안함)
         private Integer optionCnt; // 해당 옵션의 수량 (예: 토핑 2개)
     }
 
@@ -56,6 +64,7 @@ public class AddCart {
         private String cname; // (선택적) 상품명
         private Integer productCnt; // 최종 수량
         private Long itemTotalPrice; // 해당 아이템의 총 가격
+        private String selectedOptions;
 
     }
 

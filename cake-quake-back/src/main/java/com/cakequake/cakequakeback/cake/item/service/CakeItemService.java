@@ -1,6 +1,6 @@
 package com.cakequake.cakequakeback.cake.item.service;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
+import com.cakequake.cakequakeback.cake.item.entities.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.*;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;

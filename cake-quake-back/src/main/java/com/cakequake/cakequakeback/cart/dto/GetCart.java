@@ -33,6 +33,7 @@ public class GetCart {
         private String thumbnailImageUrl;
         private Integer productCnt;
         private Long itemTotalPrice;
+        private String selectedOptions;
 
     }
 

@@ -1,8 +1,7 @@
 package com.cakequake.cakequakeback.shop.controller;
 
-import com.cakequake.cakequakeback.cake.item.CakeCategory;
+import com.cakequake.cakequakeback.cake.item.entities.CakeCategory;
 import com.cakequake.cakequakeback.cake.item.dto.CakeListDTO;
-import com.cakequake.cakequakeback.cake.item.dto.MappingResponseDTO;
 import com.cakequake.cakequakeback.cake.item.service.CakeItemService;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
