@@ -28,4 +28,13 @@ public class CakeAI extends BaseEntity {
     // 대화 유형 (ex: "chat", "recommend_options", "recommend_lettering", "recommend_image")
     @Column(nullable = false)
     private String category;
+
+    // 대화 세션 구분 할 ID
+    @Column(nullable = false)
+    private String sessionId;
+
+    public void updateAnswer(String answer) {
+        this.answer = answer;
+    }
+
 }

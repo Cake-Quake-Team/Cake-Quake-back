@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class BadgeController {
     private final BadgeService badgeService;
 
     @PutMapping("/profile")
+    @PreAuthorize("hasRole('BUYER')")
     // 대표 뱃지 설정
     public ResponseEntity<RepresentativeBadgeResponseDTO> setProfileBadge(
             @PathVariable Long uid,
@@ -34,6 +36,7 @@ public class BadgeController {
     }
 
     @GetMapping("/profile")
+    @PreAuthorize("hasRole('BUYER')")
     // 대표 뱃지 조회
     public ResponseEntity<RepresentativeBadgeResponseDTO> getProfileBadge(@PathVariable Long uid) {
         RepresentativeBadgeResponseDTO responseDTO = badgeService.getProfileBadge(uid);
@@ -42,6 +45,7 @@ public class BadgeController {
 
 
     @PostMapping("/acquire")
+    @PreAuthorize("hasRole('BUYER')")
     // 뱃지 획득
     public ResponseEntity<Void> acquireBadge(
             @PathVariable Long uid,
@@ -54,6 +58,7 @@ public class BadgeController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasRole('BUYER')")
     // 뱃지 전체 목록 조회
     public ResponseEntity<List<AcquiredBadgeDTO>> getAllBadgesWithAcquisitionStatus(@PathVariable Long uid) {
         List<AcquiredBadgeDTO> allBadgesWithStatus = badgeService.getAllBadgesWithAcquisitionStatus(uid);
@@ -61,6 +66,7 @@ public class BadgeController {
     }
 
     @GetMapping("")
+    @PreAuthorize("hasRole('BUYER')")
     // 획득한 뱃지 목록 조회
     public ResponseEntity<List<MemberBadgeDTO>> getMemberBadges(@PathVariable Long uid) {
         List<MemberBadgeDTO> memberBadges = badgeService.getMemberBadges(uid);
