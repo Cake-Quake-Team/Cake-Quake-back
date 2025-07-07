@@ -66,7 +66,7 @@ public class CartController {
     }
 
     /** 현재 사용자의 장바구니 전체 삭제 */
-    @DeleteMapping // 또는 @DeleteMapping("/all")
+    @DeleteMapping
     public ResponseEntity<Void> deleteAllCartItems(
             @AuthenticationPrincipal(expression = "member.userId") String userId
     ) {
