@@ -8,5 +8,6 @@ import java.util.List;
 
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
+    // ⭐ 추가: 특정 ChatRoom의 모든 메시지를 등록일(regDate) 오름차순으로 조회
     List<ChatMessage> findByChatRoomOrderByRegDateAsc(ChatRoom chatRoom);
 }
