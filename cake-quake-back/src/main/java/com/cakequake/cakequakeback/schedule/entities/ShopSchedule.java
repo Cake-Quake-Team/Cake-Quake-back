@@ -45,39 +45,53 @@ public class ShopSchedule {
     @Column(nullable = false)
     private Integer availableSlots;
 
-    //예약 생성, 확정 시 -> 슬롯 감소
+    /**
+     * 예약 생성/확정 시 슬롯 감소
+     */
     public void decreaseAvailableSlots(int count) {
+        if (count <= 0) throw new IllegalArgumentException("감소 수량은 0보다 커야 합니다.");
+
         if (this.availableSlots >= count) {
             this.availableSlots -= count;
-            if (this.availableSlots == 0) {
-                this.status = ReservationStatus.CLOSED; // ⭐ 변경: ScheduleStatus.FULL -> ReservationStatus.CLOSED (가장 적합한 상태)
-            } else if (this.status == ReservationStatus.CLOSED) { // 슬롯이 0에서 1개 이상이 되면 다시 AVAILABLE로 변경
-                this.status = ReservationStatus.AVAILABLE;
-            }
+            updateStatusBasedOnSlots();
         } else {
             throw new IllegalArgumentException("요청한 슬롯 수가 남은 슬롯보다 많습니다.");
         }
     }
 
-    //예약 취소 시 -> 슬롯 증가
+    /**
+     * 예약 취소 시 슬롯 증가
+     */
     public void increaseAvailableSlots(int count) {
-        if (this.availableSlots + count <= this.maxSlots) {
-            this.availableSlots += count;
-            if (this.status == ReservationStatus.CLOSED || this.status == ReservationStatus.CANCELLED) { // 슬롯이 생기면 다시 AVAILABLE 상태로 변경
-                this.status = ReservationStatus.AVAILABLE;
-            }
+        if (count <= 0) throw new IllegalArgumentException("증가 수량은 0보다 커야 합니다.");
+
+        this.availableSlots = Math.min(this.availableSlots + count, this.maxSlots);
+        updateStatusBasedOnSlots();
+    }
+
+    /**
+     * 슬롯 수에 따라 예약 상태 자동 변경
+     */
+    private void updateStatusBasedOnSlots() {
+        if (this.availableSlots == 0) {
+            this.status = ReservationStatus.CLOSED;
         } else {
-            this.availableSlots = this.maxSlots;
             this.status = ReservationStatus.AVAILABLE;
         }
     }
 
-    //스케줄 상태 변경
+    /**
+     * 예약 상태 강제 변경 (필요 시)
+     */
     public void changeStatus(ReservationStatus status) {
         this.status = status;
     }
 
-
-
+    /**
+     * 현재 예약 가능 여부 (편의 메서드)
+     */
+    public boolean isReservable() {
+        return this.status == ReservationStatus.AVAILABLE && this.availableSlots > 0;
+    }
 
 }

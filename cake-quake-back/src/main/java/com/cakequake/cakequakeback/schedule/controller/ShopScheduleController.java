@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.schedule.controller;
 import com.cakequake.cakequakeback.schedule.service.ShopScheduleService;
 import com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,9 +28,11 @@ public class ShopScheduleController{
      */
     @GetMapping("/available-shops-by-date")
     public ResponseEntity<List<ShopScheduleDTO>> getAvailableShopsByDate(
-            @RequestParam LocalDate date) {
-
-        List<ShopScheduleDTO> availableShops = shopScheduleService.getAvailableShopsByDate(date);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime time,
+            @RequestParam(defaultValue = "true") boolean checkSlots
+    ) {
+        List<ShopScheduleDTO> availableShops = shopScheduleService.getAvailableShops(date, time, checkSlots);
         return ResponseEntity.ok(availableShops);
     }
 
@@ -45,16 +48,5 @@ public class ShopScheduleController{
         return ResponseEntity.ok(availableTimes);
     }
 
-    /**
-     * ✅ 3. 특정 날짜+시간에 예약 가능한 매장 목록 조회 (슬롯 수 고려 O)
-     */
-    @GetMapping("/available-shops-by-date-and-time")
-    public ResponseEntity<List<ShopScheduleDTO>> getAvailableShopsByDateAndTime(
-            @RequestParam LocalDate date,
-            @RequestParam LocalTime time) {
-
-        List<ShopScheduleDTO> availableShops = shopScheduleService.getAvailableShopsByDateAndTime(date, time);
-        return ResponseEntity.ok(availableShops);
-    }
 
 }

@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.schedule.service;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.order.repo.SellerOrderRepository;
+import com.cakequake.cakequakeback.schedule.entities.ShopSchedule;
 import com.cakequake.cakequakeback.schedule.repo.ShopScheduleRepository;
 import com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO;
 import com.cakequake.cakequakeback.shop.entities.Shop;
@@ -62,7 +63,8 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
     /**
      * 🔹 휴무일 문자열(한글 요일) → 숫자 리스트 변환
      */
-    private List<Integer> parseCloseDays(String closeDaysString) {
+    @Override
+    public List<Integer> parseCloseDays(String closeDaysString) {
         if (closeDaysString == null || closeDaysString.trim().isEmpty()) {
             return Collections.emptyList();
         }
@@ -143,97 +145,54 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
         log.info("✅ 사용 가능한 시간 수: {}", availableTimes.size());
         return availableTimes;
     }
-
-    /**
-     * 🔹 특정 날짜에 예약 가능한 매장 목록 조회
-     */
     @Override
-    public List<ShopScheduleDTO> getAvailableShopsByDate(LocalDate date) {
-        log.info("🏢 getAvailableShopsByDate 호출 (date: {})", date);
+    public List<ShopScheduleDTO> getAvailableShops(LocalDate date, LocalTime time, boolean checkSlots) {
+        log.info("🏢 getAvailableShops 호출 (date: {}, time: {}, checkSlots: {})", date, time, checkSlots);
 
         List<ShopScheduleDTO> activeShops = shopRepository.findShopPreviewDTOByStatus(ShopStatus.ACTIVE);
         List<ShopScheduleDTO> availableShops = new ArrayList<>();
 
+        int dayOfWeek = date.getDayOfWeek().getValue();
+        LocalTime timeToCheck = (time != null) ? time : LocalTime.now();
+
         for (ShopScheduleDTO shopDto : activeShops) {
             try {
                 List<Integer> closeDays = parseCloseDays(shopDto.getCloseDays());
-                int dayOfWeek = date.getDayOfWeek().getValue();
                 if (closeDays.contains(dayOfWeek)) continue;
 
-
-                LocalTime now = LocalTime.now();
                 LocalTime openTime = LocalTime.parse(shopDto.getOpenTime());
                 LocalTime closeTime = LocalTime.parse(shopDto.getCloseTime());
 
+                boolean isOpen;
                 if (openTime.isBefore(closeTime)) {
-                    if (now.isBefore(openTime) || now.isAfter(closeTime)) continue;
-                } else {
-                    if (!(now.isAfter(openTime) || now.isBefore(closeTime))) continue;
+                    isOpen = !(timeToCheck.isBefore(openTime) || timeToCheck.isAfter(closeTime));
+                } else { // 자정 넘김
+                    isOpen = timeToCheck.isAfter(openTime) || timeToCheck.isBefore(closeTime);
                 }
+                if (!isOpen) continue;
 
-                if (closeDays.contains(dayOfWeekValue)) {
-                    continue;
+                if (checkSlots) {
+                    LocalDateTime scheduleDateTime = LocalDateTime.of(date, timeToCheck);
+
+                    Optional<ShopSchedule> scheduleOpt = shopScheduleRepository.findByShop_ShopIdAndScheduleDateTime(shopDto.getShopId(), scheduleDateTime);
+
+                    // 🔑 엔티티의 isReservable 메서드로 예약 가능 여부 판단
+                    boolean hasAvailableSlots = scheduleOpt.map(ShopSchedule::isReservable)
+                            .orElse(true); // 스케줄 없으면 예약 가능으로 처리 (기본 슬롯 있음)
+
+                    if (!hasAvailableSlots) continue;
                 }
-
-                // 3. 영업 시간 확인 (DTO에서 필드 사용)
-//                LocalTime requestTime = LocalTime.now();
-//                LocalTime openTime = LocalTime.parse(shopDto.getOpenTime());
-//                LocalTime closeTime = LocalTime.parse(shopDto.getCloseTime());
-//
-//                if (openTime.isBefore(closeTime)) {
-//                    if (requestTime.isBefore(openTime) || requestTime.isAfter(closeTime)) {
-//                        continue;
-//                    }
-//                } else {
-//                    if (!(requestTime.isAfter(openTime) || requestTime.isBefore(closeTime))) {
-//                        continue;
-//                    }
-//                }
-
 
                 availableShops.add(shopDto);
 
             } catch (DateTimeParseException e) {
                 log.error("❌ 영업시간/휴무일 파싱 오류: shopId: {}, 오류: {}", shopDto.getShopId(), e.getMessage());
             } catch (Exception e) {
-                log.error("❌ 매장 처리 중 오류: shopId: {}, 오류: {}", shopDto.getShopId(), e.getMessage());
-            }
-        }
-
-        log.info("✅ 예약 가능한 매장 수: {}", availableShops.size());
-        return availableShops;
-    }
-
-    /**
-     * 🔹 특정 날짜+시간에 예약 가능한 매장 목록 조회
-     */
-    @Override
-    public List<ShopScheduleDTO> getAvailableShopsByDateAndTime(LocalDate date, LocalTime time) {
-        List<ShopScheduleDTO> activeShops = shopRepository.findShopPreviewDTOByStatus(ShopStatus.ACTIVE);
-        List<ShopScheduleDTO> availableShops = new ArrayList<>();
-
-        for (ShopScheduleDTO shopDto : activeShops) {
-            try {
-                List<Integer> closeDays = parseCloseDays(shopDto.getCloseDays());
-                if (closeDays.contains(date.getDayOfWeek().getValue())) continue;
-
-                LocalTime openTime = LocalTime.parse(shopDto.getOpenTime());
-                LocalTime closeTime = LocalTime.parse(shopDto.getCloseTime());
-                if (time.isBefore(openTime) || time.isAfter(closeTime)) continue;
-
-                LocalDateTime scheduleDateTime = LocalDateTime.of(date, time);
-                int remainingSlots = shopScheduleRepository.findByShop_ShopIdAndScheduleDateTime(shopDto.getShopId(), scheduleDateTime)
-                        .map(schedule -> schedule.getAvailableSlots())
-                        .orElse(DEFAULT_MAX_SLOTS_PER_TIME);
-
-                if (remainingSlots > 0) {
-                    availableShops.add(shopDto);
-                }
-            } catch (Exception e) {
                 log.error("❌ 매장 처리 오류: shopId: {}, 오류: {}", shopDto.getShopId(), e.getMessage());
             }
         }
 
+        log.info("✅ 예약 가능한 매장 수: {}", availableShops.size());
         return availableShops;
     }
 

@@ -222,8 +222,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .build();
         // 포인트 사용 로직 끝
 
-        // 픽업 슬롯 감소 로직 호출 (핵심!)
-        shopScheduleService.decreaseSlotsForOrderCreation(order);
+
 
         // 주문 저장
         CakeOrder savedOrder = buyerOrderRepository.save(order);
