@@ -139,7 +139,6 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                         .unitPrice(itemUnitPrice) // 단가는 CakeItem의 기본 가격
                         .subTotalPrice(itemSubTotal) // 케이크 기본 가격 + 옵션 가격
                         .cakeItem(cakeItem)
-                        //나중에 옵션 관련 추가
                         .build();
                 tempOrderItems.add(item);
             }
@@ -180,7 +179,6 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                         .unitPrice(itemUnitPrice) // 단가는 CartItem의 UnitPrice 또는 CakeItem의 가격
                         .subTotalPrice(itemSubTotal) // 케이크 기본 가격 + 옵션 가격
                         .cakeItem(cakeItem)
-                        //여기도 옵션 관련 추가
                         .build();
                 tempOrderItems.add(item);
             }
@@ -206,6 +204,18 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
             finalPaymentAmount = 0; // 최종 결제 금액은 최소 0원
         }
 
+        // ⭐⭐⭐ 픽업 스케줄 검증 및 슬롯 감소 로직 시작 ⭐⭐⭐
+        try {
+            shopScheduleService.decreaseSlotsForOrderCreation(
+                    request.getShopId(),
+                    request.getPickupDate(),
+                    request.getPickupTime()
+            );
+        } catch (BusinessException e) {
+            throw new BusinessException(ErrorCode.PICKUP_SLOT_UNAVAILABLE, "선택하신 픽업 시간은 예약이 마감되었거나 유효하지 않습니다.");
+        }
+        // ⭐⭐⭐ 픽업 스케줄 검증 및 슬롯 감소 로직 끝 ⭐⭐⭐
+
         // CakeOrder 엔티티 생성
         CakeOrder order = CakeOrder.builder()
                 .member(member) // 주문자 설정
@@ -221,7 +231,6 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                 .status(OrderStatus.RESERVATION_PENDING) // 초기 주문 상태
                 .build();
         // 포인트 사용 로직 끝
-
 
 
         // 주문 저장
@@ -248,7 +257,6 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     .unitPrice(item.getUnitPrice())
                     .subTotalPrice(item.getSubTotalPrice())
                     .cakeOrder(savedOrder)
-                    //여기도 옵션 관련 추가
                     .build();
             CakeOrderItem savedOrderItem = cakeOrderItemRepository.save(finalItem);
 
@@ -294,12 +302,9 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
         // 사용자 포인트 차감 (changePoint 메서드 사용)
         if (usedPoints > 0) {
-            pointService.changePoint(member.getUid(), -usedPoints.longValue(), "주문 결제 할인");
+            pointService.changePoint(member.getUid(), usedPoints.longValue(), "주문 결제 할인"); // 여기 -를 뺌, 포인트 반환 로직에서만 +로
         }
         // 사용자 포인트 차감 끝
-
-        // '첫 오더 달성' 뱃지 부여
-        badgeService.acquireBadge(member.getUid(), BadgeConstants.FIRST_ORDER_BADGE_ID);
 
         return CreateOrder.Response.builder()
                 .orderId(savedOrder.getOrderId())
@@ -513,9 +518,10 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         }
         // ⭐⭐⭐ 포인트 반환 로직 끝 ⭐⭐⭐
 
-        if (member != null) {
-            badgeService.checkAndAcquireBadges(member.getUid());
-            System.out.println("DEBUG: 주문 취소로 인해 회원 UID " + member.getUid() + "의 뱃지 조건 재검사 완료.");
+        // 주문 취소 시 뱃지 조건 재검사 (선택 사항, 필요하다면 활성화)
+         if (member != null) {
+             badgeService.checkAndAcquireBadges(member.getUid());
+             System.out.println("DEBUG: 주문 취소로 인해 회원 UID " + member.getUid() + "의 뱃지 조건 재검사 완료.");
         }
     }
 

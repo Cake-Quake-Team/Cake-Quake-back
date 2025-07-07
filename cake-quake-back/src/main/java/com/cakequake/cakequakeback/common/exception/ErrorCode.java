@@ -77,7 +77,8 @@ public enum ErrorCode {
     NOT_ENOUGH_STOCK(400, 669,"재고가 부족합니다"),
     INVALID_INPUT_VALUE(400, 670,"입력값이 올바르지 않습니다"),
     MEMBER_BADGE_NOT_OWNED(400, 671, "해당 회원은 이 뱃지를 소유하고 있지 않습니다."),
-  
+    PICKUP_SLOT_UNAVAILABLE(400, 672, "선택하신 픽업 시간은 예약이 마감되었거나 유효하지 않습니다."),
+
 
     //HTTP 401 Unauthorized (code:801~809)
     INVALID_CREDENTIALS(401, 801, "아이디 또는 패스워드가 일치하지 않습니다."),
