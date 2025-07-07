@@ -46,9 +46,10 @@ public class KakaoServiceImpl implements KakaoPayService {
     @Value("${spring.pg.kakao.base-url}")
     private String baseUrl;
 
+    @Value("${spring.app.front-url}")
+    private String frontBaseUrl;
+
     @Value("${spring.app.base-url}")
-
-
     private String appBaseUrl;
 
     //카카오페이 결제 준비 요청
@@ -83,31 +84,13 @@ public class KakaoServiceImpl implements KakaoPayService {
         // ◀ 여기가 실제로 어떤 Header가 달려 있는지 찍어보기
         System.out.println(">>> [OUTGOING] Authorization 헤더 = '" + headers.getFirst("Authorization") + "'");
 
-//        // 4) Payment 엔티티를 미리 저장하여 paymentId 획득 (transactionId는 빈 문자열로 초기 저장)
-//        Payment pendingPayment = Payment.builder()
-//                .order(order)
-//                .member(order.getMember())
-//                .provider(PaymentProvider.KAKAO)
-//                .status(PaymentStatus.READY)
-//                .amount(amount)
-//                .transactionId("")   // 우선 빈 문자열로 저장
-//                .redirectUrl(null)
-//                .paymentUrl(null)
-//                .build();
 
-//        Payment savedPayment = paymentRepo.save(pendingPayment);
-//        Long paymentId = savedPayment.getPaymentId();
 
-//        String approvalUrl = appBaseUrl
-//                + "/api/payments/kakao/approve"
-//                + "?partner_order_id=" + orderId
-//                + "&partner_user_id=" + userId;
-
-        String approvalUrl = appBaseUrl
-                + "/api/payments/kakao/approve"
+        String approvalUrl = frontBaseUrl
+                + "/buyer/payments/kakao/approve"
                 + "?partner_order_id=" + orderId
                 + "&partner_user_id=" + userId;
-                //+"&pg_token={pg_token}";
+        //        + "&pg_token={pg_token}";
         String cancelUrl   = appBaseUrl + "/api/payments/kakao/cancel";
         String failUrl     = appBaseUrl + "/api/payments/kakao/fail";
 

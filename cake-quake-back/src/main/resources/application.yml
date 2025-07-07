@@ -69,7 +69,8 @@ spring:
       secret-key: ${TOSS_SECRET_KEY}   # 환경 변수에서 읽어오는 토스페이 Secret Key
 
   app:
-    base-url: https://my-app.example.com         # 우리 서비스(앱) 기본 URL, ngrok 혹은 실제 도메인
+    base-url: http://localhost:8080  # 우리 서비스(앱) 기본 URL, ngrok 혹은 실제 도메인
+    front-url: http://localhost:5173
     # 예시: https://abc123.ngrok.io
 
 jwt:

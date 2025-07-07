@@ -51,10 +51,10 @@ public class PaymentResponseDTO {
     //토스페이 결제 키 (provider == Toss 일 때)
     private String paymentUrl;
 
+    private String storeName;
 
-    public static PaymentResponseDTO fromEntity(Payment payment) {
 
-
+    public static PaymentResponseDTO fromEntity(Payment payment, String storeName) {
         return PaymentResponseDTO.builder()
                 .paymentId(payment.getPaymentId())
                 .provider(payment.getProvider())
@@ -68,6 +68,12 @@ public class PaymentResponseDTO {
                 .refundReason(payment.getRefundReason())
                 .redirectUrl(payment.getRedirectUrl())
                 .paymentUrl(payment.getPaymentUrl())
+                .storeName(storeName)    // 매장이름 설정
                 .build();
+    }
+
+    // storeName 없이 호출할 때는 빈 문자열 넘기기
+    public static PaymentResponseDTO fromEntity(Payment payment) {
+        return fromEntity(payment, "");
     }
 }

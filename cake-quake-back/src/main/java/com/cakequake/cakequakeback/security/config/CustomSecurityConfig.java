@@ -101,7 +101,7 @@ public class CustomSecurityConfig {
 
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:5174")); // 배포 후 변경
+        corsConfiguration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:5174","https://*.ngrok-free.app")); // 배포 후 변경
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         corsConfiguration.setAllowCredentials(true);

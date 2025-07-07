@@ -8,6 +8,7 @@ import com.cakequake.cakequakeback.payment.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
+@Log4j2
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -43,7 +45,6 @@ public class PaymentController {
             HttpServletRequest request
     ) {
 
-
         // 2) partner_order_id / partner_user_id가 null인 경우
         //    예를 들어 카카오가 쿼리스트링을 생략했다면, DB 등 다른 방법으로 찾아야 한다.
         if (orderId == null || userId == null) {
@@ -65,8 +66,9 @@ public class PaymentController {
             @RequestParam("paymentKey") String paymentKey,
             @RequestParam("orderId")   String orderIdStr
     ) {
-        // 2) 서비스에 위 파라미터 넘겨서 승인 처리
+        log.debug("▶▶▶ tossSuccess 콜백 탐! paymentKey={}, orderId={}", paymentKey, orderIdStr);
         PaymentResponseDTO dto = paymentService.approveToss(paymentKey, orderIdStr);
+        log.debug("▶▶▶ approveToss 리턴 DTO: {}", dto);
         return ResponseEntity.ok(dto);
     }
 
