@@ -18,6 +18,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompJwtAuthenticationInterceptor stompJwtAuthenticationInterceptor;
     private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
+    private final JWTUtil jwtUtil;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -31,9 +32,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:5173", "http://localhost:5174")
-                .addInterceptors(jwtHandshakeInterceptor)   // 👉 여기 추가
-                .withSockJS();
+                .setAllowedOrigins("http://localhost:5173", "http://localhost:5174",
+                        "http://localhost:8080","http://localhost:80",
+                        "http://localhost:3000"
+                )
+                .addInterceptors(jwtHandshakeInterceptor);  // 👉 여기 추가
+
 
         // ⭐ HandshakeInterceptor를 직접 추가하는 부분은 제거합니다.
         // STOMP 인증은 ChannelInterceptor를 통해 처리하는 것이 권장됩니다.

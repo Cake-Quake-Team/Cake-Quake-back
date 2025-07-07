@@ -36,31 +36,41 @@ public class StompJwtAuthenticationInterceptor implements ChannelInterceptor {
         public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-                // STOMP CONNECT 명령이 들어왔을 때만 인증 로직을 수행합니다.
+                // STOMP CONNECT 명령 처리 (초기 인증 설정)
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                        log.info("STOMP CONNECT Command received. Attempting authentication using session principal (HttpOnly Cookie based).");
+                        log.info("STOMP CONNECT Command received. Attempting authentication via WebSocket session principal.");
 
-                        // 1. WebSocket 세션에 이미 Principal(인증된 사용자)이 설정되어 있는지 확인합니다.
-                        //    이 Principal은 HttpOnly 쿠키를 통한 HTTP 핸드셰이크 과정에서
-                        //    Spring Security에 의해 설정되었을 것으로 기대합니다.
+                        // WebSocket 세션에 저장된 Principal을 가져옵니다.
+                        // 이 Principal은 JwtHandshakeInterceptor에 의해 설정되었을 것으로 기대합니다.
                         Authentication authentication = (Authentication) accessor.getUser();
 
                         if (authentication != null && authentication.isAuthenticated()) {
-                                // 이미 인증된 Principal이 존재하고 유효합니다.
-                                // SecurityContextHolder에 인증 정보를 다시 설정합니다.
-                                // (이것은 HTTP 핸드셰이크 단계에서 이미 이루어졌을 수 있지만, STOMP 컨텍스트에 명시적으로 설정)
+                                // Principal이 유효하면 SecurityContextHolder에 설정합니다.
                                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                                log.info("STOMP CONNECT: User '{}' already authenticated via session. Principal set.", authentication.getName());
+                                log.info("STOMP CONNECT: User '{}' authenticated via WebSocket session. Principal set in SecurityContextHolder.", authentication.getName());
                         } else {
-                                // Principal이 없거나 인증되지 않았습니다.
-                                // 이는 HttpOnly 쿠키 기반 인증이 실패했거나, 쿠키가 없다는 의미입니다.
-                                log.warn("STOMP CONNECT: No authenticated principal found in WebSocket session. Authentication failed.");
-                                // 인증 실패 시 STOMP 연결을 거부합니다.
+                                // Principal이 없거나 인증되지 않은 경우 (비정상 상황)
+                                log.warn("STOMP CONNECT: No authenticated principal found in WebSocket session. Connection will be rejected.");
                                 throw new RuntimeException("Authentication required for WebSocket connection.");
                         }
                 }
-                // 다른 STOMP 명령 (SEND, SUBSCRIBE 등)은 인증된 사용자로 계속 처리
-                return message;
+                // ⭐ 모든 STOMP 메시지 (SEND, SUBSCRIBE, DISCONNECT 등)에 대해 SecurityContextHolder 설정
+                //    이것은 STOMP 메시지가 처리되는 스레드에 Principal을 전파하는 핵심입니다.
+                else {
+                        Authentication authentication = (Authentication) accessor.getUser();
+                        if (authentication != null && authentication.isAuthenticated()) {
+                                SecurityContextHolder.getContext().setAuthentication(authentication);
+                                log.debug("STOMP {}: User '{}' principal set in SecurityContextHolder.", accessor.getCommand(), authentication.getName());
+                        } else {
+                                // 인증된 Principal이 없는 상태에서 SEND/SUBSCRIBE 등 메시지가 오면
+                                log.warn("STOMP {}: No authenticated principal found for command. Message will be rejected.", accessor.getCommand());
+                                // 이 상황에서 예외를 던져 메시지 처리를 중단할 수도 있습니다.
+                                // throw new RuntimeException("Authentication required for this operation.");
+                                // 현재는 AuthenticatedUserService에서 예외가 발생하므로 여기서는 경고만 남깁니다.
+                        }
+                }
+
+                return message; // 메시지 처리 계속
         }
 
 }
