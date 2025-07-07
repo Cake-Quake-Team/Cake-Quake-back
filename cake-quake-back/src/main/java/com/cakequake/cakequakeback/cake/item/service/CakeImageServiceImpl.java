@@ -161,7 +161,7 @@ public class CakeImageServiceImpl implements CakeImageService {
     @Override
     public String saveFileAndGetUrl(MultipartFile file) {
         // 실제 파일 저장 로직 - 예: 로컬/클라우드 저장 후 URL 반환
-        return fileStorageService.storeFile(file);
+        return fileStorageService.storeFile(file, "images/cakeImages/");
     }
 
     @Override

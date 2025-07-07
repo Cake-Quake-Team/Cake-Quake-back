@@ -1,5 +1,6 @@
 package com.cakequake.cakequakeback.member.service.seller;
 
+import com.cakequake.cakequakeback.cake.item.service.FileStorageService;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.common.utils.CustomImageUtils;
@@ -36,8 +37,9 @@ public class SellerServiceImpl implements SellerService{
     private final CustomImageUtils customImageUtils;
 
     private final AuthenticatedUserService authenticatedUserService;
+    private final FileStorageService fileStorageService;
 
-    public SellerServiceImpl(PendingSellerRequestRepository pendingSellerRequestRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, CustomImageUtils customImageUtils, MemberRepository memberRepository, ShopRepository shopRepository, AuthenticatedUserService authenticatedUserService) {
+    public SellerServiceImpl(PendingSellerRequestRepository pendingSellerRequestRepository, PasswordEncoder passwordEncoder, MemberValidator memberValidator, CustomImageUtils customImageUtils, MemberRepository memberRepository, ShopRepository shopRepository, AuthenticatedUserService authenticatedUserService, FileStorageService fileStorageService) {
         this.pendingSellerRequestRepository = pendingSellerRequestRepository;
         this.passwordEncoder = passwordEncoder;
         this.memberValidator = memberValidator;
@@ -45,6 +47,7 @@ public class SellerServiceImpl implements SellerService{
         this.memberRepository = memberRepository;
         this.shopRepository = shopRepository;
         this.authenticatedUserService = authenticatedUserService;
+        this.fileStorageService = fileStorageService;
     }
 
     @Override
@@ -73,9 +76,7 @@ public class SellerServiceImpl implements SellerService{
         /*
             파일 처리 - 사업자 등록증 파일
          */
-        String uploadDir = "C:\\nginx-1.26.3\\html\\selleruploads";
-
-        String savedName = customImageUtils.saveImageFile(file, uploadDir);
+        String savedName = fileStorageService.storeFile(file, "images/sellerCertificates/");
 
         PendingSellerRequest pendingSeller = PendingSellerRequest.builder()
                 .userId(requestDTO.getUserId())
@@ -117,16 +118,14 @@ public class SellerServiceImpl implements SellerService{
         String shopImageName = null; // 대표 이미지
         String sanitationImageName = null; // 위생 인증서
 
-        String shopImageDir = "C:\\nginx-1.26.3\\html\\shop\\Images";
-        String sanitationImageDir = "C:\\nginx-1.26.3\\html\\selleruploads";
-
         if (dto.getShopImage() != null && !dto.getShopImage().isEmpty()) {
-            shopImageName = customImageUtils.saveImageFile(dto.getShopImage(), shopImageDir);
+            shopImageName = fileStorageService.storeFile(dto.getShopImage(), "images/shopImages/");
         }
 
         if (dto.getSanitationCertificate() != null && !dto.getSanitationCertificate().isEmpty()) {
-            sanitationImageName = customImageUtils.saveImageFile(dto.getSanitationCertificate(), sanitationImageDir);
+            sanitationImageName = fileStorageService.storeFile(dto.getSanitationCertificate(), "images/sellerCertificates/");
         }
+
 
         log.debug("shopImageName: {}, sanitationImageName: {}", shopImageName, sanitationImageName);
 
