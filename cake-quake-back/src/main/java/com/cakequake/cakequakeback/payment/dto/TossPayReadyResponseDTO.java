@@ -18,12 +18,17 @@ public class TossPayReadyResponseDTO {
     private String method;
     private String requestedAt;
     private String approvedAt;
-    private NextUrl nextUrl;      // 중첩 객체로 선언
+    // ↓ 실제 JSON 필드명 “checkout” 으로 매핑
+    @JsonProperty("checkout")
+    private Checkout checkout;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
-    public static class NextUrl {
+    public static class Checkout {
+        // JSON 의 “url” → web, “mobileUrl” → mobile 로 매핑
+        @JsonProperty("url")
         private String web;
+        @JsonProperty("mobileUrl")
         private String mobile;
     }
 }

@@ -34,6 +34,9 @@ public class TossPayServiceImpl implements TossPayService {
     @Value("${spring.pg.toss.base-url}")
     private String tossBaseUrl;
 
+    @Value("${spring.app.front-url}")
+    private String frontBaseUrl;
+
     //우리 서비스 기본 URL
     @Value("${spring.app.base-url}")
     private String appBaseUrl;
@@ -83,8 +86,8 @@ public class TossPayServiceImpl implements TossPayService {
                 .flowMode("DEFAULT")
                 .easyPay("TOSSPAY")
                 //.customerKey(customerKey)
-                .successUrl(appBaseUrl + "/api/payments/toss/success")
-                .failUrl(appBaseUrl + "/api/payments/toss/fail")
+                .successUrl(frontBaseUrl + "/buyer/payments/toss/success")
+                .failUrl(frontBaseUrl + "/buyer/payments/toss/fail")
                 .build();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -115,35 +118,6 @@ public class TossPayServiceImpl implements TossPayService {
         return responseEntity.getBody();
     }
 
-//     실제로 토스페이는 Webhook이나 Redirect 콜백으로 먼저 승인 정보를 보내줍니다.
-//     여기서는 “승인된 paymentKey”만 받아서 객체로 맵핑하는 예시.
-//     (실무에선 Webhook 컨트롤러에서 @RequestBody TossPayApproveResponse를 바로 받아도 무방)
-//    @Override
-//    public TossPayApproveResponseDTO approve(String paymentKey) {
-//        Optional<MerchantPaymentKey> maybeKey = merchantPaymentRepo.findByShopIdAndProviderAndIsActive(/*shopId*/0L,"TOSS",true);
-//        if(maybeKey.isEmpty()){
-//            throw new IllegalArgumentException("토스페이 키를 찾을 수 없습니다");
-//        }
-//        MerchantPaymentKey key = maybeKey.get();
-//        String secretKey = encryptionService.decrypt(key.getEncryptedApiKey());
-//
-//        //승인 단계 정보를 다시 PG사에 조회하는 경우 -> 웹 훅으로 죄히할 겨웅 필요 없음
-//        String approveUrl = tossBaseUrl + "/v1/payments/" + paymentKey;
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//        headers.setBasicAuth(secretKey,"");
-//
-//        ResponseEntity<TossPayApproveResponseDTO> response = appConfig.restTemplate().exchange(
-//                approveUrl,
-//                HttpMethod.GET,
-//                new HttpEntity<>(headers),
-//                TossPayApproveResponseDTO.class
-//        );
-//        if( !response.getStatusCode().is2xxSuccessful() || response.getBody() == null){
-//            throw new RuntimeException("토스페익 결제 승인 정보 조회 실패");
-//        }
-//        return response.getBody();
-//    }
 
 
     @Override

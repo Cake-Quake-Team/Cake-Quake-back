@@ -28,7 +28,8 @@ public interface PaymentRepo extends JpaRepository<Payment,Long> {
     p.refundAt,
     p.refundReason,
     p.redirectUrl,
-    p.paymentUrl
+    p.paymentUrl,
+    p.order.shop.shopName
     )
     FROM Payment p
     WHERE p.member.uid = :uid
@@ -52,7 +53,8 @@ public interface PaymentRepo extends JpaRepository<Payment,Long> {
               p.refundAt,
               p.refundReason,
               p.redirectUrl,
-              p.paymentUrl
+              p.paymentUrl,
+              p.order.shop.shopName
     )
     From Payment p
     WHERE p.paymentId = :paymentId

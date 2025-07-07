@@ -80,6 +80,7 @@ public class PaymentServiceImpl implements PaymentService{
             //토스페이 준비
             String customerKey = "USER_" + uid;
 
+
             TossPayReadyResponseDTO tossResponse = tossPayService.ready(
                     paymentRequestDTO.getOrderId(),
                     member.getUid(),
@@ -87,6 +88,7 @@ public class PaymentServiceImpl implements PaymentService{
                     paymentRequestDTO.getAmount().longValue()
             );
 
+            String redirectUrl = tossResponse.getCheckout().getWeb();  // 여기가 실제 결제 페이지 URL
             paymentEntity = Payment.builder()
                     .order(cakeOrder)
                     .member(member)
@@ -95,7 +97,7 @@ public class PaymentServiceImpl implements PaymentService{
                     .amount(paymentRequestDTO.getAmount())
                     .transactionId(tossResponse.getPaymentKey())
                     .redirectUrl(null)  //카카오처럼 Redirect용이 없으므로 null
-                    .paymentUrl(null)
+                    .paymentUrl(redirectUrl)
                     .build();
         }
         else{
