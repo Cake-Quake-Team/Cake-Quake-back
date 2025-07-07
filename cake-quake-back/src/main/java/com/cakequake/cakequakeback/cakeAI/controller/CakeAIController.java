@@ -1,13 +1,14 @@
+// CakeAIController.java
 package com.cakequake.cakequakeback.cakeAI.controller;
 
-
-import com.cakequake.cakequakeback.cakeAI.dto.AIRequestDTO;
+import com.cakequake.cakequakeback.cakeAI.entities.CakeAI;
 import com.cakequake.cakequakeback.cakeAI.service.CakeAIService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/ai")
@@ -16,32 +17,37 @@ public class CakeAIController {
 
     private final CakeAIService cakeAIService;
 
-    // 간단한 질의응답
     @PostMapping("/chat")
-    public ResponseEntity<String> generateAnswer(@RequestBody AIRequestDTO request) {
-        String answer = cakeAIService.generateAnswer(request.getQuestion());
-        return ResponseEntity.ok(answer);
+    @PreAuthorize("hasRole('BUYER')")
+    public String generateAnswer(@RequestParam String question, @RequestParam(required = false) String sessionId) {
+        String currentSessionId = (sessionId == null || sessionId.isEmpty()) ? UUID.randomUUID().toString() : sessionId;
+        return cakeAIService.generateAnswer(question, currentSessionId);
     }
 
-    // 케이크 옵션 추천 요청
-    @PostMapping("/recommend/options")
-    public ResponseEntity<String> recommendCakeOptions(@RequestBody AIRequestDTO request) {
-        String answer = cakeAIService.recommendCakeOptions(request.getQuestion());
-        return ResponseEntity.ok(answer);
+    @PostMapping("/chat/options")
+    @PreAuthorize("hasRole('BUYER')")
+    public String recommendCakeOptions(@RequestParam String question, @RequestParam(required = false) String sessionId) {
+        String currentSessionId = (sessionId == null || sessionId.isEmpty()) ? UUID.randomUUID().toString() : sessionId;
+        return cakeAIService.recommendCakeOptions(question, currentSessionId);
     }
 
-    // 케이크 문구 추천 요청
-    @PostMapping("/recommend/lettering")
-    public ResponseEntity<String> recommendCakeLettering(@RequestBody AIRequestDTO request) {
-        String answer = cakeAIService.recommendCakeLettering(request.getQuestion());
-        return ResponseEntity.ok(answer);
+    @PostMapping("/chat/lettering")
+    @PreAuthorize("hasRole('BUYER')")
+    public String recommendCakeLettering(@RequestParam String question, @RequestParam(required = false) String sessionId) {
+        String currentSessionId = (sessionId == null || sessionId.isEmpty()) ? UUID.randomUUID().toString() : sessionId;
+        return cakeAIService.recommendCakeLettering(question, currentSessionId);
     }
 
-    // 케이크 디자인 추천 요청
-    @PostMapping("/recommend/image")
-    public ResponseEntity<Map<String, String>> recommendCakeImage(@RequestBody AIRequestDTO request) {
-        String imageUrl = cakeAIService.recommendCakeDesign(request.getQuestion());
-        return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+    @PostMapping("/chat/design")
+    @PreAuthorize("hasRole('BUYER')")
+    public String recommendCakeDesign(@RequestParam String question, @RequestParam(required = false) String sessionId) {
+        String currentSessionId = (sessionId == null || sessionId.isEmpty()) ? UUID.randomUUID().toString() : sessionId;
+        return cakeAIService.recommendCakeDesign(question, currentSessionId);
+    }
+
+    @GetMapping("/chat/history")
+    @PreAuthorize("hasRole('BUYER')")
+    public List<CakeAI> getChatHistory(@RequestParam String sessionId) {
+        return cakeAIService.getChatHistory(sessionId);
     }
 }
-
