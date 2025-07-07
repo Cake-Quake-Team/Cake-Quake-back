@@ -39,6 +39,14 @@ public class CustomSecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
+    static {
+        // 이 전략을 설정하면 SecurityContext가 스레드 간에 상속됩니다.
+        // WebSocket 메시지 처리와 같이 스레드 풀을 사용하는 환경에서 중요합니다.
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+        log.info("SecurityContextHolder strategy set to MODE_INHERITABLETHREADLOCAL.");
+    }
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -103,7 +111,7 @@ public class CustomSecurityConfig {
 
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:5174","https://*.ngrok-free.app")); // 배포 후 변경
+        corsConfiguration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:5174","https://*.ngrok-free.app","http://localhost:80")); // 배포 후 변경
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         corsConfiguration.setAllowCredentials(true);
