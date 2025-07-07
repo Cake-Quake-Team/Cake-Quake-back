@@ -17,13 +17,16 @@ import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -50,10 +53,28 @@ public class CartServiceImpl implements CartService {
         if (cart == null) {
             return;
         }
-        List<CartItem> itemsInCart = cartItemRepository.findByCartWithCakeItem(cart);
-        int cartTotalPrice = itemsInCart.stream()
-                .mapToInt(item -> item.getItemTotalPrice() != null ? item.getItemTotalPrice().intValue() : 0)
-                .sum();
+        List<CartItem> itemsInCart = cartItemRepository.findByCart(cart);
+
+        long totalCalculatedPrice = 0L;
+        for (CartItem item : itemsInCart) {
+            long basePrice = (long) item.getCakeItem().getPrice() * item.getProductCnt();
+            long optionsPrice = 0L;
+
+            if (item.getSelectedOptions() != null && !item.getSelectedOptions().isEmpty()) {
+                try {
+                    List<AddCart.CartItemOption> parsedOptions = objectMapper.readValue(item.getSelectedOptions(),
+                            objectMapper.getTypeFactory().constructCollectionType(List.class, AddCart.CartItemOption.class));
+                    optionsPrice = parsedOptions.stream()
+                            .mapToLong(option -> (long) (option.getOptionPrice() != null ? option.getOptionPrice() : 0) * (option.getOptionCnt() != null ? option.getOptionCnt() : 1))
+                            .sum();
+                } catch (JsonProcessingException e) {
+                    log.error("장바구니 총 가격 재계산 중 옵션 JSON 파싱 실패 (cartItemId: {}, error: {})", item.getCartItemId(), e.getMessage());
+                }
+            }
+            totalCalculatedPrice += (basePrice + optionsPrice);
+        }
+
+        cart.updateCartTotalPrice((int) totalCalculatedPrice);
         cartRepository.save(cart);
     }
 
@@ -67,12 +88,34 @@ public class CartServiceImpl implements CartService {
         CakeItem cakeItem = cakeItemRepository.findById(request.getCakeItemId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.MISSING_CAKE_ITEM_ID));
 
-        Optional<CartItem> existingCartItemOpt = cartItemRepository.findByCartWithCakeItem(cart).stream()
+        // ⭐ [수정] selectedOptionsJson과 optionsTotalPrice 변수를 final 또는 effectively final로 만들기 ⭐
+        final String currentSelectedOptionsJson; // final 키워드 추가
+        final long currentOptionsTotalPrice;     // final 키워드 추가
+
+        if (request.getCakeOptions() != null && !request.getCakeOptions().isEmpty()) {
+            try {
+                currentSelectedOptionsJson = objectMapper.writeValueAsString(request.getCakeOptions());
+                currentOptionsTotalPrice = request.getCakeOptions().stream()
+                        .mapToLong(option -> (long) (option.getOptionPrice() != null ? option.getOptionPrice() : 0) * (option.getOptionCnt() != null ? option.getOptionCnt() : 1))
+                        .sum();
+            } catch (JsonProcessingException e) {
+                log.error("장바구니 추가 시 옵션 정보 JSON 변환 실패: {}", e.getMessage(), e);
+                throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "옵션 정보 변환 실패");
+            }
+        } else {
+            // 옵션이 없을 경우 기본값 할당 (final 변수이므로 모든 경로에서 초기화되어야 함)
+            currentSelectedOptionsJson = null;
+            currentOptionsTotalPrice = 0L;
+        }
+
+        log.info("AddCart Request CakeOptions: {}", request.getCakeOptions());
+        log.info("Selected Options JSON: {}", currentSelectedOptionsJson);
+        log.info("Calculated Options Total Price: {}", currentOptionsTotalPrice);
+
+        Optional<CartItem> existingCartItemOpt = cartItemRepository.findByCart(cart).stream()
                 .filter(ci -> ci.getCakeItem().getCakeId().equals(request.getCakeItemId()))
-                // ⭐ 기존 아이템 찾을 때 옵션까지 고려 (선택 사항: 동일 옵션일 때만 합치기) ⭐
-                // 현재는 케이크 ID만 비교하므로, 동일 케이크 ID라도 옵션이 다르면 별도 아이템으로 추가하는 로직이 필요할 수 있습니다.
-                // 여기서는 기존처럼 케이크 ID만으로 찾고, 옵션은 새로운 값으로 덮어쓰거나 무시할 수 있습니다.
-                // 만약 옵션까지 완전히 동일한 상품만 수량을 합치려면, 아래 filter 조건에 옵션 비교 로직 추가 필요
+                // ⭐ [수수정] 람다 내에서 effectively final 변수 사용 ⭐
+                .filter(ci -> Objects.equals(ci.getSelectedOptions(), currentSelectedOptionsJson))
                 .findFirst();
 
         CartItem savedCartItem;
@@ -82,17 +125,8 @@ public class CartServiceImpl implements CartService {
             throw new BusinessException(ErrorCode.QUANTITY_LIMIT_EXCEEDED, "장바구니 상품 수량은 1개 이상 99개 이하여야 합니다.");
         }
 
-        // ⭐ 선택된 옵션 리스트를 JSON 문자열로 변환 ⭐
-        String selectedOptionsJson = null;
-        if (request.getCakeOptions() != null && !request.getCakeOptions().isEmpty()) {
-            try {
-                selectedOptionsJson = objectMapper.writeValueAsString(request.getCakeOptions());
-            } catch (JsonProcessingException e) {
-                // JSON 변환 실패 시 예외 처리 또는 로깅
-                throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "옵션 정보 변환 실패");
-            }
-        }
-
+        // 최종 itemTotalPrice 계산
+        long newItemTotalPrice = (long) cakeItem.getPrice() * quantity + currentOptionsTotalPrice; // ⭐ [수정] currentOptionsTotalPrice 사용 ⭐
 
         if (existingCartItemOpt.isPresent()) {
             CartItem existingCartItem = existingCartItemOpt.get();
@@ -105,16 +139,16 @@ public class CartServiceImpl implements CartService {
                     .cart(existingCartItem.getCart())
                     .cakeItem(existingCartItem.getCakeItem())
                     .productCnt(newCount)
-                    .itemTotalPrice((long) cakeItem.getPrice() * newCount)
-                    .selectedOptions(selectedOptionsJson) // ⭐ 기존 아이템 업데이트 시에도 옵션 저장 ⭐
+                    .itemTotalPrice(newItemTotalPrice)
+                    .selectedOptions(currentSelectedOptionsJson) // ⭐ [수정] currentSelectedOptionsJson 사용 ⭐
                     .build();
         } else {
             savedCartItem = CartItem.builder()
                     .cart(cart)
                     .cakeItem(cakeItem)
                     .productCnt(quantity)
-                    .itemTotalPrice((long) cakeItem.getPrice() * quantity)
-                    .selectedOptions(selectedOptionsJson) // ⭐ 새 아이템 추가 시 옵션 저장 ⭐
+                    .itemTotalPrice(newItemTotalPrice)
+                    .selectedOptions(currentSelectedOptionsJson) // ⭐ [수정] currentSelectedOptionsJson 사용 ⭐
                     .build();
         }
         savedCartItem = cartItemRepository.save(savedCartItem);
@@ -144,7 +178,7 @@ public class CartServiceImpl implements CartService {
                     .cartTotalPrice(0L)
                     .build();
         }
-        List<CartItem> cartItemEntities = cartItemRepository.findByCart(cart); // ✅ findByCartWithCakeItem 대신 findByCart 사용
+        List<CartItem> cartItemEntities = cartItemRepository.findByCart(cart);
 
         List<GetCart.ItemInfo> cartItemDtos = cartItemEntities.stream()
                 .map(entity -> GetCart.ItemInfo.builder()
@@ -155,7 +189,7 @@ public class CartServiceImpl implements CartService {
                         .thumbnailImageUrl(entity.getCakeItem().getThumbnailImageUrl())
                         .productCnt(entity.getProductCnt())
                         .itemTotalPrice(entity.getItemTotalPrice())
-                        .shopId(entity.getCakeItem().getShop().getShopId()) // ✅ shopId 필드를 추가
+                        .shopId(entity.getCakeItem().getShop().getShopId())
                         .selectedOptions(entity.getSelectedOptions())
                         .build())
                 .collect(Collectors.toList());
@@ -175,7 +209,7 @@ public class CartServiceImpl implements CartService {
 
 
         CartItem existingCartItem = cartItemRepository
-                .findByCartAndCartItemId(cart, requestDto.getCartItemId())
+                .findByCartAndCartItemIdWithCakeItem(cart, requestDto.getCartItemId())
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.NOT_FOUND_CART_ID,
                         "ID " + requestDto.getCartItemId() +
@@ -186,12 +220,31 @@ public class CartServiceImpl implements CartService {
         if (newCnt < 1 || newCnt > 99) {
             throw new BusinessException(ErrorCode.QUANTITY_LIMIT_EXCEEDED, "장바구니 수량은 1~99 사이여야 합니다.");
         }
+
+        Long optionsTotalPrice = 0L;
+        if (existingCartItem.getSelectedOptions() != null && !existingCartItem.getSelectedOptions().isEmpty()) {
+            try {
+                List<AddCart.CartItemOption> parsedOptions = objectMapper.readValue(existingCartItem.getSelectedOptions(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, AddCart.CartItemOption.class));
+                optionsTotalPrice = parsedOptions.stream()
+                        .mapToLong(option -> (long) (option.getOptionPrice() != null ? option.getOptionPrice() : 0) * (option.getOptionCnt() != null ? option.getOptionCnt() : 1))
+                        .sum();
+            } catch (JsonProcessingException e) {
+                log.error("장바구니 아이템 업데이트 시 옵션 정보 JSON 파싱 실패: {}", e.getMessage(), e);
+                optionsTotalPrice = 0L;
+            }
+        }
+
+        long newItemTotalPrice = (long) existingCartItem.getCakeItem().getPrice() * newCnt + optionsTotalPrice;
+
+
         CartItem updatedCartItem = CartItem.builder()
                 .cartItemId(existingCartItem.getCartItemId())
                 .cart(existingCartItem.getCart())
                 .cakeItem(existingCartItem.getCakeItem())
                 .productCnt(newCnt)
-                .itemTotalPrice((long) existingCartItem.getCakeItem().getPrice() * newCnt)
+                .itemTotalPrice(newItemTotalPrice)
+                .selectedOptions(existingCartItem.getSelectedOptions())
                 .build();
 
         updatedCartItem = cartItemRepository.save(updatedCartItem);
@@ -210,7 +263,7 @@ public class CartServiceImpl implements CartService {
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
         Cart cart = cartRepository.findByMember(member)
-                .orElse(null); // 사용자의 장바구니가 없을 수도 있음
+                .orElse(null);
 
         if (cart == null) {
             return DeletedCartItem.Response.builder()
@@ -219,39 +272,35 @@ public class CartServiceImpl implements CartService {
                     .build();
         }
 
-        CartItem itemToDelete = cartItemRepository.findByCartAndCartItemId(cart, cartItemId)
+        CartItem itemToDelete = cartItemRepository.findByCartAndCartItemIdWithCakeItem(cart, cartItemId)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.INVALID_CART_ITEMS,
                         "ID " + cartItemId + "에 해당하는 장바구니 아이템을 찾을 수 없거나, 사용자 소유가 아닙니다."
                 ));
 
-        cartItemRepository.delete(itemToDelete); // ⭐ 특정 아이템 삭제 ⭐
-        recalculateCartTotalPrice(cart); // 장바구니 총 가격 재계산
+        cartItemRepository.delete(itemToDelete);
+        recalculateCartTotalPrice(cart);
 
         return DeletedCartItem.Response.builder()
-                .deletedCartItemIds(List.of(cartItemId)) // 삭제된 ID 목록에 해당 아이템만 포함
+                .deletedCartItemIds(List.of(cartItemId))
                 .message(userId + " 사용자의 장바구니에 있던 상품 ID " + cartItemId + "가 삭제되었습니다.")
                 .build();
     }
 
-    // ⭐⭐ 모든 장바구니 아이템 삭제 메서드 (새로 추가하거나, 기존 deleteCartItem 오버로드) ⭐⭐
-    // CartService 인터페이스에도 이 메서드를 추가해야 합니다.
     @Override
-    public void deleteAllCartItems(String userId) { // CartService 인터페이스에 이 메서드 추가 필요
+    public void deleteAllCartItems(String userId) {
         Member member = memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_UID));
 
         Cart cart = cartRepository.findByMember(member)
-                .orElse(null); // 사용자의 장바구니가 없을 수도 있음
+                .orElse(null);
 
         if (cart == null) {
-            // 삭제할 장바구니가 없으므로 특별한 처리 없이 리턴 (또는 BusinessException)
-            return; // 또는 throw new BusinessException(ErrorCode.NOT_FOUND_CART_ID, "삭제할 장바구니를 찾을 수 없습니다.");
+            return;
         }
 
-        // ⭐ 핵심: deleteAllByCart_CartId에 Cart 객체 대신 cartId를 전달 ⭐
-        cartItemRepository.deleteAllByCart_CartId(cart.getCartId()); // ✅ 이제 Long 타입의 cartId를 넘김
-        recalculateCartTotalPrice(cart); // 장바구니 총 가격 재계산 (0이 될 것임)
+        cartItemRepository.deleteAllByCart_CartId(cart.getCartId());
+        recalculateCartTotalPrice(cart);
     }
 
 }

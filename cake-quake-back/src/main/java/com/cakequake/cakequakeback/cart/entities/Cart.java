@@ -39,4 +39,8 @@ public class Cart extends BaseEntity {
     @Column(nullable = false)
     private Integer cartTotalPrice;
 
+    public void updateCartTotalPrice(Integer newTotalPrice) {
+        this.cartTotalPrice = newTotalPrice;
+    }
+
 }
