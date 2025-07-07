@@ -1,18 +1,14 @@
 package com.cakequake.cakequakeback.review.service.buyer;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.cakequake.cakequakeback.badge.constants.BadgeConstants;
-import com.cakequake.cakequakeback.badge.entities.Badge;
-import com.cakequake.cakequakeback.badge.entities.MemberBadge;
-import com.cakequake.cakequakeback.badge.repo.BadgeRepository;
-import com.cakequake.cakequakeback.badge.repo.MemberBadgeRepository;
 import com.cakequake.cakequakeback.badge.service.BadgeService;
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
 import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.common.utils.CustomImageUtils;
-import com.cakequake.cakequakeback.member.entities.Member;
-import com.cakequake.cakequakeback.member.repo.MemberRepository;
 import com.cakequake.cakequakeback.order.entities.CakeOrder;
 import com.cakequake.cakequakeback.order.entities.CakeOrderItem;
 import com.cakequake.cakequakeback.order.repo.BuyerOrderRepository;
@@ -34,8 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -44,7 +39,9 @@ import java.util.Optional;
 @Log4j2
 public class BuyerReviewServiceImpl implements BuyerReviewService {
 
-    private static final String UPLOAD_DIR = "C:/nginx-1.26.3/html/reviewuploads";
+    private final AmazonS3 amazonS3;
+    private final String bucketName = "elasticbeanstalk-ap-northeast-2-853972008946";
+    private final String UPLOAD_DIR = "images/reviewImages/";
 
     private final BuyerReviewRepo buyerReviewRepo;
     private final BuyerOrderRepository buyerOrderRepo;
@@ -72,13 +69,22 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
         // 이미지 파일 저장
         MultipartFile file = dto.getReviewPictureUrl();
-        String savedName = null;
+        String pictureUrl = null;
         if (file != null && !file.isEmpty()) {
-            savedName = imageUtils.saveImageFile(file, UPLOAD_DIR);
+            try {
+                String savedName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                String key = UPLOAD_DIR + savedName;
+
+                ObjectMetadata metadata = new ObjectMetadata();
+                metadata.setContentLength(file.getSize());
+
+                amazonS3.putObject(bucketName, key, file.getInputStream(), metadata);
+
+                pictureUrl = amazonS3.getUrl(bucketName, key).toString();
+            } catch (Exception e) {
+                throw new BusinessException(ErrorCode.IMAGE_GENERATION_FAILED);
+            }
         }
-        String pictureUrl = (savedName != null)
-                ? "/reviewuploads/" + savedName
-                : null;
 
         // Review 엔티티 생성
         Review review = Review.builder()
@@ -163,8 +169,20 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
         // 3) 새 파일이 업로드 되었으면 저장하고 URL 갱신
         MultipartFile file = dto.getReviewPictureUrl();
         if (file != null && !file.isEmpty()) {
-            String savedName = imageUtils.saveImageFile(file, UPLOAD_DIR);
-            review.updateReviewPictureUrl("/reviewuploads/" + savedName);
+            try {
+                String savedName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                String key = UPLOAD_DIR + savedName;
+
+                ObjectMetadata metadata = new ObjectMetadata();
+                metadata.setContentLength(file.getSize());
+
+                amazonS3.putObject(bucketName, key, file.getInputStream(), metadata);
+
+                String pictureUrl = amazonS3.getUrl(bucketName, key).toString();
+                review.updateReviewPictureUrl(pictureUrl);
+            } catch (Exception e) {
+                throw new BusinessException(ErrorCode.IMAGE_GENERATION_FAILED);
+            }
         }
 
         //수정 가능한 필드만 수정하기

@@ -32,7 +32,7 @@ public enum ErrorCode {
     INVALID_SHEET_SHAPE(400, 625, "시트 모양이 누락되었거나 조건에 불충족할 경우"),
     INVALID_SHEET_SIZE(400, 626, "시트 크기가 조건에 불충족할 경우"),
     INVALID_CAKE_LAYER(400, 627, "케이크 단 수가 조건에 불충족할 경우"),
-    INVALID_PRICE(400, 628, "가격이 조건에 불충족할 경우"),
+    INVALID_PRICE(400, 628, "가격은 0원보다 커야합니다."),
     INVALID_LONG_NAME(400, 629, "이름이 너무 긴 경우"),
     INVALID_TYPE(400, 630, "타입이 허용된 값(INNER, OUTER)이 아닙니다"),
     INVALID_PAGE_SIZE(400, 631, "page, size는 1 이상이어야 합니다"),

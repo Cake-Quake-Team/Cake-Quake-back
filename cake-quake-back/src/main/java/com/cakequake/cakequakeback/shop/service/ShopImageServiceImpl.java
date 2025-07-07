@@ -233,7 +233,7 @@ public class ShopImageServiceImpl implements ShopImageService {
 
     @Override
     public String saveFileAndGetUrl(MultipartFile file){
-        return fileStorageService.storeFile(file);
+        return fileStorageService.storeFile(file, "images/shopImages/");
     }
 
 
