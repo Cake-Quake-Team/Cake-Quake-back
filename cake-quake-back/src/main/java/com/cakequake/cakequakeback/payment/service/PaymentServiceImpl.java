@@ -174,7 +174,7 @@ public class PaymentServiceImpl implements PaymentService{
         Long uid = payment.getMember().getUid();
         long pointsToAdd = payment.getAmount().longValue() / 100;
         pointService.changePoint(uid, pointsToAdd,
-                "결제 포인트 적립(1%): paymentKey=" + paymentKey);
+                "결제 포인트 적립(1%): 주문 #" + orderIdStr);
 
         // 4) DTO 반환
         return PaymentResponseDTO.fromEntity(payment);

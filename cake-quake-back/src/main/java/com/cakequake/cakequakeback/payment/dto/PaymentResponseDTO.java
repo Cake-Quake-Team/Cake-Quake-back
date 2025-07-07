@@ -53,6 +53,8 @@ public class PaymentResponseDTO {
 
     private String storeName;
 
+    private String orderNumber;
+
 
     public static PaymentResponseDTO fromEntity(Payment payment, String storeName) {
         return PaymentResponseDTO.builder()
@@ -69,6 +71,7 @@ public class PaymentResponseDTO {
                 .redirectUrl(payment.getRedirectUrl())
                 .paymentUrl(payment.getPaymentUrl())
                 .storeName(storeName)    // 매장이름 설정
+                .orderNumber(payment.getOrder().getOrderNumber())
                 .build();
     }
 
@@ -76,4 +79,6 @@ public class PaymentResponseDTO {
     public static PaymentResponseDTO fromEntity(Payment payment) {
         return fromEntity(payment, "");
     }
+
+
 }
