@@ -10,10 +10,10 @@ import java.util.List;
 
 public interface ShopScheduleService {
 
+    List<Integer> parseCloseDays(String closeDaysString);
    List<LocalTime> getPossiblePickupTime(Long shopId);
     List<LocalTime> getAvailablePickupTimes(Long shopId, LocalDate date);
-    List<ShopScheduleDTO> getAvailableShopsByDate(LocalDate date);
- List<ShopScheduleDTO> getAvailableShopsByDateAndTime(LocalDate date, LocalTime time);
+    List<ShopScheduleDTO> getAvailableShops(LocalDate date, LocalTime time, boolean checkSlots);
 
 
     //주문 상태 변경 시 슬롯 조정
