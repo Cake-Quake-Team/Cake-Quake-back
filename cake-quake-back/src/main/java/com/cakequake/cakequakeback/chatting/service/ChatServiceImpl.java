@@ -1,6 +1,7 @@
 package com.cakequake.cakequakeback.chatting.service;
 
 import com.cakequake.cakequakeback.chatting.dto.ChatMessageDto;
+import com.cakequake.cakequakeback.chatting.dto.ChatRoomListDTO;
 import com.cakequake.cakequakeback.chatting.entities.ChatMessage;
 import com.cakequake.cakequakeback.chatting.entities.ChatRoom;
 import com.cakequake.cakequakeback.chatting.repo.ChatMessageRepository;
@@ -18,8 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -107,6 +110,7 @@ public class ChatServiceImpl implements ChatService {
                 .senderUsername(sender.getUserId())
                 .message(savedMessage.getMessage())
                 .timestamp(savedMessage.getRegDate().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+                .messageId(savedMessage.getId())
                 .build();
         log.debug("ChatService: 브로드캐스트 DTO 구성 완료 - {}", responseDto);
 
@@ -116,6 +120,64 @@ public class ChatServiceImpl implements ChatService {
         log.info("ChatService: 메시지 브로드캐스트 완료 - Destination={}, Message={}", destination, responseDto);
 
         return responseDto;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatRoomListDTO> getChatRoomsForSellerAndShop(Long shopId){
+        // 현재 로그인된 판매자 정보 가져오기
+        Member seller = authenticatedUserService.getCurrentMember();
+        if (seller == null) {
+            log.error("ChatService: 판매자용 채팅방 목록 조회 시, 인증된 판매자 정보를 찾을 수 없습니다.");
+            throw new IllegalStateException("인증된 판매자 정보를 찾을 수 없습니다.");
+        }
+        // shopId로 상점 정보 가져오기
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new IllegalArgumentException("상점을 찾을 수 없습니다. ID: " + shopId));
+
+
+        // 판매자와 상점에 해당하는 채팅방 목록 조회
+        List<ChatRoom> chatRooms = chatRoomRepository.findBySellerAndShop(seller, shop);
+
+        // ChatRoom 엔티티를 ChatRoomListDto로 변환
+        return chatRooms.stream().map(chatRoom -> ChatRoomListDTO.builder()
+                .id(chatRoom.getId())
+                .roomKey(chatRoom.getRoomKey())
+                .buyerUid(chatRoom.getBuyer().getUid())
+                .buyerUsername(chatRoom.getBuyer().getUserId()) // 구매자 ID
+                .shopId(chatRoom.getShop().getShopId())
+                .shopName(chatRoom.getShop().getShopName())
+                .build()
+        ).collect(Collectors.toList());
+
+    }
+
+
+    @Override
+    @Transactional(readOnly = true) // ⭐ 추가: 읽기 전용 트랜잭션
+    public List<ChatMessageDto> getChatMessagesByRoomKey(String roomKey) {
+        log.debug("ChatService: 과거 메시지 조회 시작 - roomKey={}", roomKey);
+        // roomKey로 채팅방 찾기
+        ChatRoom chatRoom = chatRoomRepository.findByRoomKey(roomKey)
+                .orElseThrow(() -> {
+                    log.warn("ChatService: 과거 메시지 조회 실패 - 채팅방을 찾을 수 없습니다. roomKey={}", roomKey);
+                    return new IllegalArgumentException("채팅방을 찾을 수 없습니다: " + roomKey);
+                });
+
+        // 해당 채팅방의 모든 메시지를 등록일 기준으로 오름차순 정렬하여 조회
+        List<ChatMessage> messages = chatMessageRepository.findByChatRoomOrderByRegDateAsc(chatRoom);
+        log.debug("ChatService: {}개의 과거 메시지 조회 완료", messages.size());
+
+        // ChatMessage 엔티티 리스트를 ChatMessageDto 리스트로 변환
+        return messages.stream().map(message -> ChatMessageDto.builder()
+                .roomId(roomKey)
+                .senderUid(message.getSender().getUid())
+                .senderUsername(message.getSender().getUserId())
+                .message(message.getMessage())
+                .timestamp(message.getRegDate().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+                .messageId(message.getId())
+                .build()
+        ).collect(Collectors.toList());
     }
 
 }
