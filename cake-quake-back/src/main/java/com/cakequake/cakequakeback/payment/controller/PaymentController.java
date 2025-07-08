@@ -45,18 +45,13 @@ public class PaymentController {
             HttpServletRequest request
     ) {
 
-        // 2) partner_order_id / partner_user_id가 null인 경우
-        //    예를 들어 카카오가 쿼리스트링을 생략했다면, DB 등 다른 방법으로 찾아야 한다.
         if (orderId == null || userId == null) {
-            // DB에 저장된 Payment 목록에서 "PG 토큰만으로 결제 준비 정보 찾기"는
-            // 카카오 API 특성상 직접 불가능합니다. 대신 orderId/userId를 approval_url에
-            // 반드시 붙여 보내야 방어가 쉽습니다.
+
             throw new IllegalArgumentException(
                     "필수 파라미터(partner_order_id, partner_user_id)가 누락되었습니다."
             );
         }
-        // 서비스에 orderId, userId, pgToken만 넘겨서
-        // 내부에서 tid 조회 및 승인 절차를 모두 처리하게 한다.
+
         return paymentService.approveKakao(orderId, userId, pgToken);
     }
 
@@ -103,6 +98,16 @@ public class PaymentController {
             @AuthenticationPrincipal(expression = "member.uid") Long uid
     ){
         return paymentService.listPayments(uid);
+    }
+
+    //주문결 결제 목록 조회
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<List<PaymentResponseDTO>> orderPayments(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal(expression = "member.uid") Long uid
+    ) {
+        List<PaymentResponseDTO> list = paymentService.listOrderPayments(orderId, uid);
+        return ResponseEntity.ok(list);
     }
 
     //결제 취소

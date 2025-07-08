@@ -50,6 +50,7 @@ public class PaymentServiceImpl implements PaymentService{
         Member member = memberRepository.findById(uid)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
+
         //provider 분기("KAKAO", "TOSS")
         PaymentProvider provider = paymentRequestDTO.getProvider();
         Payment paymentEntity;
@@ -198,6 +199,13 @@ public class PaymentServiceImpl implements PaymentService{
     public List<PaymentResponseDTO> listPayments(Long uid) {
 
         return paymentRepo.selectPaymentListDTO(uid);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PaymentResponseDTO> listOrderPayments(Long orderId, Long uid) {
+        // repository 에 정의한 selectByOrderAndMember 사용
+        return paymentRepo.selectByOrderAndMember(orderId, uid);
     }
 
     //결제 취소

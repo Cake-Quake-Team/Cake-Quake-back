@@ -30,6 +30,8 @@ public interface PaymentService {
 
     //환불 요청
     PaymentResponseDTO refundPayment(Long paymentId, Long uid, PaymentRefundRequestDTO paymentRefundRequestDTO);
+
+    List<PaymentResponseDTO> listOrderPayments(Long orderId, Long uid);
 }
 
 

@@ -66,6 +66,34 @@ public interface PaymentRepo extends JpaRepository<Payment,Long> {
             @Param("paymentId") Long paymentId,
             @Param("uid") Long uid
     );
+// 특정 주문에 달린 결제들만 DTO로 바로 조회
+@Query("""
+      SELECT new com.cakequake.cakequakeback.payment.dto.PaymentResponseDTO(
+          p.paymentId,
+          p.provider,
+          p.status,
+          p.amount,
+          p.transactionId,
+          p.regDate,
+          p.completedAt,
+          p.cancelReason,
+          p.refundAt,
+          p.refundReason,
+          p.redirectUrl,
+          p.paymentUrl,
+          p.order.shop.shopName,
+          p.order.orderNumber
+      )
+      FROM Payment p
+      WHERE p.order.orderId = :orderId
+        AND p.member.uid   = :uid
+      ORDER BY p.regDate DESC
+    """)
+List<PaymentResponseDTO> selectByOrderAndMember(
+        @Param("orderId") Long orderId,
+        @Param("uid")     Long uid
+);
+
     // ① ready 단계(=PaymentStatus.READY)로 생성된 레코드를 찾기 위해
     Optional<Payment> findByOrder_OrderIdAndStatus(Long orderId, PaymentStatus status);
 
