@@ -53,7 +53,7 @@ public class JWTUtil {
                     .parseSignedClaims(token)
                     .getPayload();
 
-            log.debug("claims: {}", claims);
+//            log.debug("claims: {}", claims);
 
             return claims;
         } catch (JwtException e) {

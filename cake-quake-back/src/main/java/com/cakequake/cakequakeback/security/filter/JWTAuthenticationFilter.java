@@ -178,7 +178,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
         // 1. Authorization 헤더에서 Bearer 토큰 추출
         String headerStr = request.getHeader("Authorization");
-        log.debug("headerStr: {}", headerStr);
+//        log.debug("headerStr: {}", headerStr);
         if (headerStr != null && headerStr.startsWith("Bearer ")) {
             accessToken = headerStr.substring(7); // "Bearer " 제거
             log.debug("accessToken from header");
@@ -206,7 +206,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             // 4. 토큰 유효성 검증 및 claims 추출
             Map<String, Object> tokenMap = jwtUtil.validateToken(accessToken);
             String userId = (String) tokenMap.get("userId");
-            log.debug("userId from token: {}", userId);
+//            log.debug("userId from token: {}", userId);
 
             // 5. 사용자 조회 (ACTIVE 상태)
             Member member = memberRepository.findByUserIdAndStatus(userId, MemberStatus.ACTIVE)
@@ -223,12 +223,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                     );
 
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            log.debug("Authentication 완료 username: {}", userDetails.getUsername());
+//            log.debug("Authentication 완료 username: {}", userDetails.getUsername());
 
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-                log.error("++++++++++doFilterInternal++++++++++++++",e);
+                log.error("++++++++++doFilterInternal++++++++++++++");
                 String message = e.getMessage();
                 if(message.startsWith("JWT signature")){
                     handleException(response, JWTErrorCode.BAD_SIGNATURE);

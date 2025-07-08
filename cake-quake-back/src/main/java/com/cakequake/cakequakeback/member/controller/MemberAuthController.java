@@ -16,15 +16,12 @@ import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.service.auth.MemberService;
 import com.cakequake.cakequakeback.member.service.auth2.KakaoLoginService;
 import com.cakequake.cakequakeback.member.service.seller.SellerService;
-import com.cakequake.cakequakeback.security.domain.CustomUserDetails;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,22 +59,21 @@ public class MemberAuthController {
 
     @PostMapping("/signup/buyers")
     public ResponseEntity<ApiResponseDTO> signupBuyer(@RequestBody BuyerSignupRequestDTO dto) {
-        log.debug(dto.toString());
-        // service에서 joinType에 따라 분기 처리. basic/kakao/google
+
         ApiResponseDTO response = memberService.signup(dto);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/signup/sellers/step1")
     public ResponseEntity<ApiResponseDTO> signupSellerStep1(@ModelAttribute SellerSignupStep1RequestDTO dto) {
-        log.debug("---MemberAuthController---SellerSignupStep1RequestDTO: {}", dto.toString());
+
         ApiResponseDTO response = sellerService.registerStepOne(dto);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/signup/sellers/step2")
     public ResponseEntity<ApiResponseDTO> signupSellerStep2(@ModelAttribute SellerSignupStep2RequestDTO dto) {
-        log.debug("---MemberAuthController---SellerSignupStep2RequestDTO: {}", dto.toString());
+
         ApiResponseDTO response = sellerService.registerStepTwo(dto);
         return ResponseEntity.ok(response);
     }
@@ -85,7 +81,7 @@ public class MemberAuthController {
     @PostMapping("/signup/social")
     public ResponseEntity<ApiResponseDTO> signupSocial(@RequestBody SocialSignupRequestDTO dto,
                                                           HttpServletResponse response) {
-        log.debug("---MemberAuthController---signupSocial---SocialSignupRequestDTO: {}", dto.toString());
+
         SigninResponseDTO result = memberService.signupSocial(dto);
 
         // 토큰을 HttpOnly 쿠키로 설정
@@ -126,7 +122,6 @@ public class MemberAuthController {
     // 토큰에 필요한 유저 정보 담기. 프론트에서는 이 메서드를 호출해서 유저 정보를 획득.
     @GetMapping("/members/me")
     public ResponseEntity<?> getMyInfo(HttpServletRequest request) {
-//        log.debug("+++++MemberAuthController+++/members/me+++");
         String token = CookieUtil.getCookieValue(request, "accessToken"); // 직접 추출
         Claims claims = (Claims) jwtUtil.validateToken(token);
 
@@ -204,8 +199,8 @@ public class MemberAuthController {
     @PostMapping("/signout")
     public ResponseEntity<Void> signout(HttpServletResponse response) {
         log.debug("---MemberAuthController---signout()");
-        CookieUtil.clearAuthCookies(response);
 
+        CookieUtil.clearAuthCookies(response);
         return ResponseEntity.ok().build();
     }
 
@@ -226,6 +221,7 @@ public class MemberAuthController {
 
     @PatchMapping("/password")
     public ResponseEntity<ApiResponseDTO> changePassword(@RequestBody PasswordChangeDTO dto) {
+
         ApiResponseDTO response = memberService.changePassword(dto);
         return ResponseEntity.ok(response);
     }
@@ -233,39 +229,39 @@ public class MemberAuthController {
     /*
         테스트 용
      */
-    @PreAuthorize("hasRole('BUYER')")
-    @GetMapping("/token-test")
-    public ResponseEntity<ApiResponseDTO> tokenTest(){
-
-        return ResponseEntity.ok(ApiResponseDTO.builder()
-                .success(true)
-                .message("로그인 후 토큰으로 테스트 접근 성공")
-                .build());
-    }
-
-    @PreAuthorize("hasRole('SELLER')")
-    @GetMapping("/seller-only")
-    public ResponseEntity<ApiResponseDTO> sellerOnly(@AuthenticationPrincipal CustomUserDetails userDetails){
-
-        log.debug("--------sellerOnly()-----------");
-        String role = userDetails.getAuthorities().toString();
-
-        log.debug("Role: {}", role);
-
-        return ResponseEntity.ok(ApiResponseDTO.builder()
-                .success(true)
-                .message("판매자만 접근 성공")
-                .build());
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/admin-only")
-    public ResponseEntity<ApiResponseDTO> adminOnly(){
-        return ResponseEntity.ok(ApiResponseDTO.builder()
-                .success(true)
-                .message("관리자만 접근 성공")
-                .build());
-    }
+//    @PreAuthorize("hasRole('BUYER')")
+//    @GetMapping("/token-test")
+//    public ResponseEntity<ApiResponseDTO> tokenTest(){
+//
+//        return ResponseEntity.ok(ApiResponseDTO.builder()
+//                .success(true)
+//                .message("로그인 후 토큰으로 테스트 접근 성공")
+//                .build());
+//    }
+//
+//    @PreAuthorize("hasRole('SELLER')")
+//    @GetMapping("/seller-only")
+//    public ResponseEntity<ApiResponseDTO> sellerOnly(@AuthenticationPrincipal CustomUserDetails userDetails){
+//
+//        log.debug("--------sellerOnly()-----------");
+//        String role = userDetails.getAuthorities().toString();
+//
+//        log.debug("Role: {}", role);
+//
+//        return ResponseEntity.ok(ApiResponseDTO.builder()
+//                .success(true)
+//                .message("판매자만 접근 성공")
+//                .build());
+//    }
+//
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @GetMapping("/admin-only")
+//    public ResponseEntity<ApiResponseDTO> adminOnly(){
+//        return ResponseEntity.ok(ApiResponseDTO.builder()
+//                .success(true)
+//                .message("관리자만 접근 성공")
+//                .build());
+//    }
 
 
 

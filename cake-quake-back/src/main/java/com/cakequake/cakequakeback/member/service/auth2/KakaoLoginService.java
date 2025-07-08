@@ -35,7 +35,7 @@ public class KakaoLoginService {
     public ApiResponseDTO processKakaoLogin(String accessToken) {
         // 카카오 유저의 이메일과 닉네임 획득
         KakaoUserDTO kakaoUserDTO = kakaoService.getKakaoUserInfo(accessToken);
-        log.debug("---processKakaoLogin---accessToken: {}", accessToken.substring(0, 10));
+//        log.debug("---processKakaoLogin---accessToken: {}", accessToken.substring(0, 10));
 
         String email = kakaoUserDTO.getEmail();
 

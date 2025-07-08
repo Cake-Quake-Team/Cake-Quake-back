@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
 
 
 import java.nio.charset.StandardCharsets;
@@ -51,7 +50,7 @@ public class BusinessVerificationServiceImpl implements BusinessVerificationServ
         }
 
         log.debug("---BusinessVerificationServiceImpl---verify 호출---");
-        log.debug("requestDTO: {}", requestDTO);
+//        log.debug("requestDTO: {}", requestDTO);
 
         String serviceKey = properties.getServiceKey();
 //        log.debug("serviceKey: {}", serviceKey);
@@ -83,7 +82,7 @@ public class BusinessVerificationServiceImpl implements BusinessVerificationServ
             }
 
             BusinessVerificationResultDTO result = responseBody.getData().get(0);
-            log.debug("result.getValid(): {}, getValid_msg(): {}", result.getValid(), result.getValid_msg());
+//            log.debug("result.getValid(): {}, getValid_msg(): {}", result.getValid(), result.getValid_msg());
 
             String validCode = result.getValid();
             String message = null;

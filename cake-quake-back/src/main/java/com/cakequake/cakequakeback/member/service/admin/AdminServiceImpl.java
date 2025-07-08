@@ -1,7 +1,6 @@
 package com.cakequake.cakequakeback.member.service.admin;
 
 import com.cakequake.cakequakeback.common.dto.InfiniteScrollResponseDTO;
-import com.cakequake.cakequakeback.common.dto.PageRequestDTO;
 import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.dto.ApiResponseDTO;

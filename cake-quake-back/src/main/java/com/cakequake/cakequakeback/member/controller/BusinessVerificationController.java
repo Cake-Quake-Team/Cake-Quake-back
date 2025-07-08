@@ -22,10 +22,9 @@ public class BusinessVerificationController {
 
     @PostMapping("/verify")
     public ResponseEntity<ApiResponseDTO> verifyBusiness(@RequestBody @Valid BusinessVerificationRequestDTO requestDTO) {
-        log.debug("---controller---사업자 등록 정보 진위확인 요청: {}", requestDTO);
+//        log.debug("---controller---사업자 등록 정보 진위확인 요청: {}", requestDTO);
 
         ApiResponseDTO response = service.verify(requestDTO);
-
         return ResponseEntity.ok(response);
     }
 
