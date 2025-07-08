@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Map; // Map을 사용하지 않게 되더라도 CreateOrder에서 Map을 사용하니 import는 유지
 
 public class OrderList {
     @Getter
@@ -35,7 +35,7 @@ public class OrderList {
         private String orderType;           //주문 타입
         private LocalDate pickupDate;       //픽업 날짜
         private LocalTime pickupTime;       //픽업 시간
-        private Integer discountAmount; // 추가
+        private Integer discountAmount;     // 추가
         private Integer finalPaymentAmount; // 추가
 
         private List<OrderItemOption> items;
@@ -51,12 +51,16 @@ public class OrderList {
         private String thumbnailImageUrl;
         private Long price;
         private Integer productCnt;
+        private Long itemSubTotalPrice;
 
-        // 일반 케이크 옵션 (key-value)
-        private Map<String, String> options;
-        private Long cakeOptionMappingId;
-        private String optionName;
-        private Long optionPrice;
+        // ⭐ [수정] 일반 케이크 옵션 필드 변경 ⭐
+        // Map<String, String> options; 제거
+        // Long cakeOptionMappingId; 제거
+        // String optionName; 제거
+        // Long optionPrice; 제거
+        // 대신 List<CreateOrder.SelectedOptionDetail> 사용
+        private List<CreateOrder.SelectedOptionDetail> selectedOptions; // ⭐ 이 필드를 추가합니다. ⭐
+
 
         // 커스텀 케이크 정보 (일반 케이크엔 null)
         private String image;         // custom image URL

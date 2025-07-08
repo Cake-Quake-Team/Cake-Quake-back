@@ -3,6 +3,7 @@ package com.cakequake.cakequakeback.order.repo;
 import com.cakequake.cakequakeback.order.entities.CakeOrderItem;
 import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,15 +35,14 @@ public interface CakeOrderItemRepository extends JpaRepository<CakeOrderItem, Lo
             Pageable pageable);
 
     // ✅ 구매자/판매자 주문 상세 조회에서 사용:
-    // 특정 주문에 속하는 CakeOrderItem 목록과 CakeItem 정보를 함께 가져옴
+    // @EntityGraph 삭제, JOIN FETCH만 남김
     @Query("SELECT coi FROM CakeOrderItem coi JOIN FETCH coi.cakeItem WHERE coi.cakeOrder.orderId = :orderId")
     List<CakeOrderItem> findByCakeOrder_OrderIdWithCakeItem(@Param("orderId") Long orderId);
 
     // ✅ 구매자/판매자 주문 목록 조회에서 사용:
-    // 여러 주문 ID에 속하는 CakeOrderItem 목록과 CakeItem 정보를 함께 가져옴 (배치 조회)
+    // @EntityGraph 삭제, JOIN FETCH만 남김
     @Query("SELECT coi FROM CakeOrderItem coi JOIN FETCH coi.cakeItem WHERE coi.cakeOrder.orderId IN :orderIds")
     List<CakeOrderItem> findByCakeOrder_OrderIdInWithCakeItem(@Param("orderIds") List<Long> orderIds);
-
 
 
     // 1. 총 판매량 (아이템 총 수량) 조회
