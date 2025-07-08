@@ -56,12 +56,12 @@ public class PendingSellerRequestCustomRepositoryImpl implements PendingSellerRe
 
         // 상태 필터 추가
         String statusFilter = pageRequestDTO.getStatus(); // 프론트에서 보내는 status 값
-        log.debug("pageRequestDTO.getStatus(): {}", pageRequestDTO.getStatus());
+//        log.debug("pageRequestDTO.getStatus(): {}", pageRequestDTO.getStatus());
         if (statusFilter != null && !statusFilter.isEmpty()) {
             builder.and(qPendingSellerRequest.status.eq(SellerRequestStatus.valueOf(statusFilter)));
         }
 
-        log.debug("builder: {}", builder);
+//        log.debug("builder: {}", builder);
         // 조건이 있는 경우에만 where 호출
         if (builder.hasValue()) {
             query.where(builder);
@@ -95,14 +95,14 @@ public class PendingSellerRequestCustomRepositoryImpl implements PendingSellerRe
                 qPendingSellerRequest.regDate,
                 qPendingSellerRequest.modDate
         ));
-        log.debug("Generated DTO Query: {}", dtoQuery);
+//        log.debug("Generated DTO Query: {}", dtoQuery);
 
         List<PendingSellerRequestListDTO> dtoList = dtoQuery.fetch();
 //        log.debug("Fetched DTO List: {}", dtoList); // DTO 리스트 확인
 
         // 전체 개수 쿼리 (페이지 계산용)
         long total = dtoQuery.fetchCount();
-        log.debug("total: {}", total);
+//        log.debug("total: {}", total);
 
         return InfiniteScrollResponseDTO.of(dtoList, (int) total, pageRequestDTO);
     }

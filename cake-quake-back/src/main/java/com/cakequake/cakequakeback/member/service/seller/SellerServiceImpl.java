@@ -53,7 +53,7 @@ public class SellerServiceImpl implements SellerService{
     @Override
     public ApiResponseDTO registerStepOne(SellerSignupStep1RequestDTO requestDTO) {
 
-        log.info("---registerStepOne---requestDTO: {}", requestDTO.toString());
+//        log.info("---registerStepOne---requestDTO: {}", requestDTO.toString());
 
         SocialType joinType = SocialType.from(requestDTO.getJoinType());
         MultipartFile file = requestDTO.getBusinessCertificate();
@@ -105,7 +105,7 @@ public class SellerServiceImpl implements SellerService{
     @Override
     public ApiResponseDTO registerStepTwo(SellerSignupStep2RequestDTO dto) {
 
-        log.debug("SellerSignupStep2RequestDTO: {}", dto.toString());
+//        log.debug("SellerSignupStep2RequestDTO: {}", dto.toString());
         // 가입 2단계 DTO 형식 검사 + 매장 번호 중복 검사
         memberValidator.validateSellerSignup2(dto);
         log.debug("---registerStepTwo---memberValidator 통과---");
@@ -125,7 +125,6 @@ public class SellerServiceImpl implements SellerService{
         if (dto.getSanitationCertificate() != null && !dto.getSanitationCertificate().isEmpty()) {
             sanitationImageName = fileStorageService.storeFile(dto.getSanitationCertificate(), "images/sellerCertificates/");
         }
-
 
         log.debug("shopImageName: {}, sanitationImageName: {}", shopImageName, sanitationImageName);
 

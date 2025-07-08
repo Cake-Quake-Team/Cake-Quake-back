@@ -15,7 +15,6 @@ import com.cakequake.cakequakeback.member.validator.MemberValidator;
 import com.cakequake.cakequakeback.point.service.PointService;
 import com.cakequake.cakequakeback.security.jwt.JWTClaimProvider;
 import com.cakequake.cakequakeback.security.service.AuthenticatedUserService;
-import com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO;
 import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import com.cakequake.cakequakeback.temperature.service.TemperatureService;
 import io.jsonwebtoken.Claims;
@@ -76,7 +75,7 @@ public class MemberServiceImpl implements MemberService {
         소셜 가입은 로직 분리.
      */
     public ApiResponseDTO signup(BuyerSignupRequestDTO requestDTO) {
-        log.debug("---------signup--------------");
+//        log.debug("---------signup--------------");
 
         SocialType joinType = SocialType.from(requestDTO.getJoinType());
 
@@ -127,7 +126,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public SigninResponseDTO signupSocial(SocialSignupRequestDTO requestDTO) {
-        log.debug("---------signupSocial--------------");
+//        log.debug("---------signupSocial--------------");
 
         SocialType joinType = SocialType.from(requestDTO.getJoinType());
         // basic 이면 안 됨
@@ -170,7 +169,7 @@ public class MemberServiceImpl implements MemberService {
                 .build();
 
         Member savedMember = memberRepository.save(member);
-        log.debug("소셜 회원가입 완료 - uid: {}, userId: {}", savedMember.getUid(), savedMember.getUserId());
+//        log.debug("소셜 회원가입 완료 - uid: {}, userId: {}", savedMember.getUid(), savedMember.getUserId());
         // 첫 온도 설정
         temperatureService.createInitialTemperature(savedMember);
 
@@ -295,7 +294,7 @@ public class MemberServiceImpl implements MemberService {
             String role = claims.get("role", String.class);
             Long shopId = claims.get("shopId", Long.class);
 
-            log.debug("Refresh claims: uid={}, userId={}, role={}", uid, userId, role);
+//            log.debug("Refresh claims: uid={}, userId={}, role={}", uid, userId, role);
 
             // 토큰 정보 조립
             Map<String, Object> tokenClaims = new HashMap<>();

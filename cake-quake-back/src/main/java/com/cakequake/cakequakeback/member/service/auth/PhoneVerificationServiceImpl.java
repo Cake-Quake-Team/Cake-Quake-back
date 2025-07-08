@@ -47,7 +47,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
 
         String code = generateRandomCode(CODE_LENGTH);
         VerificationType type = requestDTO.getType();
-        log.debug("VerificationType: {}", type);
+//        log.debug("VerificationType: {}", type);
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plusMinutes(EXPIRES_MINUTES); // 만료 시간 계산
@@ -84,7 +84,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
             // 기존 인증 요청이 있을 경우
             PhoneVerification existing = verificationOpt.get();
 
-            log.debug("기존 요청 modDate: {}", existing.getModDate());
+//            log.debug("기존 요청 modDate: {}", existing.getModDate());
 
             // 인증번호 재전송 제한: 최근 요청이 1분 이내일 경우 차단
             if (existing.getModDate() != null &&
@@ -98,7 +98,7 @@ public class PhoneVerificationServiceImpl implements PhoneVerificationService {
             existing.changeCode(code, expiresAt);
             repository.save(existing);
 
-            log.debug("수정 후 modDate: {}", existing.getModDate());
+//            log.debug("수정 후 modDate: {}", existing.getModDate());
         } else {
             // 최초 인증 요청 저장
             PhoneVerification newVerification = PhoneVerification.builder()

@@ -27,7 +27,6 @@ public class SellerController {
     public ResponseEntity<ApiResponseDTO> getSellerProfile() {
 
         Long uid = authenticatedUserService.getCurrentMemberId(); // 로그인 한 유저의 uid
-        log.debug("---SellerController---getSellerProfile---uid: {}", uid);
 
         ApiResponseDTO response = sellerService.getSellerProfile(uid);
         return ResponseEntity.ok(response);
@@ -35,7 +34,6 @@ public class SellerController {
 
     @PatchMapping("/profile/{uid}")
     public ResponseEntity<ApiResponseDTO> modifySellerProfile(@PathVariable Long uid, @RequestBody SellerModifyDTO dto) {
-        log.debug("---SellerController---modifySellerProfile---uid: {}", uid);
 
         ApiResponseDTO response = sellerService.modifySellerProfile(uid, dto);
         return ResponseEntity.ok(response);

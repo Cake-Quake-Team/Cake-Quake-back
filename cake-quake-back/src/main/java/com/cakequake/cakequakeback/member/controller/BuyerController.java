@@ -28,7 +28,7 @@ public class BuyerController {
     public ResponseEntity<ApiResponseDTO> getBuyerProfile() {
 
         Long uid = authenticatedUserService.getCurrentMemberId(); // 로그인 한 유저의 uid
-        log.debug("---BuyerController---getSellerProfile---uid: {}", uid);
+//        log.debug("---BuyerController---getSellerProfile---uid: {}", uid);
 
         ApiResponseDTO response = buyerService.getBuyerProfile(uid);
         return ResponseEntity.ok(response);
@@ -36,7 +36,7 @@ public class BuyerController {
 
     @PatchMapping("/profile/{uid}")
     public ResponseEntity<ApiResponseDTO> modifyBuyerProfile(@PathVariable Long uid, @RequestBody BuyerModifyDTO dto) {
-        log.debug("---BuyerController---modifySellerProfile---uid: {}", uid);
+//        log.debug("---BuyerController---modifySellerProfile---uid: {}", uid);
 
         ApiResponseDTO response = buyerService.modifyBuyerProfile(uid, dto);
         return ResponseEntity.ok(response);
@@ -44,7 +44,7 @@ public class BuyerController {
 
     @PatchMapping("/profile/alarm/{uid}")
     public ResponseEntity<ApiResponseDTO> modifyBuyerAlarm(@PathVariable Long uid, @RequestBody AlarmSettingsDTO dto) {
-        log.debug("---BuyerController---modifyBuyerAlarm---uid: {}", uid);
+//        log.debug("---BuyerController---modifyBuyerAlarm---uid: {}", uid);
 
         ApiResponseDTO response = buyerService.modifyBuyerAlarm(uid, dto);
         return ResponseEntity.ok(response);
