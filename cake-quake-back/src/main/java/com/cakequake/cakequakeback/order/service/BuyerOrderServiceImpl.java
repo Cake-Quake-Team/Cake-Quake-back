@@ -302,7 +302,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
         // 사용자 포인트 차감 (changePoint 메서드 사용)
         if (usedPoints > 0) {
-            pointService.changePoint(member.getUid(), usedPoints.longValue(), "주문 결제 할인"); // 여기 -를 뺌, 포인트 반환 로직에서만 +로
+            pointService.changePoint(member.getUid(), -usedPoints.longValue(), "주문 결제 할인"); // 여기 -를 뺌, 포인트 반환 로직에서만 +로
         }
         // 사용자 포인트 차감 끝
 
