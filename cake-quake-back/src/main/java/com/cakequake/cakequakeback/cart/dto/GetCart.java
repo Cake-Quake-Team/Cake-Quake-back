@@ -2,7 +2,8 @@ package com.cakequake.cakequakeback.cart.dto;
 
 import java.util.List;
 
-import com.cakequake.cakequakeback.cart.entities.CartItem;
+import com.cakequake.cakequakeback.order.dto.buyer.CreateOrder;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,7 +34,7 @@ public class GetCart {
         private String thumbnailImageUrl;
         private Integer productCnt;
         private Long itemTotalPrice;
-        private String selectedOptions;
+        private List<CreateOrder.SelectedOptionDetail> selectedOptions;
 
     }
 

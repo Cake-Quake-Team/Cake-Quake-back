@@ -14,6 +14,7 @@ import com.cakequake.cakequakeback.common.exception.BusinessException;
 import com.cakequake.cakequakeback.common.exception.ErrorCode;
 import com.cakequake.cakequakeback.member.entities.Member;
 import com.cakequake.cakequakeback.member.repo.MemberRepository;
+import com.cakequake.cakequakeback.order.dto.buyer.CreateOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -114,7 +116,7 @@ public class CartServiceImpl implements CartService {
 
         Optional<CartItem> existingCartItemOpt = cartItemRepository.findByCart(cart).stream()
                 .filter(ci -> ci.getCakeItem().getCakeId().equals(request.getCakeItemId()))
-                // ⭐ [수수정] 람다 내에서 effectively final 변수 사용 ⭐
+                // ⭐ [수정] 람다 내에서 effectively final 변수 사용 ⭐
                 .filter(ci -> Objects.equals(ci.getSelectedOptions(), currentSelectedOptionsJson))
                 .findFirst();
 
@@ -181,17 +183,45 @@ public class CartServiceImpl implements CartService {
         List<CartItem> cartItemEntities = cartItemRepository.findByCart(cart);
 
         List<GetCart.ItemInfo> cartItemDtos = cartItemEntities.stream()
-                .map(entity -> GetCart.ItemInfo.builder()
-                        .cartItemId(entity.getCartItemId())
-                        .cakeId(entity.getCakeItem().getCakeId())
-                        .cname(entity.getCakeItem().getCname())
-                        .price(entity.getCakeItem().getPrice())
-                        .thumbnailImageUrl(entity.getCakeItem().getThumbnailImageUrl())
-                        .productCnt(entity.getProductCnt())
-                        .itemTotalPrice(entity.getItemTotalPrice())
-                        .shopId(entity.getCakeItem().getShop().getShopId())
-                        .selectedOptions(entity.getSelectedOptions())
-                        .build())
+                .map(entity -> {
+                    List<CreateOrder.SelectedOptionDetail> selectedOptionDetails = new ArrayList<>();
+                    String selectedOptionsJson = entity.getSelectedOptions(); // CartItem 엔티티에서 JSON 문자열 가져옴
+
+                    if (selectedOptionsJson != null && !selectedOptionsJson.isEmpty()) {
+                        try {
+                            // JSON 문자열을 List<AddCart.CartItemOption> 형태로 역직렬화 (저장 시 사용한 DTO)
+                            List<AddCart.CartItemOption> parsedOptions = objectMapper.readValue(selectedOptionsJson,
+                                    objectMapper.getTypeFactory().constructCollectionType(List.class, AddCart.CartItemOption.class));
+
+                            for (AddCart.CartItemOption option : parsedOptions) {
+                                // AddCart.CartItemOption DTO에는 이미 optionName과 optionPrice가 포함되어 있습니다.
+                                // CakeOptionMapping을 다시 조회할 필요 없이 이 정보를 사용합니다.
+                                selectedOptionDetails.add(CreateOrder.SelectedOptionDetail.builder()
+                                        .mappingId(option.getOptionItemId()) // optionItemId를 mappingId로 사용
+                                        .optionName(option.getOptionName()) // ⭐ 옵션 이름 설정! ⭐
+                                        .price(option.getOptionPrice()) // ⭐ 옵션 가격 설정! ⭐
+                                        .count(option.getOptionCnt())
+                                        .build());
+                            }
+                        } catch (JsonProcessingException e) {
+                            log.error("장바구니 아이템 옵션 JSON 파싱 실패 (cartItemId: {}): {}", entity.getCartItemId(), e.getMessage());
+                            // 파싱 실패 시 옵션 정보는 비워둠.
+                        }
+                    }
+
+                    // GetCart.ItemInfo DTO를 빌드하여 반환
+                    return GetCart.ItemInfo.builder()
+                            .cartItemId(entity.getCartItemId())
+                            .cakeId(entity.getCakeItem().getCakeId())
+                            .cname(entity.getCakeItem().getCname())
+                            .price(entity.getCakeItem().getPrice())
+                            .thumbnailImageUrl(entity.getCakeItem().getThumbnailImageUrl())
+                            .productCnt(entity.getProductCnt())
+                            .itemTotalPrice(entity.getItemTotalPrice()) // ⭐ 엔티티에서 계산된 itemTotalPrice를 그대로 사용 ⭐
+                            .shopId(entity.getCakeItem().getShop().getShopId())
+                            .selectedOptions(selectedOptionDetails) // 변환된 List<CreateOrder.SelectedOptionDetail> 설정
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return GetCart.Response.builder()

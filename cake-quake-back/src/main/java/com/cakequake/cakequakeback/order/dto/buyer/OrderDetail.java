@@ -39,6 +39,8 @@ public class OrderDetail {
         private Integer productCnt;       // 수량
         private Long price;               // 단가
         private String thumbnailImageUrl; // 썸네일 URL
-        private List<String> options;
+        //private List<String> options;
+        private List<CreateOrder.SelectedOptionDetail> selectedOptions;
+        private Long itemSubTotalPrice;
     }
 }

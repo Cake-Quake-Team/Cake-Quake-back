@@ -377,7 +377,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
     @Override
     public OrderDetail.Response getOrderDetail(String userId, Long orderId) {
-        // 1. CakeOrder 정보 조회: Member와 Shop을 FETCH JOIN으로 함께 가져와 N+1 방지
+        /// 1. CakeOrder 정보 조회: Member와 Shop을 FETCH JOIN으로 함께 가져와 N+1 방지
         // buyerOrderRepository에 findByOrderIdAndMemberUserIdWithMemberAndShop 메서드를 추가했다고 가정합니다.
         CakeOrder order = buyerOrderRepository
                 .findByOrderIdAndMemberUserIdWithMemberAndShop(orderId, userId) // 수정: 새로운 Repository 메서드 사용
@@ -416,13 +416,16 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
                     // OrderDetail.OrderDetailItem DTO의 options 필드는 List<String> 형태
                     // 옵션 이름을 포함한 문자열로 포맷팅합니다.
-                    List<String> formattedOptions = itemOptions.stream()
-                            .map(o -> {
-                                String optionName = o.getCakeOptionMapping().getOptionItem().getOptionName();
-                                Integer optionCnt = o.getOptionCnt();
-                                // 예: "생크림 추가 (1개)", "레터링: Happy (1개)"
-                                return optionCnt > 1 ? String.format("%s (%d개)", optionName, optionCnt) : optionName;
-                            })
+                    // ⭐ 이 부분을 수정합니다. ⭐
+                    List<CreateOrder.SelectedOptionDetail> selectedOptionDetails = itemOptions.stream()
+                            .map(oio -> CreateOrder.SelectedOptionDetail.builder()
+                                    .mappingId(oio.getCakeOptionMapping().getMappingId())
+                                    .optionName(oio.getCakeOptionMapping().getOptionItem().getOptionName())
+                                    .price(oio.getCakeOptionMapping().getOptionItem().getPrice())
+                                    .count(oio.getOptionCnt())
+                                    .optionType(oio.getCakeOptionMapping().getOptionItem().getOptionType() != null ?
+                                            oio.getCakeOptionMapping().getOptionItem().getOptionType().getOptionType() : null) // OptionType에 getType 이름을 가져오는 메서드가 있다고 가정
+                                    .build())
                             .collect(Collectors.toList());
 
                     return OrderDetail.OrderDetailItem.builder()
@@ -432,7 +435,8 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                             .productCnt(item.getQuantity())
                             .price(item.getUnitPrice().longValue())
                             .thumbnailImageUrl(item.getCakeItem().getThumbnailImageUrl())
-                            .options(formattedOptions) // 수정: 조합된 옵션 List<String> 설정
+                            .selectedOptions(selectedOptionDetails)
+                            .itemSubTotalPrice(item.getSubTotalPrice().longValue()) // 이 줄 추가
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -612,22 +616,25 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         Long price = cakeOrderItem.getUnitPrice() != null ? cakeOrderItem.getUnitPrice().longValue() : 0L;
         Integer count = cakeOrderItem.getQuantity();
 
-        Map<String, String> options = new HashMap<>();
-        for (CakeOrderItemOption oio : itemOptionsForThisOrderItem) { // 전달받은 옵션 리스트 사용
-            if (oio.getCakeOptionMapping() != null && oio.getCakeOptionMapping().getOptionItem() != null) {
-                options.put(
-                        oio.getCakeOptionMapping().getOptionItem().getOptionName(), // 수정: 옵션 이름을 키로 사용
-                        String.valueOf(oio.getOptionCnt()) // 옵션 수량을 값으로 사용
-                );
-            }
-        }
+        // ⭐ 수정: Map<String, String> 대신 List<CreateOrder.SelectedOptionDetail> 생성 ⭐
+        List<CreateOrder.SelectedOptionDetail> selectedOptionDetails = itemOptionsForThisOrderItem.stream()
+                .map(oio -> CreateOrder.SelectedOptionDetail.builder()
+                        .mappingId(oio.getCakeOptionMapping().getMappingId())
+                        .optionName(oio.getCakeOptionMapping().getOptionItem().getOptionName())
+                        .price(oio.getCakeOptionMapping().getOptionItem().getPrice())
+                        .count(oio.getOptionCnt())
+                        .optionType(oio.getCakeOptionMapping().getOptionItem().getOptionType() != null ?
+                                oio.getCakeOptionMapping().getOptionItem().getOptionType().getOptionType() : null)
+                        .build())
+                .collect(Collectors.toList());
 
         return OrderList.OrderItemOption.builder()
                 .cname(cname)
                 .thumbnailImageUrl(thumbnail)
                 .price(price)
                 .productCnt(count)
-                .options(options) // 수정: 올바르게 조합된 옵션 Map 설정
+                .selectedOptions(selectedOptionDetails) // 수정된 필드명으로 변경
+                .itemSubTotalPrice(cakeOrderItem.getSubTotalPrice().longValue())
                 .build();
     }
 }

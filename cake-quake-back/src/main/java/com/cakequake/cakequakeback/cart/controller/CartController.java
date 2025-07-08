@@ -39,8 +39,7 @@ public class CartController {
     public ResponseEntity<GetCart.Response> getCart(
             @AuthenticationPrincipal(expression = "member.userId") String userId
     ) {
-        log.info("getCart.............");
-        log.info("userId = {}", userId);
+
         return ResponseEntity.ok(cartService.getCart(userId));
     }
 
@@ -50,7 +49,6 @@ public class CartController {
             @AuthenticationPrincipal(expression = "member.userId") String userId,
             @RequestBody @Validated UpdateCartItem.Request requestDto
     ) {
-        log.info("userId = {}", userId);
         return ResponseEntity.ok(cartService.updateCartItem(userId, requestDto));
     }
 
@@ -70,7 +68,6 @@ public class CartController {
     public ResponseEntity<Void> deleteAllCartItems(
             @AuthenticationPrincipal(expression = "member.userId") String userId
     ) {
-        log.info("deleteAllCartItems for userId: {}", userId);
         cartService.deleteAllCartItems(userId);
         return ResponseEntity.noContent().build();
     }

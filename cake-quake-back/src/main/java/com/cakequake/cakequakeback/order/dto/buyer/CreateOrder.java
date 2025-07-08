@@ -107,4 +107,16 @@ public class CreateOrder {
         private String orderNote;
         private Long shopId;
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SelectedOptionDetail {
+        private Long mappingId;
+        private String optionName;
+        private Integer price;
+        private Integer count;
+        private String optionType; // ⭐ 이 필드를 추가합니다. ⭐
+    }
 }
