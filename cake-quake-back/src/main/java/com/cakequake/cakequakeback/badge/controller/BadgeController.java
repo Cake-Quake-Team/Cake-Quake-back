@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/buyers/{uid}/badges")
+@RequestMapping("/api/v1/buyers/{uid}/badges")
 @RequiredArgsConstructor
 @Log4j2
 public class BadgeController {

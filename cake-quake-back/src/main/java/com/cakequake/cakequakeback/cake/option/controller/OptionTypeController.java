@@ -14,7 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/shops/{shopId}/options/types")
+@RequestMapping("/api/v1/shops/{shopId}/options/types")
 @RequiredArgsConstructor
 public class OptionTypeController {
 
