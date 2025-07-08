@@ -17,6 +17,7 @@ public class ShopPreviewDTO {
     private String address;
     private BigDecimal rating;
     private String thumbnailUrl;
+    private Long sellerUid;
 
 
     public ShopPreviewDTO(Long shopId, String shopName, String address) {

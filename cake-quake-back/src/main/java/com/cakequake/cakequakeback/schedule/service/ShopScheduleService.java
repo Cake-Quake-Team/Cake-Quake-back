@@ -4,6 +4,7 @@ import com.cakequake.cakequakeback.order.entities.OrderStatus;
 import com.cakequake.cakequakeback.schedule.dto.ShopOperatingHoursDTO;
 import com.cakequake.cakequakeback.schedule.entities.ShopSchedule;
 import com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -14,7 +15,7 @@ public interface ShopScheduleService {
     List<Integer> parseCloseDays(String closeDaysString);
    List<LocalTime> getPossiblePickupTime(Long shopId);
     List<LocalTime> getAvailablePickupTimes(Long shopId, LocalDate date);
-    List<ShopScheduleDTO> getAvailableShops(LocalDate date, LocalTime time, boolean checkSlots);
+    Page<ShopScheduleDTO> getAvailableShops(LocalDate date, LocalTime time, boolean checkSlots,int page, int size);
 
 
     //주문 상태 변경 시 슬롯 조정
