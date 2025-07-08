@@ -23,7 +23,7 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
 
 
     //매장 목록
-    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating,s.thumbnailImageUrl) " +
+    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating,s.thumbnailImageUrl, s.member.uid) " +
             "FROM Shop s WHERE s.status = :status")
     Page<ShopPreviewDTO> findAll(@Param("status") ShopStatus status, Pageable pageable);
 
@@ -31,10 +31,10 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
             "s.shopId, s.shopName, s.address, s.rating, s.thumbnailImageUrl, " + // 기존 필드
             "s.openTime, s.closeTime, s.closeDays) " + // <<-- 이 필드들을 추가해야 합니다.
             "FROM Shop s WHERE s.status = :status")
-    List<ShopScheduleDTO> findShopPreviewDTOByStatus(@Param("status") ShopStatus status);
+    Page<ShopScheduleDTO> findShopPreviewDTOByStatus(@Param("status") ShopStatus status,Pageable pageable);
 
     //검색어, 필터, 상태 모두 고려
-    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating, s.thumbnailImageUrl) " +
+    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating, s.thumbnailImageUrl,s.member.uid) " +
             "FROM Shop s " +
             "WHERE (CASE WHEN :filterStatus IS NOT NULL THEN s.status = :filterStatus ELSE s.status = :baseStatus END) " +
             "AND (:keyword IS NULL OR s.shopName LIKE %:keyword% OR s.address LIKE %:keyword%) ")

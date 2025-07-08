@@ -15,6 +15,10 @@ import com.cakequake.cakequakeback.shop.repo.ShopRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -150,16 +154,18 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
         return availableTimes;
     }
     @Override
-    public List<ShopScheduleDTO> getAvailableShops(LocalDate date, LocalTime time, boolean checkSlots) {
+    public Page<ShopScheduleDTO> getAvailableShops(LocalDate date, LocalTime time, boolean checkSlots,int page, int size) {
         log.info("🏢 getAvailableShops 호출 (date: {}, time: {}, checkSlots: {})", date, time, checkSlots);
 
-        List<ShopScheduleDTO> activeShops = shopRepository.findShopPreviewDTOByStatus(ShopStatus.ACTIVE);
-        List<ShopScheduleDTO> availableShops = new ArrayList<>();
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<ShopScheduleDTO> activeShopsPage = shopRepository.findShopPreviewDTOByStatus(ShopStatus.ACTIVE, pageable);
+        List<ShopScheduleDTO> filteredShops = new ArrayList<>();
 
         int dayOfWeek = date.getDayOfWeek().getValue();
         LocalTime timeToCheck = (time != null) ? time : LocalTime.now();
 
-        for (ShopScheduleDTO shopDto : activeShops) {
+        for (ShopScheduleDTO shopDto : activeShopsPage.getContent()) { // 현재 페이지의 매장만 필터링
             try {
                 List<Integer> closeDays = parseCloseDays(shopDto.getCloseDays());
                 if (closeDays.contains(dayOfWeek)) continue;
@@ -180,14 +186,13 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
 
                     Optional<ShopSchedule> scheduleOpt = shopScheduleRepository.findByShop_ShopIdAndScheduleDateTime(shopDto.getShopId(), scheduleDateTime);
 
-                    // 🔑 엔티티의 isReservable 메서드로 예약 가능 여부 판단
                     boolean hasAvailableSlots = scheduleOpt.map(ShopSchedule::isReservable)
-                            .orElse(true); // 스케줄 없으면 예약 가능으로 처리 (기본 슬롯 있음)
+                            .orElse(true);
 
                     if (!hasAvailableSlots) continue;
                 }
 
-                availableShops.add(shopDto);
+                filteredShops.add(shopDto);
 
             } catch (DateTimeParseException e) {
                 log.error("❌ 영업시간/휴무일 파싱 오류: shopId: {}, 오류: {}", shopDto.getShopId(), e.getMessage());
@@ -195,9 +200,9 @@ public class ShopScheduleServiceImpl implements ShopScheduleService {
                 log.error("❌ 매장 처리 오류: shopId: {}, 오류: {}", shopDto.getShopId(), e.getMessage());
             }
         }
+        log.info("✅ 현재 페이지에서 필터링된 예약 가능한 매장 수: {}", filteredShops.size());
 
-        log.info("✅ 예약 가능한 매장 수: {}", availableShops.size());
-        return availableShops;
+        return new PageImpl<>(filteredShops, activeShopsPage.getPageable(), activeShopsPage.getTotalElements());
     }
 
     // ⭐ 새로 추가할 메서드 시작 ⭐

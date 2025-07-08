@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,7 +36,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 
-public class    ShopServiceImpl implements ShopService {
+public class ShopServiceImpl implements ShopService {
     private final ShopRepository shopRepository;
     private final ShopNoticeRepository shopNoticeRepository;
     private final CakeItemService cakeItemService;
@@ -132,7 +133,17 @@ public class    ShopServiceImpl implements ShopService {
     @Override
     public InfiniteScrollResponseDTO<ShopPreviewDTO> getShops(  int page,int size,ShopStatus status,
                                                                 String keyword,String filter, String sort) {
-        Sort sorting = Sort.by(sort);
+        Sort sorting;
+        if (sort != null && sort.contains(",")) {
+            String[] sortParts = sort.split(",");
+            String property = sortParts[0];
+            Sort.Direction direction = Sort.Direction.fromString(sortParts[1].toUpperCase());
+            sorting = JpaSort.unsafe(direction, property); // ⭐ JpaSort.unsafe 사용
+        } else {
+            // 기본 정렬 (shopId, ASC)
+            sorting = JpaSort.unsafe(Sort.Direction.ASC, "shopId"); // ⭐ 기본값도 JpaSort.unsafe 사용
+        }
+
         Pageable pageable = PageRequest.of(page, size, sorting);
 
         Page<ShopPreviewDTO> resultPage;
