@@ -9,7 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/admin/review-deletion-request")
+@RequestMapping("/api/v1/admin/review-deletion-request")
 @RequiredArgsConstructor
 @Log4j2
 public class AdminReviewController {

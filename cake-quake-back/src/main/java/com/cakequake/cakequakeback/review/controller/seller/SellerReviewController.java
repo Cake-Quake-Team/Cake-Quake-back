@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/shops/{shopId}/reviews")
+@RequestMapping("/api/v1/shops/{shopId}/reviews")
 @RequiredArgsConstructor
 public class SellerReviewController {
     private final SellerReviewService sellerReviewService;
