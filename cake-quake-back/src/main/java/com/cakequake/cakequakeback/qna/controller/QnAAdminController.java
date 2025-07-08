@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/admin/qna")
+@RequestMapping("/api/v1/admin/qna")
 @RequiredArgsConstructor
 public class QnAAdminController {
     private final QnAService qnaService;
