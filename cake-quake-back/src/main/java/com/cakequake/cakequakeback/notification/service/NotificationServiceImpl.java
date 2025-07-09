@@ -86,7 +86,6 @@ public class NotificationServiceImpl implements NotificationService {
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
 
         // 30일보다 오래된 알림 삭제
-        int deletedCount = notificationRepository.deleteByRegDateBefore(thirtyDaysAgo);
-        System.out.println("DEBUG: " + deletedCount + "개의 오래된 알림이 삭제되었습니다. (기준 시간: " + thirtyDaysAgo + ")");
+        notificationRepository.deleteByRegDateBefore(thirtyDaysAgo);
     }
 }

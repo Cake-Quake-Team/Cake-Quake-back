@@ -24,7 +24,6 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Log4j2
 public class OptionTypeServiceImpl implements OptionTypeService {
 
     private final OptionTypeRepository optionTypeRepository;
@@ -65,8 +64,6 @@ public class OptionTypeServiceImpl implements OptionTypeService {
                 .build();
 
         OptionType savedOptionType = optionTypeRepository.save(optionType);
-
-        log.info("옵션 타입이 등록되었습니다. 옵션타입 : " + optionType.getOptionType());
 
         return savedOptionType.getOptionTypeId();
     }

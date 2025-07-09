@@ -26,7 +26,6 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Log4j2
 @ToString
 public class OptionItemServiceImpl implements OptionItemService {
 
@@ -67,8 +66,6 @@ public class OptionItemServiceImpl implements OptionItemService {
                 .build();
 
         optionItemRepository.save(optionItem);
-
-        log.info("옵션 값이 등록되었습니다. 옵션명: " + optionItem.getOptionName());
 
         return optionItem.getOptionItemId();
     }
