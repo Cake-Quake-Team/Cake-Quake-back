@@ -44,7 +44,6 @@ public class PickupReminderSchedulingServiceImpl implements PickupReminderSchedu
                 .build();
 
         pickupNotificationRepository.save(scheduledNotification);
-        System.out.println("[Scheduler] 픽업 알림 DB 스케줄링 완료: 주문 ID " + order.getOrderId() + ", 알림 예정 시간: " + notificationDateTime);
     }
 
     @Scheduled(fixedRate = 60000) // 1분 (60000 밀리초)마다 실행
@@ -61,8 +60,6 @@ public class PickupReminderSchedulingServiceImpl implements PickupReminderSchedu
             return;
         }
 
-        System.out.println("[Scheduler] " + notificationsToProcess.size() + "개의 예약 알림 처리 시작...");
-
         for (PickupNotification notification : notificationsToProcess) {
             try {
                 // 알림 발송 로직
@@ -74,14 +71,10 @@ public class PickupReminderSchedulingServiceImpl implements PickupReminderSchedu
                 );
                 notification.markAsSent(); // 발송 완료 상태로 변경
                 pickupNotificationRepository.save(notification); // DB 업데이트
-                System.out.println("[Scheduler] 픽업 알림 발송 완료: 주문 ID " + notification.getOrder().getOrderId() +
-                        ", 구매자 UID " + notification.getMember().getUid() +
-                        ", 예정 시간: " + notification.getScheduledSendTime());
             } catch (Exception e) {
                 System.err.println("[Scheduler] 픽업 알림 발송 실패: 주문 ID " + notification.getOrder().getOrderId() +
                         ", 에러: " + e.getMessage());
             }
         }
-        System.out.println("[Scheduler] 예약 알림 처리 완료.");
     }
 }

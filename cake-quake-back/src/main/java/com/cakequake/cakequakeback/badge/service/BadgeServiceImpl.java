@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@Log4j2
 public class BadgeServiceImpl implements BadgeService {
 
     private final BadgeRepository badgeRepository;
@@ -56,7 +55,6 @@ public class BadgeServiceImpl implements BadgeService {
         // Map의 키는 뱃지 ID, 값은 해당 BadgeCondition 객체가 됩니다.
         this.badgeConditionsMap = badgeConditions.stream()
                 .collect(Collectors.toMap(BadgeCondition::getBadgeId, Function.identity()));
-        log.info("초기화된 뱃지 조건 개수: {}", this.badgeConditionsMap.size());
     }
 
     @Override
@@ -124,14 +122,12 @@ public class BadgeServiceImpl implements BadgeService {
         // 이미 뱃지를 획득했는지 먼저 확인
         boolean alreadyAcquired = memberBadgeRepository.existsByMemberUidAndBadgeBadgeId(uid, badgeToAward.getBadgeId());
         if (alreadyAcquired) {
-            log.debug("회원 UID {} 는 이미 뱃지 '{}'(ID: {})를 획득했습니다. 건너뜁니다.", uid, badgeToAward.getName(), badgeId);
             return;
         }
 
         // 뱃지 획득 조건 컴포넌트 가져오기
         BadgeCondition condition = badgeConditionsMap.get(badgeId);
         if (condition == null) {
-            log.warn("뱃지 ID '{}'에 대한 획득 조건 정의를 찾을 수 없습니다. 부여 과정을 건너뜁니다.", badgeId);
             return;
         }
 
@@ -145,7 +141,6 @@ public class BadgeServiceImpl implements BadgeService {
                     .build();
             memberBadgeRepository.save(newMemberBadge);
         } else {
-            log.debug("회원 UID {} 가 뱃지 '{}'(ID: {}) 획득 조건 미충족.", uid, badgeToAward.getName(), badgeId);
         }
     }
 
@@ -167,7 +162,6 @@ public class BadgeServiceImpl implements BadgeService {
 
             // 이미 획득한 뱃지인지 확인 (중복 부여 방지)
             if (acquiredBadgeIds.contains(badgeId)) {
-                log.debug("회원 UID {} 는 뱃지 ID {}를 이미 획득했습니다. 건너뜀.", uid, badgeId);
                 continue;
             }
 
@@ -186,8 +180,6 @@ public class BadgeServiceImpl implements BadgeService {
                         .isRepresentative(false)
                         .build();
                 memberBadgeRepository.save(newBadge);
-            } else {
-                log.debug("회원 UID {} 가 뱃지 ID {} 획득 조건 미충족.", uid, badgeId);
             }
         }
     }

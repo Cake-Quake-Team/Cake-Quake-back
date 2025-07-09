@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Log4j2
 public class CakeItemServiceImpl implements CakeItemService {
 
     private final CakeItemRepository cakeItemRepository;
@@ -53,12 +52,10 @@ public class CakeItemServiceImpl implements CakeItemService {
     // 현재 로그인한 사용자의 shopId를 가져오는 메서드
     private Long getCurrentUserShopId() {
         Long currentUid = authenticatedUserService.getCurrentMemberId();
-        log.info("현재 로그인된 사용자 UID: {}", currentUid); // 로그 추가
 
         ShopPreviewDTO shopPreview = shopRepository.findPreviewByUid(currentUid)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_SHOP_ID));
 
-        log.info("현재 사용자에게 연결된 Shop ID: {}", shopPreview.getShopId()); // 로그 추가
         return shopPreview.getShopId();
     }
 
@@ -122,8 +119,6 @@ public class CakeItemServiceImpl implements CakeItemService {
             CakeOptionItemDTO dto = CakeOptionItemDTO.fromEntity(optionItem);
             optionItemDTOS.add(dto);
         }
-
-        log.info("상품이 등록되었습니다. cakeId: {}", savedCakeItem.getCakeId());
 
         return MappingResponseDTO.builder()
                 .cakeDetailDTO(CakeDetailDTO.from(savedCakeItem, savedImages.getImageDTOs()))
