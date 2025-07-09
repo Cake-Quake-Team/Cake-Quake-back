@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/temperature")
+@RequestMapping("/api/v1/temperature")
 
 public class TemperatureController {
     private final TemperatureService temperatureService;
