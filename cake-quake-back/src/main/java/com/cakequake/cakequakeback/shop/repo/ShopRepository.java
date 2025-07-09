@@ -23,9 +23,21 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
 
 
     //매장 목록
-    @Query("SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(s.shopId, s.shopName, s.address, s.rating,s.thumbnailImageUrl, s.member.uid) " +
-            "FROM Shop s WHERE s.status = :status")
+    @Query("""
+SELECT new com.cakequake.cakequakeback.shop.dto.ShopPreviewDTO(
+    s.shopId,
+    s.shopName,
+    s.address,
+    s.rating,
+    si.shopImageUrl,
+    s.member.uid
+)
+FROM Shop s
+LEFT JOIN ShopImage si ON si.shop.shopId = s.shopId AND si.isThumbnail = true
+WHERE s.status = :status
+""")
     Page<ShopPreviewDTO> findAll(@Param("status") ShopStatus status, Pageable pageable);
+
 
     @Query("SELECT new com.cakequake.cakequakeback.schedule.dto.ShopScheduleDTO(" +
             "s.shopId, s.shopName, s.address, s.rating, s.thumbnailImageUrl, " + // 기존 필드
