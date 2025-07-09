@@ -34,7 +34,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:5173", "http://localhost:5174",
                         "http://localhost:8080","http://localhost:80",
-                        "http://localhost:3000"
+                        "http://localhost:3000", "https://cakequake.cakequake.click/api/v1",
+                        "https://cakequake.click","http://cakequake.click", "http://cakequake.cakequake.click/api/v1"
                 )
                 .addInterceptors(jwtHandshakeInterceptor);  // 👉 여기 추가
 
