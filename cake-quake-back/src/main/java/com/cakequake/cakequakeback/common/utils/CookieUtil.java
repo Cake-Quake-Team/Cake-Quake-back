@@ -22,10 +22,9 @@ public class CookieUtil {
     public void addAccessTokenCookie(HttpServletResponse response, String token) {
         ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_NAME, token)
                 .httpOnly(true)
-//                .secure(true)      // HTTPS 사용 시 true
-                .secure(false)
+                .secure(true)      // HTTPS 사용 시 true
                 .path("/")
-//                .sameSite("None") // HTTPS
+                .sameSite("None") // HTTPS
                 .sameSite("Lax")    // 크로스 사이트 POST 요청 불가
                 .maxAge(Duration.ofMinutes(5))  // 유효기간 5분
                 .build();
@@ -37,10 +36,9 @@ public class CookieUtil {
     public void addRefreshTokenCookie(HttpServletResponse response, String token) {
         ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_NAME, token)
                 .httpOnly(true)
-//                .secure(true)     // HTTPS
-                .secure(false)
+                .secure(true)     // HTTPS
                 .path("/")
-//                .sameSite("None")     // HTTPS
+                .sameSite("None")     // HTTPS
                 .sameSite("Lax")        // 크로스 사이트 POST 요청 불가
                 .maxAge(Duration.ofDays(7))  // 유효기간 7일
                 .build();
@@ -70,9 +68,9 @@ public class CookieUtil {
     public void clearCookie(HttpServletResponse response, String name) {
         ResponseCookie cookie = ResponseCookie.from(name, "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)     // HTTPS
                 .path("/")
-//                .sameSite("None")
+                .sameSite("None")
                 .sameSite("Lax")
                 .maxAge(0)  // 삭제
                 .build();

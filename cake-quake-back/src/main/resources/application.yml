@@ -1,3 +1,6 @@
+server:
+  port: 5000
+
 procurement:
   cutoff-hour: 11    # 컷오프 시각 (시(hour) 단위)
   transit-days: 1    # 배송 소요일수 (연속일)
@@ -12,7 +15,7 @@ spring:
     import: optional:file:external-db.yml
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT}/${DB_NAME}
+    url: ${DB_URL}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER}
     password: ${DB_PASS}
@@ -69,9 +72,8 @@ spring:
       secret-key: ${TOSS_SECRET_KEY}   # 환경 변수에서 읽어오는 토스페이 Secret Key
 
   app:
-    base-url: http://localhost:8080  # 우리 서비스(앱) 기본 URL, ngrok 혹은 실제 도메인
-    front-url: http://localhost:5173
-    # 예시: https://abc123.ngrok.io
+    base-url: https://cakequake.cakequake.click/api/v1  # 우리 서비스(앱) 기본 URL, ngrok 혹은 실제 도메인
+    front-url: https://cakequake.click
 
 jwt:
   secret: ${JWT_SECRET}
@@ -85,6 +87,8 @@ logging:
     com.cakequake.cakequakeback.security: DEBUG
     com.cakequake.cakequakeback.chatting : DEBUG
     org.springframework.security: TRACE
+  file:
+    encoding: UTF-8
 
 cloud:
   aws:
