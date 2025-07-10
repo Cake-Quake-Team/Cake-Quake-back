@@ -80,7 +80,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
                 amazonS3.putObject(bucketName, key, file.getInputStream(), metadata);
 
-                pictureUrl = amazonS3.getUrl(bucketName, key).toString();
+                pictureUrl = key;
             } catch (Exception e) {
                 throw new BusinessException(ErrorCode.IMAGE_GENERATION_FAILED);
             }
@@ -178,7 +178,7 @@ public class BuyerReviewServiceImpl implements BuyerReviewService {
 
                 amazonS3.putObject(bucketName, key, file.getInputStream(), metadata);
 
-                String pictureUrl = amazonS3.getUrl(bucketName, key).toString();
+                String pictureUrl = key;
                 review.updateReviewPictureUrl(pictureUrl);
             } catch (Exception e) {
                 throw new BusinessException(ErrorCode.IMAGE_GENERATION_FAILED);
