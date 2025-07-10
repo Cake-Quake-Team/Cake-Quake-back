@@ -25,7 +25,6 @@ public class CookieUtil {
                 .secure(true)      // HTTPS 사용 시 true
                 .path("/")
                 .sameSite("None") // HTTPS
-                .sameSite("Lax")    // 크로스 사이트 POST 요청 불가
                 .maxAge(Duration.ofMinutes(5))  // 유효기간 5분
                 .build();
 
@@ -39,7 +38,6 @@ public class CookieUtil {
                 .secure(true)     // HTTPS
                 .path("/")
                 .sameSite("None")     // HTTPS
-                .sameSite("Lax")        // 크로스 사이트 POST 요청 불가
                 .maxAge(Duration.ofDays(7))  // 유효기간 7일
                 .build();
 
@@ -71,7 +69,6 @@ public class CookieUtil {
                 .secure(true)     // HTTPS
                 .path("/")
                 .sameSite("None")
-                .sameSite("Lax")
                 .maxAge(0)  // 삭제
                 .build();
 
